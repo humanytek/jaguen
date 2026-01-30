@@ -1,0 +1,4 @@
+[submodule "humanytek-team/jaguen_invoice_pdf"]
+	path = humanytek-team/jaguen_invoice_pdf
+	url = git@github.com:humanytek-team/jaguen_invoice_pdf.git
+	branch = 18.0
