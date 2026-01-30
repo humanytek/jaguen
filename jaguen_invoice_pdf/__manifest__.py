@@ -1,6 +1,6 @@
 {
     "name": "Jaguen Invoice PDF",
-    "version": "0.1.0",
+    "version": "0.1.18",
     "author": "Humanytek",
     "license": "LGPL-3",
     "depends": [
@@ -8,7 +8,8 @@
         "sale",
         "sale_stock",
         "l10n_mx_edi",
-        "l10n_mx_edi_40",
+        "account_edi",
+        # "l10n_mx_edi_40",
     ],
     "data": [
         # security
