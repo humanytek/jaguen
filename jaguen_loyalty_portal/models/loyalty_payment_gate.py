@@ -98,7 +98,22 @@ class LoyaltyCard(models.Model):
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    def _jaguen_serialize_by_company(self):
+        """Pedidos de una misma empresa se confirman de uno en uno.
+
+        Si dos compradores de la misma empresa confirman al mismo instante,
+        cada transaccion ve el estado de antes de la otra: las dos otorgan el
+        mismo vale de "Mi Primer Pedido de $X" (prueba oct/2026: 3 pedidos
+        simultaneos de $12,000 daban 3 vales de $10,000 en vez de 5,000 y
+        10,000). Al "tocar" la fila de la empresa, la segunda transaccion
+        espera a la primera y Odoo la reintenta ya viendo sus resultados."""
+        partner_ids = sorted(set(self.mapped('partner_id.commercial_partner_id').ids))
+        for partner_id in partner_ids:
+            self.env.cr.execute(
+                "UPDATE res_partner SET write_date = write_date WHERE id = %s", [partner_id])
+
     def action_confirm(self):
+        self._jaguen_serialize_by_company()
         # Odoo nativo hace su cálculo normal primero (sale_loyalty suma
         # coupon.points += change dentro de este mismo action_confirm,
         # vía super() más abajo en la cadena de herencia de Odoo). Lo
@@ -447,10 +462,17 @@ class AccountMove(models.Model):
                     if to_release <= 0:
                         continue
                     card = pe.card_id
+                    accepted = card._jaguen_is_accepted()
                     vals = {'x_puntos_pendientes': max(0.0, card.x_puntos_pendientes - to_release)}
-                    if card._jaguen_is_accepted():
+                    if accepted:
                         vals['points'] = card.points + to_release
-                    # Si no acepto los Terminos al momento de pagar, esos
-                    # puntos no se acreditan (se dan por liberados en vacio).
                     card.sudo().write(vals)
-                    pe.points_released += to_release
+                    if accepted:
+                        pe.points_released += to_release
+                    else:
+                        # No acepto los Terminos al momento de pagar: esos
+                        # puntos se anulan. Se quitan del TOTAL del pedido
+                        # (no cuentan como liberados) para que una nota de
+                        # credito posterior sepa que este pedido nunca los
+                        # dio y no reste puntos que el cliente no tiene.
+                        pe.points_total -= to_release
