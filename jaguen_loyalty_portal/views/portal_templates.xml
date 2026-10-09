@@ -110,6 +110,12 @@
                     <li><b>Rebate Anual</b> — Nota de Crédito a tu empresa al cumplir tus objetivos de compra anuales.</li>
                 </ul>
                 <p>
+                    Los puntos se acreditan una vez que Jaguen recibe tu pago y lo concilia con
+                    el banco; la conciliación se realiza periódicamente, por lo que tus puntos
+                    pueden reflejarse durante el mes siguiente a tu pago. Los montos son antes
+                    de IVA, y solo acumulas puntos de las compras hechas después de aceptar.
+                </p>
+                <p>
                     Antes de mostrarte tu progreso, necesitamos que nos confirmes cuáles aplican
                     para ti — abajo te explicamos cada casilla, y aquí puedes leer los
                     <a href="/my/loyalty/terminos/completos" target="_blank" rel="noopener">términos y condiciones</a>
@@ -202,17 +208,41 @@
 
                 <h5 class="mt-4">2. Mecánica de Los Programas</h5>
                 <p>
-                    Los puntos, montos y niveles de compra de "Los Programas" se habilitan y
-                    aparecen reflejados en la cuenta del Cliente en "El Portal" hasta que la
-                    factura correspondiente a esa compra esté pagada en su totalidad. Un pedido
-                    confirmado pero facturado y/o pagado solo parcialmente no otorga todavía el
-                    beneficio o avance correspondiente a la parte no pagada; conforme cada factura
-                    se liquida, el avance se va reflejando en la proporción correspondiente.
+                    <b>2.1 Acreditación de puntos y avances.</b> Los puntos, montos, niveles de
+                    compra y demás avances de "Los Programas" se acreditan en la cuenta del
+                    Cliente en "El Portal" únicamente cuando se cumplan, en conjunto, las
+                    siguientes condiciones:
+                </p>
+                <ul>
+                    <li>Jaguen haya recibido el pago de la factura correspondiente a la compra, en su totalidad; y</li>
+                    <li>dicho pago haya sido conciliado por Jaguen contra su estado de cuenta bancario.</li>
+                </ul>
+                <p>
+                    La conciliación bancaria se realiza de manera periódica, conforme al cierre
+                    contable de Jaguen, por lo que la acreditación puede reflejarse en "El
+                    Portal" durante el mes siguiente a aquel en que el Cliente realizó su pago.
+                    Un pedido confirmado, una factura emitida, o un pago registrado que aún no
+                    haya sido conciliado, no generan puntos ni avance alguno.
+                </p>
+                <p>
+                    Cuando un pedido se factura y/o se paga solo parcialmente, el avance se
+                    acredita en la proporción correspondiente a cada factura pagada y conciliada,
+                    y no se otorga por la parte pendiente. Los beneficios de un solo evento (como
+                    "Mi Primer Pedido") se acreditan hasta que el pedido completo haya sido
+                    pagado y conciliado.
+                </p>
+                <p>
+                    <b>2.2 Montos.</b> Todos los montos de compra señalados en "Los Programas"
+                    se entienden antes de IVA (es decir, la cantidad indicada más IVA).
                 </p>
                 <p>
                     (a) <b>JAGUEN Starter:</b> durante su periodo de incorporación como cliente
-                    nuevo de Jaguen, el Cliente acumula Regalos Promocionales conforme su compra
-                    acumulada alcanza distintos niveles. Los niveles, montos y regalos vigentes se
+                    nuevo de Jaguen, el Cliente acumula puntos conforme su compra acumulada alcanza
+                    distintos niveles. Al alcanzar un nivel, el Cliente podrá canjear sus puntos por
+                    un Regalo Promocional a escoger entre dos opciones; al canjear, se descuentan de
+                    su saldo los puntos correspondientes a ese nivel. El Cliente no está obligado a
+                    canjear: puede conservar sus puntos y seguir acumulando para canjearlos después
+                    por un premio de mayor nivel. Los niveles, montos y regalos vigentes se
                     muestran en "El Portal", en la sección "Mis Puntos".
                 </p>
                 <p>
@@ -220,8 +250,14 @@
                     pedido individual alcanza ciertos montos mínimos — tanto en general ("Mi
                     Primer Pedido de $X") como dentro de
                     cada línea de producto que maneja Jaguen ("Mi Primer Pedido por Línea"). Cada
-                    nivel se otorga una sola vez por Cliente. Los montos y recompensas vigentes se
-                    muestran en "El Portal".
+                    nivel se otorga una sola vez por Cliente. En cada pedido se otorga únicamente
+                    el nivel más alto de "Mi Primer Pedido de $X" que el pedido alcance y que el
+                    Cliente aún no haya recibido; los niveles menores quedan disponibles para sus
+                    pedidos posteriores. Cada nivel de "Mi Primer Pedido de $X" otorga un Regalo
+                    Promocional a escoger entre dos opciones; no genera puntos acumulables, y el
+                    premio permanece disponible hasta que el Cliente lo seleccione. "Mi Primer
+                    Pedido por Línea" se evalúa por separado: cada línea de producto que alcance
+                    su monto en el pedido otorga su propio beneficio (Vale de Gasolina). Los montos y recompensas vigentes se muestran en "El Portal".
                 </p>
                 <p>
                     (c) <b>Rebate Anual:</b> a partir de cierto tiempo de actividad del Cliente,
@@ -257,6 +293,14 @@
                     (b) <b>Rebate Anual:</b> aplica a la nota de crédito a la cuenta del Cliente
                     por volumen de compra y comportamiento de pago, evaluada anualmente. Es
                     independiente de la aceptación señalada en el inciso anterior.
+                </p>
+                <p>
+                    La aceptación es lo que habilita la participación en el programa
+                    correspondiente. Las compras realizadas antes de que el Cliente acepte no
+                    generan puntos ni avance, y mientras el Cliente no tenga la aceptación
+                    vigente no podrá acumular ni reclamar beneficios de ese programa. Los puntos
+                    ya acreditados se conservan y se muestran nuevamente si el Cliente vuelve a
+                    aceptar.
                 </p>
                 <p>
                     El Cliente podrá modificar su aceptación en cualquier momento desde "El
@@ -320,7 +364,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.5)</p>
             </div>
         </t>
     </template>

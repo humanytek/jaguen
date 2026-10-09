@@ -32,6 +32,20 @@ class SaleOrder(models.Model):
             points = coupon.currency_id.round(points - own)
         return points
 
+    # -- 1b) Un regalo por canje -------------------------------------------
+    def _get_reward_values_product(self, reward, coupon, product=None, **kwargs):
+        """Odoo entrega tantas unidades del regalo como alcancen los puntos
+        (puntos / puntos del premio, redondeado hacia abajo): con 30,000
+        puntos y un premio de 10,000 pondria 3 regalos y gastaria los 30,000.
+        En Starter y Mi Primer Pedido cada canje es UN regalo y solo cuesta
+        los puntos de ese nivel (el cliente puede conservar el resto)."""
+        values = super()._get_reward_values_product(reward, coupon, product=product, **kwargs)
+        if reward.program_id.x_jaguen_loyalty_group in ('onboarding', 'pedido_monto'):
+            for vals in values:
+                vals['product_uom_qty'] = reward.reward_product_qty or 1
+                vals['points_cost'] = reward.required_points
+        return values
+
     # -- 2) Nada de regalos JAGUEN en la tienda en linea -------------------
     def _jaguen_hide_website_rewards(self, result):
         if self.website_id:

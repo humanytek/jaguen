@@ -55,8 +55,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
             return reward.description or _('Recompensa')
         if reward.reward_type == 'product':
             if reward.multi_product and reward.reward_product_ids:
-                names = ', '.join(reward.reward_product_ids.mapped('name'))
-                return _('Elige tu regalo: %s') % names
+                names = ' o '.join(n.split(' - ', 1)[-1] for n in reward.reward_product_ids.mapped('name'))
+                return _('Escoge: %s') % names
             product = reward.reward_product_id
             if product:
                 qty = reward.reward_product_qty or 1
@@ -315,7 +315,9 @@ class JaguenLoyaltyPortal(CustomerPortal):
             'page_subtitle': _(
                 'No tiene que ser literalmente tu primer pedido: es la '
                 'primera vez que uno de tus pedidos alcance cada uno de '
-                'estos montos. Cada tramo se desbloquea una sola vez.'
+                'estos montos. Cada tramo se desbloquea una sola vez. En cada pedido '
+                'se desbloquea únicamente el tramo más alto que alcances y que aún '
+                'no tengas; los demás se desbloquean en tus siguientes pedidos.'
             ),
             'back_url': '/my/loyalty',
             'checklist': self._jaguen_get_checklist_data('pedido_monto'),

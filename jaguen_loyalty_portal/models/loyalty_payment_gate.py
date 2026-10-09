@@ -105,8 +105,42 @@ class SaleOrder(models.Model):
         # dejamos intacto - nunca lo reemplazamos.
         res = super().action_confirm()
         for order in self:
+            order._jaguen_keep_only_highest_monto_tier()
             order._jaguen_freeze_new_loyalty_points()
         return res
+
+    def _jaguen_keep_only_highest_monto_tier(self):
+        """"Mi Primer Pedido de $X": cada pedido otorga UN solo vale, el mas
+        alto que alcanza y que la empresa todavia no tiene (regla de negocio,
+        oct/2026: un pedido de $60,000 no debe activar todos los vales de
+        $5,000 a $50,000; 1er pedido de $60,000 -> el de $50,000, 2o pedido
+        de $60,000 -> el de $45,000, etc.).
+
+        Odoo crea una tarjeta (vale) por cada programa cuyo minimo alcanza el
+        pedido. Las tarjetas de niveles que la empresa YA tiene las archiva la
+        guardia 'solo 1 vez por cliente' al crearse, asi que aqui las
+        candidatas son las tarjetas ACTIVAS del pedido. De ellas se conserva
+        la de mayor minimo y se eliminan las demas, para que esos niveles
+        sigan disponibles en pedidos posteriores (si se dejaran, la guardia
+        los contaria como ya otorgados)."""
+        self.ensure_one()
+        entries = self.coupon_point_ids.sudo().filtered(
+            lambda e: e.points > 0
+            and e.coupon_id.active
+            and e.coupon_id.program_id.x_jaguen_loyalty_group == 'pedido_monto'
+        )
+        if len(entries) <= 1:
+            return
+
+        def _tier(entry):
+            rule = entry.coupon_id.program_id.rule_ids[:1]
+            return rule.minimum_amount if rule else 0.0
+
+        keep = max(entries, key=_tier)
+        discard = entries - keep
+        cards = discard.mapped('coupon_id')
+        discard.unlink()
+        cards.sudo().unlink()
 
     def _action_cancel(self):
         # IMPORTANTE (bug encontrado en pruebas, oct/2026): sale_loyalty
