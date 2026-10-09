@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ========================================================================= -->
+    <!-- Rebate Anual por ejercicio (oct/2026): un programa de lealtad nuevo e      -->
+    <!-- independiente por cada año calendario, en vez de un solo "Rebate Anual"   -->
+    <!-- corrido sin fecha de corte (program_rebate_anual, en loyalty_data.xml,    -->
+    <!-- se deja como estaba por compatibilidad con datos ya probados en staging, -->
+    <!-- pero deja de usarse en producción a partir de aquí).                     -->
+    <!--                                                                           -->
+    <!-- Por qué un programa nuevo por año y no un solo acumulado corrido:        -->
+    <!-- - loyalty.card (el acumulado de puntos) es por programa, no por "año" -   -->
+    <!--   Odoo no tiene un mecanismo nativo de "reiniciar el acumulado cada 1 de  -->
+    <!--   enero" dentro de un mismo programa.                                    -->
+    <!-- - Con un programa por año, el acumulado de cada cliente en Rebate Anual  -->
+    <!--   2027 es trazable para siempre con solo ver su tarjeta de ESE programa, -->
+    <!--   sin tener que reconstruirlo filtrando pagos por fecha.                 -->
+    <!-- - Una venta de noviembre/2027 que se cobra hasta marzo/2028 (factura     -->
+    <!--   cancelada y refacturada al cambio de año, caso real de JAGUEN con      -->
+    <!--   gobierno/dependencias) sigue abonando al acumulado de 2027 (el pedido  -->
+    <!--   se confirmó en 2027, así que su candado de puntos pendientes está      -->
+    <!--   ligado a la tarjeta del programa 2027), sin importar cuándo se pague.  -->
+    <!--                                                                           -->
+    <!-- IMPORTANTE - solo UN programa de este grupo debe tener portal_visible=   -->
+    <!-- True a la vez (el del año en curso): varios puntos del código asumen un  -->
+    <!-- solo programa "rebate" visible/activo a la vez - ver                     -->
+    <!-- controllers/main.py (_jaguen_get_recompensa_program, limit=1) y          -->
+    <!-- data/automation_data.xml (action_objetivo_activa_programa2, limit=1).    -->
+    <!-- Los 3 de abajo se crean con portal_visible=False a propósito - activar   -->
+    <!-- el del año en curso (y apagar el del año anterior) es un paso manual al  -->
+    <!-- arrancar cada ejercicio (ver nota en memoria del proyecto). -->
+    <!-- ========================================================================= -->
+
+    <!-- ===================== Rebate Anual 2027 ===================== -->
+    <record id="program_rebate_anual_2027" model="loyalty.program">
+        <field name="name">Rebate Anual 2027</field>
+        <field name="program_type">loyalty</field>
+        <field name="applies_on">both</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="False"/>
+        <field name="portal_point_name">pesos comprados en el año</field>
+        <field name="is_nominative" eval="True"/>
+        <field name="date_from" eval="'2027-01-01'"/>
+        <field name="date_to" eval="'2027-12-31'"/>
+        <field name="x_jaguen_loyalty_group">rebate</field>
+    </record>
+    <record id="rule_rebate_anual_2027" model="loyalty.rule">
+        <field name="program_id" ref="program_rebate_anual_2027"/>
+        <field name="reward_point_amount">0.862069</field>
+        <field name="reward_point_mode">money</field>
+        <field name="minimum_amount">0</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_rebate_anual_2027" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2027"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">empresa</field>
+    </record>
+    <record id="reward_rebate_anual_2027_comprador" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2027"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">comprador</field>
+    </record>
+
+    <!-- ===================== Rebate Anual 2028 ===================== -->
+    <record id="program_rebate_anual_2028" model="loyalty.program">
+        <field name="name">Rebate Anual 2028</field>
+        <field name="program_type">loyalty</field>
+        <field name="applies_on">both</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="False"/>
+        <field name="portal_point_name">pesos comprados en el año</field>
+        <field name="is_nominative" eval="True"/>
+        <field name="date_from" eval="'2028-01-01'"/>
+        <field name="date_to" eval="'2028-12-31'"/>
+        <field name="x_jaguen_loyalty_group">rebate</field>
+    </record>
+    <record id="rule_rebate_anual_2028" model="loyalty.rule">
+        <field name="program_id" ref="program_rebate_anual_2028"/>
+        <field name="reward_point_amount">0.862069</field>
+        <field name="reward_point_mode">money</field>
+        <field name="minimum_amount">0</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_rebate_anual_2028" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2028"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">empresa</field>
+    </record>
+    <record id="reward_rebate_anual_2028_comprador" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2028"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">comprador</field>
+    </record>
+
+    <!-- ===================== Rebate Anual 2029 ===================== -->
+    <record id="program_rebate_anual_2029" model="loyalty.program">
+        <field name="name">Rebate Anual 2029</field>
+        <field name="program_type">loyalty</field>
+        <field name="applies_on">both</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="False"/>
+        <field name="portal_point_name">pesos comprados en el año</field>
+        <field name="is_nominative" eval="True"/>
+        <field name="date_from" eval="'2029-01-01'"/>
+        <field name="date_to" eval="'2029-12-31'"/>
+        <field name="x_jaguen_loyalty_group">rebate</field>
+    </record>
+    <record id="rule_rebate_anual_2029" model="loyalty.rule">
+        <field name="program_id" ref="program_rebate_anual_2029"/>
+        <field name="reward_point_amount">0.862069</field>
+        <field name="reward_point_mode">money</field>
+        <field name="minimum_amount">0</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_rebate_anual_2029" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2029"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">empresa</field>
+    </record>
+    <record id="reward_rebate_anual_2029_comprador" model="loyalty.reward">
+        <field name="program_id" ref="program_rebate_anual_2029"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">0.01</field>
+        <field name="discount_mode">percent</field>
+        <field name="required_points">360000</field>
+        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
+        <field name="x_jaguen_reward_audience">comprador</field>
+    </record>
+
+</odoo>

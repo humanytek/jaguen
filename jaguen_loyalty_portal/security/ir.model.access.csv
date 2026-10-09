@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_jaguen_loyalty_pending_points_user,jaguen.loyalty.pending.points.user,model_jaguen_loyalty_pending_points,base.group_user,1,0,0,0
+access_jaguen_loyalty_pending_points_system,jaguen.loyalty.pending.points.system,model_jaguen_loyalty_pending_points,base.group_system,1,1,1,1

@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ===================================================================== -->
+    <!-- Correo: aviso 2 semanas antes de terminar el onboarding -->
+    <!-- ===================================================================== -->
+    <record id="mail_template_fin_onboarding" model="mail.template">
+        <field name="name">Fin de onboarding - Aviso 2 semanas</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Te quedan 2 semanas en Club JAGUEN</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Hola <t t-out="object.name"></t>,</p>
+                <p>
+                    En aproximadamente 2 semanas termina tu periodo de onboarding en
+                    Club JAGUEN. Muy pronto pasaras a nuestro programa de Rebate Anual,
+                    donde seguiras acumulando beneficios por tu volumen de compra.
+                </p>
+                <p>
+                    Si tienes dudas sobre tu progreso o tu siguiente paso, con gusto te
+                    ayudamos.
+                </p>
+                <p>Gracias por tu preferencia,<br/>JAGUEN</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 1: el campo "Objetivo del ano" capturado -> activa Programa 2 -->
+    <!-- ===================================================================== -->
+    <record id="action_objetivo_activa_programa2" model="ir.actions.server">
+        <field name="name">Objetivo capturado -&gt; activar Programa 2</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+onboarding_programs = env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'onboarding')])
+rebate_program = env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'rebate')], limit=1)
+if record.x_objetivo_anual_programa2 and rebate_program:
+    empresa = record.commercial_partner_id
+    cards = env['loyalty.card'].search([
+        ('partner_id', 'child_of', empresa.id),
+        ('program_id', 'in', onboarding_programs.ids),
+        ('active', '=', True),
+    ])
+    cards.write({'active': False})
+    p2_card = env['loyalty.card'].search([
+        ('partner_id', '=', empresa.id),
+        ('program_id', '=', rebate_program.id),
+    ])
+    if p2_card:
+        p2_card.write({'active': True, 'points': 0})
+    else:
+        env['loyalty.card'].create({
+            'partner_id': empresa.id,
+            'program_id': rebate_program.id,
+            'points': 0,
+        })
+        </field>
+    </record>
+
+    <record id="automation_objetivo_activa_programa2" model="base.automation">
+        <field name="name">Objetivo del ano capturado -&gt; activar Programa 2</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="trigger">on_create_or_write</field>
+        <field name="trigger_field_ids" eval="[(6, 0, [ref('jaguen_loyalty_portal.field_res_partner__x_objetivo_anual_programa2')])]"/>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_objetivo_activa_programa2')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 2 (guardia): bloquear tarjeta de Programa 2 si el cliente -->
+    <!-- sigue en onboarding (sin Objetivo del ano capturado) -->
+    <!-- ===================================================================== -->
+    <record id="action_guard_bloquear_programa2" model="ir.actions.server">
+        <field name="name">Bloquear Programa 2 si sigue en onboarding</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="state">code</field>
+        <field name="code">
+for card in record:
+    if card.program_id.x_jaguen_loyalty_group != 'rebate' or not card.active:
+        continue
+    if not card.partner_id.commercial_partner_id.x_objetivo_anual_programa2:
+        card.write({'active': False})
+        </field>
+    </record>
+
+    <record id="automation_guard_bloquear_programa2" model="base.automation">
+        <field name="name">Guardia: Programa 2 solo con Objetivo capturado</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="trigger">on_create_or_write</field>
+        <field name="filter_domain">[["program_id.x_jaguen_loyalty_group", "=", "rebate"]]</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_guard_bloquear_programa2')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Guardia: una empresa que ya esta en Programa 2 (tiene Objetivo) no debe -->
+    <!-- volver a tener tarjetas activas de JAGUEN Starter (Odoo crea una nueva -->
+    <!-- tarjeta con cada pedido de un contacto si la anterior esta archivada) -->
+    <!-- ===================================================================== -->
+    <record id="action_guard_onboarding_con_objetivo" model="ir.actions.server">
+        <field name="name">Bloquear JAGUEN Starter si la empresa ya esta en Programa 2</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="state">code</field>
+        <field name="code">
+for card in record:
+    if card.program_id.x_jaguen_loyalty_group != 'onboarding' or not card.active:
+        continue
+    if card.partner_id.commercial_partner_id.x_objetivo_anual_programa2:
+        card.write({'active': False})
+        </field>
+    </record>
+
+    <record id="automation_guard_onboarding_con_objetivo" model="base.automation">
+        <field name="name">Guardia: sin JAGUEN Starter cuando la empresa ya esta en Programa 2</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="trigger">on_create</field>
+        <field name="filter_domain">[["program_id.x_jaguen_loyalty_group", "=", "onboarding"]]</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_guard_onboarding_con_objetivo')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 3: correo de aviso 2 semanas antes del fin de onboarding -->
+    <!-- (105 dias despues del alta del contacto) -->
+    <!-- ===================================================================== -->
+    <record id="action_aviso_2_semanas" model="ir.actions.server">
+        <field name="name">Enviar aviso 2 semanas (fin de onboarding)</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+template = env.ref('jaguen_loyalty_portal.mail_template_fin_onboarding', raise_if_not_found=False)
+if template and record.email:
+    template.send_mail(record.id, force_send=True)
+        </field>
+    </record>
+
+    <record id="automation_aviso_2_semanas" model="base.automation">
+        <field name="name">Aviso 2 semanas antes de fin de onboarding</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="trigger">on_time_created</field>
+        <field name="trg_date_range">105</field>
+        <field name="trg_date_range_type">day</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_aviso_2_semanas')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 4: fin de onboarding (4 meses) -> actividad interna para Javier -->
+    <!-- ===================================================================== -->
+    <record id="action_fin_onboarding_avisar_javier" model="ir.actions.server">
+        <field name="name">Fin de onboarding (4 meses) -&gt; Avisar a Javier</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+responsable = env['res.users'].search([('login', '=', 'ventas.jaguen@hotmail.com')], limit=1)
+record.activity_schedule(
+    'mail.mail_activity_data_todo',
+    summary='Fin de onboarding (4 meses): decidir paso a Programa 2',
+    note='El cliente %s cumplio 4 meses desde su registro. Decide si confirmas su paso a Programa 2 (Rebate Anual) capturando su Objetivo del ano.' % (record.name or ''),
+    user_id=responsable.id if responsable else env.uid,
+)
+        </field>
+    </record>
+
+    <record id="automation_fin_onboarding_avisar_javier" model="base.automation">
+        <field name="name">Fin onboarding (4 meses) -&gt; Aviso a Javier</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="trigger">on_time_created</field>
+        <field name="trg_date_range">4</field>
+        <field name="trg_date_range_type">month</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_fin_onboarding_avisar_javier')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 5 (guardia): vales de "primer pedido" (grupos 2 y 3) -->
+    <!-- se disparan solo 1 vez por cliente -->
+    <!-- ===================================================================== -->
+    <record id="action_guard_vales_una_vez" model="ir.actions.server">
+        <field name="name">Vales de primer pedido: solo 1 vez por cliente</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="state">code</field>
+        <field name="code">
+for card in record:
+    if card.program_id.x_jaguen_loyalty_group not in ('pedido_monto', 'pedido_linea'):
+        continue
+    total = env['loyalty.card'].with_context(active_test=False).search_count([
+        ('partner_id', 'child_of', card.partner_id.commercial_partner_id.id),
+        ('program_id', '=', card.program_id.id),
+    ])
+    if total > 1:
+        card.write({'active': False, 'points': 0})
+        </field>
+    </record>
+
+    <record id="automation_guard_vales_una_vez" model="base.automation">
+        <field name="name">Guardia: vales de primer pedido solo 1 vez por cliente</field>
+        <field name="model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="trigger">on_create</field>
+        <field name="filter_domain">[["program_id.x_jaguen_loyalty_group", "in", ["pedido_monto", "pedido_linea"]]]</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_guard_vales_una_vez')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 6: factura pasa a "Pagado" -> liberar puntos de lealtad -->
+    <!-- congelados de los pedidos de origen de esa factura (ver -->
+    <!-- models/loyalty_payment_gate.py para la mecánica completa) -->
+    <!-- ===================================================================== -->
+    <record id="action_liberar_puntos_factura_pagada" model="ir.actions.server">
+        <field name="name">Factura pagada -&gt; liberar puntos de lealtad pendientes</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+record._jaguen_release_pending_loyalty_points()
+        </field>
+    </record>
+
+    <record id="automation_liberar_puntos_factura_pagada" model="base.automation">
+        <field name="name">Factura pagada -&gt; liberar puntos de lealtad pendientes</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="trigger">on_create_or_write</field>
+        <field name="trigger_field_ids" eval="[(6, 0, [ref('account.field_account_move__payment_state')])]"/>
+        <field name="filter_domain">[["move_type", "=", "out_invoice"], ["payment_state", "=", "paid"]]</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_liberar_puntos_factura_pagada')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Server action 7: nota de crédito publicada -> restar puntos de lealtad -->
+    <!-- equivalentes del pedido de origen (ver -->
+    <!-- models/loyalty_payment_gate.py para la mecánica completa) -->
+    <!-- ===================================================================== -->
+    <record id="action_restar_puntos_nota_credito" model="ir.actions.server">
+        <field name="name">Nota de crédito publicada -&gt; restar puntos de lealtad</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+record._jaguen_apply_credit_note_to_loyalty()
+        </field>
+    </record>
+
+    <record id="automation_restar_puntos_nota_credito" model="base.automation">
+        <field name="name">Nota de crédito publicada -&gt; restar puntos de lealtad</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="trigger">on_create_or_write</field>
+        <field name="trigger_field_ids" eval="[(6, 0, [ref('account.field_account_move__state')])]"/>
+        <field name="filter_domain">[["move_type", "=", "out_refund"], ["state", "=", "posted"]]</field>
+        <field name="action_server_ids" eval="[(6, 0, [ref('action_restar_puntos_nota_credito')])]"/>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Cron: cambio de año de Rebate Anual (oct/2026) -->
+    <!--                                                                         -->
+    <!-- Cada 1 de enero, cambia automáticamente cuál programa "Rebate Anual    -->
+    <!-- <año>" está activo en el portal (portal_visible), y migra a cada       -->
+    <!-- cliente que ya estaba en Rebate del año anterior a una tarjeta nueva   -->
+    <!-- del programa del año que empieza, en 0 puntos - mismo patrón que ya   -->
+    <!-- usa action_objetivo_activa_programa2 cuando un cliente entra por      -->
+    <!-- primera vez a Programa 2.                                              -->
+    <!--                                                                         -->
+    <!-- Es genérico por año (busca "Rebate Anual <año actual>" y               -->
+    <!-- "Rebate Anual <año anterior>" por su date_from, no por un id fijo),    -->
+    <!-- así que no hay que tocar este código cada enero - solo hay que seguir  -->
+    <!-- creando con tiempo el programa "Rebate Anual <año>" del año siguiente  -->
+    <!-- (ver data/loyalty_data_rebate_anual_anios.xml) antes de que llegue su  -->
+    <!-- 1 de enero, o este cron no va a encontrar a dónde migrar y no hará     -->
+    <!-- nada ese año (se puede correr a mano desde Ajustes > Acciones          -->
+    <!-- programadas una vez que se cree el programa que faltaba).            -->
+    <!-- ===================================================================== -->
+    <record id="cron_cambio_anio_rebate_anual" model="ir.cron">
+        <field name="name">Cambio de año: activar Rebate Anual del año en curso</field>
+        <field name="model_id" ref="loyalty.model_loyalty_program"/>
+        <field name="state">code</field>
+        <field name="code">
+Program = env['loyalty.program']
+hoy = datetime.date.today()
+anio_actual = hoy.year
+anio_anterior = anio_actual - 1
+
+programa_actual = Program.search([
+    ('x_jaguen_loyalty_group', '=', 'rebate'),
+    ('date_from', '&gt;=', '%s-01-01' % anio_actual),
+    ('date_from', '&lt;=', '%s-12-31' % anio_actual),
+], limit=1)
+programa_anterior = Program.search([
+    ('x_jaguen_loyalty_group', '=', 'rebate'),
+    ('date_from', '&gt;=', '%s-01-01' % anio_anterior),
+    ('date_from', '&lt;=', '%s-12-31' % anio_anterior),
+], limit=1)
+
+if not programa_actual:
+    # No existe todavia el programa "Rebate Anual &lt;anio_actual&gt;" - no hay
+    # nada que activar. Alguien debe crearlo (ver
+    # data/loyalty_data_rebate_anual_anios.xml) y volver a correr este cron
+    # a mano desde Ajustes &gt; Tecnico &gt; Acciones programadas.
+    pass
+else:
+    # 1) Apaga el programa del anio anterior, enciende el del anio actual.
+    if programa_anterior:
+        programa_anterior.write({'portal_visible': False})
+    programa_actual.write({'portal_visible': True})
+
+    # 2) Migra a cada cliente que ya estaba en Rebate del anio anterior a
+    #    una tarjeta nueva del programa del anio actual, en 0 puntos -
+    #    mismo patron que action_objetivo_activa_programa2.
+    if programa_anterior:
+        Card = env['loyalty.card']
+        tarjetas_anio_anterior = Card.search([
+            ('program_id', '=', programa_anterior.id),
+            ('active', '=', True),
+        ])
+        for tarjeta_vieja in tarjetas_anio_anterior:
+            tarjeta_vieja.write({'active': False})
+            tarjeta_nueva = Card.search([
+                ('partner_id', '=', tarjeta_vieja.partner_id.id),
+                ('program_id', '=', programa_actual.id),
+            ])
+            if tarjeta_nueva:
+                tarjeta_nueva.write({'active': True, 'points': 0})
+            else:
+                Card.create({
+                    'partner_id': tarjeta_vieja.partner_id.id,
+                    'program_id': programa_actual.id,
+                    'points': 0,
+                })
+        </field>
+        <field name="interval_number">12</field>
+        <field name="interval_type">months</field>
+        <!-- Primer disparo: el 1 de enero que sigue a la instalación del
+             módulo (si se instala en cualquier momento del año X, dispara
+             el 1-ene del año X+1; de ahí en adelante, cada 1 de enero,
+             cada 12 meses, arriba; Odoo 18 ya no tiene 'years' ni numbercall). -->
+        <field name="nextcall" eval="'%s-01-01 07:00:00' % (DateTime.now().year + 1)"/>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>
