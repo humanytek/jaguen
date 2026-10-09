@@ -2,3 +2,8 @@
 	path = humanytek-team/jaguen_invoice_pdf
 	url = git@github.com:humanytek-team/jaguen_invoice_pdf.git
 	branch = 18.0
+
+[submodule "Lokoshon/jaguen-loyalty-portal"]
+	path = Lokoshon/jaguen-loyalty-portal
+	url = git@github.com:Lokoshon/jaguen-loyalty-portal.git
+	branch = main
