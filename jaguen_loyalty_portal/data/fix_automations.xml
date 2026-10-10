@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- SIN noupdate: corre en cada instalacion y actualizacion (es idempotente).
+         Limita los avisos de onboarding a contactos dados de alta desde la puesta en marcha. -->
+    <function model="jaguen.gift.setup" name="fix_onboarding_automations"/>
+</odoo>

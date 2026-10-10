@@ -176,6 +176,12 @@
                             Puedes dejar una, las dos, o ninguna sin marcar — y puedes volver a esta
                             pantalla cuando quieras para cambiar tu respuesta.
                         </p>
+                        <p class="text-muted small mt-2 mb-0">
+                            Al marcar una casilla y pulsar «Guardar y continuar», aceptas los Términos y
+                            Condiciones de Rewards correspondientes a ese programa (puedes consultarlos
+                            abajo, en «Ver términos y condiciones completos»). Si dejas una casilla sin
+                            marcar, no participas en ese programa.
+                        </p>
                     </div>
                     <div class="card-footer bg-white">
                         <button type="submit" class="btn btn-primary">Guardar y continuar</button>
@@ -386,7 +392,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.43)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.46)</p>
             </div>
         </t>
     </template>
