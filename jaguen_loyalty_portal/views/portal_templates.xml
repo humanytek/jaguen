@@ -239,11 +239,14 @@
                     (a) <b>JAGUEN Starter:</b> durante su periodo de incorporación como cliente
                     nuevo de Jaguen, el Cliente acumula puntos conforme su compra acumulada alcanza
                     distintos niveles. Al alcanzar un nivel, el Cliente podrá canjear sus puntos por
-                    un Regalo Promocional a escoger entre dos opciones; al canjear, se descuentan de
+                    un Regalo Promocional a escoger entre las opciones que se muestren para ese nivel; al canjear, se descuentan de
                     su saldo los puntos correspondientes a ese nivel. El Cliente no está obligado a
                     canjear: puede conservar sus puntos y seguir acumulando para canjearlos después
-                    por un premio de mayor nivel. Los niveles, montos y regalos vigentes se
-                    muestran en "El Portal", en la sección "Mis Puntos".
+                    por un premio de mayor nivel. Solo los primeros $150,000 (antes de IVA) de
+                    compras acumuladas generan puntos en JAGUEN Starter; las compras que
+                    excedan ese monto ya no generan puntos de este programa. Los niveles,
+                    montos y regalos vigentes se muestran en "El Portal", en la sección
+                    "Mis Puntos".
                 </p>
                 <p>
                     (b) <b>Mi Primer Pedido:</b> Jaguen premia al Cliente la primera vez que un
@@ -254,7 +257,7 @@
                     el nivel más alto de "Mi Primer Pedido de $X" que el pedido alcance y que el
                     Cliente aún no haya recibido; los niveles menores quedan disponibles para sus
                     pedidos posteriores. Cada nivel de "Mi Primer Pedido de $X" otorga un Regalo
-                    Promocional a escoger entre dos opciones; no genera puntos acumulables, y el
+                    Promocional a escoger entre las opciones que se muestren para ese nivel; no genera puntos acumulables, y el
                     premio permanece disponible hasta que el Cliente lo seleccione. "Mi Primer
                     Pedido por Línea" se evalúa por separado: cada línea de producto que alcance
                     su monto en el pedido otorga su propio beneficio (Vale de Gasolina). Los montos y recompensas vigentes se muestran en "El Portal".
@@ -364,7 +367,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.8)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.11)</p>
             </div>
         </t>
     </template>

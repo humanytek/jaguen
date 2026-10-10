@@ -229,6 +229,29 @@ class SaleOrder(models.Model):
             if remaining > 0:
                 pe.points_total = pe.points_released
 
+    def _jaguen_starter_points_within_cap(self, card, points):
+        """Puntos de este pedido que SI caben bajo el tope de JAGUEN Starter.
+
+        Tope = requerido del nivel mas alto del programa (hoy 150,000).
+        Lo ya ganado por la empresa (todas sus tarjetas Starter, incluidas
+        las archivadas) es la suma de los registros pending de los demas
+        pedidos: ahi queda lo liberado y lo pendiente, y los pedidos
+        cancelados sin pagar ya quedaron en 0, asi que no cuentan. Los
+        puntos GASTADOS en canjes no bajan lo ganado."""
+        self.ensure_one()
+        cap = max(card.program_id.reward_ids.mapped('required_points') or [0.0])
+        if not cap:
+            return points
+        company = card.partner_id.commercial_partner_id
+        cards = self.env['loyalty.card'].sudo().with_context(active_test=False).search([
+            ('partner_id', 'child_of', company.id),
+            ('program_id', '=', card.program_id.id),
+        ])
+        others = self.env['jaguen.loyalty.pending.points'].sudo().search([
+            ('card_id', 'in', cards.ids), ('order_id', '!=', self.id)])
+        earned = sum(others.mapped('points_total'))
+        return max(0.0, min(points, cap - earned))
+
     def _jaguen_freeze_new_loyalty_points(self):
         """Resta de 'points' (saldo visible) y mueve a 'x_puntos_pendientes'
         los puntos que ESTE pedido le acaba de dar a cada una de sus
@@ -275,10 +298,17 @@ class SaleOrder(models.Model):
                         'points_total': 0.0, 'points_released': 0.0,
                     })
                 continue
+            # Tope de JAGUEN Starter: solo los primeros $150,000 (sin IVA) de
+            # compras de la empresa generan puntos; lo que pase de ahi no
+            # genera nada. El tope es el nivel mas alto del programa.
+            granted = points
+            if card.program_id.x_jaguen_loyalty_group == 'onboarding':
+                granted = self._jaguen_starter_points_within_cap(card, points)
             card.sudo().write({
                 'points': card.points - points,
-                'x_puntos_pendientes': card.x_puntos_pendientes + points,
+                'x_puntos_pendientes': card.x_puntos_pendientes + granted,
             })
+            points = granted
             existing = Pending.search([
                 ('order_id', '=', self.id),
                 ('card_id', '=', card.id),
@@ -399,6 +429,11 @@ class AccountMove(models.Model):
                         # acepto los Terminos, o ya se agotaron): no hay
                         # nada que restar.
                         continue
+                    if pending and card.program_id.x_jaguen_loyalty_group == 'onboarding':
+                        # Con el tope de Starter el pedido pudo dar menos
+                        # puntos que su monto: nunca se resta mas de lo que
+                        # ese pedido dio.
+                        points_to_remove = min(points_to_remove, pending.points_total)
                     if pending and pending.points_total > pending.points_released:
                         from_pending = min(points_to_remove, pending.points_total - pending.points_released)
                         pending.points_total -= from_pending
