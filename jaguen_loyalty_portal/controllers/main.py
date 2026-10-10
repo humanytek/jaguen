@@ -433,10 +433,10 @@ class JaguenLoyaltyPortal(CustomerPortal):
             'page_name': 'loyalty',
             'page_title': _('Mi Primer Pedido por Línea'),
             'page_subtitle': _(
-                'No tiene que ser literalmente tu primer pedido: es la '
-                'primera vez que uno de tus pedidos alcance $10,000 más '
-                'IVA en cada línea de productos. Premio de $350 en Vale '
-                'de Gasolina, una sola vez por línea.'
+                'Desbloquea el vale de cada línea con un solo pedido que '
+                'alcance $10,000 más IVA en esa línea de productos. Cada '
+                'línea se desbloquea una sola vez. Premio: $350 en Vale de '
+                'Gasolina.'
             ),
             'back_url': '/my/loyalty',
             'checklist': self._jaguen_get_checklist_data('pedido_linea'),
