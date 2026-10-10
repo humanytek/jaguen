@@ -64,7 +64,7 @@ GIFT_CATALOG = [
     ('mpp', 20000, '005060', 'Juego 133 Herramientas 1/4" y 3/8" std y mm 24223 Pretul Truper', 581.9, 'Copifer (Truper)'),
     ('mpp', 25000, '005041', 'Audifonos Inalambricos Diadema Tune 510BT Jbl', 603.45, 'Amazon México'),
     ('mpp', 25000, '005036', 'Smartwatch Redmi 6 Active 1.85" Negro Xiaomi', 612.07, 'Amazon México'),
-    ('mpp', 25000, '', 'Bota Seguridad Dielectrica, Resistente al Impacto y la Compresion 109PLUS Lica', 673.1, 'Lica (Odoo)'),
+    ('mpp', 25000, '109PLUS-27', 'Bota Seguridad Dielectrica, Resistente al Impacto y la Compresion 109PLUS Lica', 673.1, 'Lica (Odoo)'),
     ('mpp', 30000, '005070', 'Smartwatch Band 11 Ultradelgada 1.62" Negro Huawei', 860.0, 'Ct Internacional Del Noroeste'),
     ('mpp', 30000, '005023', 'Echo Pop Amazon', 862.07, 'Amazon México'),
     ('mpp', 30000, '005046', 'Power Bank Delgado 25,000 mAh 145W Max Ugreen', 876.96, 'Syscom'),

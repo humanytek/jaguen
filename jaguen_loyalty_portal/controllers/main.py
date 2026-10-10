@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import re
+from dateutil.relativedelta import relativedelta
 
 from odoo import http, fields, _
 from odoo.http import request
+from odoo.tools.misc import format_date
 from odoo.addons.portal.controllers.portal import CustomerPortal
 
 
@@ -97,6 +99,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
         gifts = []
         for p in sorted(products, key=_pos):
             gifts.append({
+                'id': p.id,
                 'name': p.name,
                 'description': (p.description_sale or '').strip(),
                 'image_url': '/my/loyalty/gift_image/%s' % p.id,
@@ -195,6 +198,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'label': self._jaguen_reward_label(reward),
                 'image_url': self._jaguen_get_reward_image_url(reward),
                 'gifts': self._jaguen_get_reward_gifts(reward),
+                'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding',
                 'required_points': umbral,
             })
 
@@ -202,8 +206,19 @@ class JaguenLoyaltyPortal(CustomerPortal):
         progress_pct = round(min(100.0, (points / max_points * 100.0)), 1) if max_points else 0.0
         missing_points = max(0.0, (_umbral(next_reward) - points)) if next_reward else 0.0
 
+        # Cuenta regresiva de JAGUEN Starter: 4 meses desde el alta de la
+        # empresa (la misma fecha que usa el aviso interno de fin de onboarding).
+        deadline_date = False
+        days_left = 0
+        if program.x_jaguen_loyalty_group == 'onboarding' and partner.create_date:
+            end = (partner.create_date + relativedelta(months=4)).date()
+            days_left = (end - fields.Date.context_today(request.env['res.partner'])).days
+            deadline_date = format_date(request.env, end, date_format='d \'de\' MMMM \'de\' y')
         return {
             'program': program,
+            'deadline_date': deadline_date,
+            'days_left': days_left,
+            'program_title': re.sub(r'^\d\)\s*', '', program.name or ''),
             'points': points,
             'points_pending': points_pending,
             'point_name': point_name,
@@ -260,6 +275,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'label': self._jaguen_group_item_label(program),
                 'reward_label': self._jaguen_reward_label(reward) if reward else False,
                 'gifts': self._jaguen_get_reward_gifts(reward) if reward else [],
+                'reward_id': reward.id if reward else False,
+                'can_choose': bool(done and reward and group == 'pedido_monto'),
                 'done': done,
                 'pending_payment': pending_payment,
             })
@@ -373,10 +390,52 @@ class JaguenLoyaltyPortal(CustomerPortal):
         })
         return request.render('jaguen_loyalty_portal.portal_my_loyalty_checklist', values)
 
+    @http.route(['/my/loyalty/regalo/escoger'], type='http', auth='user', methods=['POST'], website=True)
+    def jaguen_loyalty_choose_gift(self, reward_id=None, product_id=None, **kw):
+        """El cliente escoge su regalo: se agrega a su carrito de la tienda
+        como recompensa (precio $0). Los puntos o el vale se gastan hasta que
+        confirme el pedido."""
+        if self._jaguen_terminos_pendientes():
+            return request.redirect('/my/loyalty/terminos')
+        back = '/my/loyalty'
+        try:
+            reward = request.env['loyalty.reward'].sudo().browse(int(reward_id)).exists()
+            product = request.env['product.product'].sudo().browse(int(product_id)).exists()
+        except (TypeError, ValueError):
+            return request.redirect(back + '?gift=error')
+        group = reward.program_id.x_jaguen_loyalty_group if reward else False
+        partner = self._jaguen_get_commercial_partner()
+        if (not reward or not product or group not in ('onboarding', 'pedido_monto')
+                or product not in reward.reward_product_ids
+                or not partner.x_acepta_incentivos_personales):
+            return request.redirect(back + '?gift=error')
+        order = request.website.sale_get_order(force_create=True).sudo()
+        if order.state != 'draft':
+            return request.redirect(back + '?gift=error')
+        order = order.with_context(jaguen_portal_gift=True)
+        # Vale de Mi Primer Pedido: se aplica por su codigo (tarjeta con 1 punto).
+        if group == 'pedido_monto':
+            voucher = request.env['loyalty.card'].sudo().search([
+                ('partner_id', 'child_of', partner.id), ('program_id', '=', reward.program_id.id),
+                ('active', '=', True), ('points', '>', 0)], limit=1)
+            if not voucher:
+                return request.redirect(back + '?gift=no_points')
+            order.applied_coupon_ids |= voucher
+        # Un regalo por nivel: si ya habia otro de este nivel en el carrito, se reemplaza.
+        order.order_line.filtered(lambda l: l.reward_id == reward).unlink()
+        claimable = order._get_claimable_rewards()
+        coupon = next((cp for cp, rws in claimable.items() if reward in rws), None)
+        if not coupon:
+            return request.redirect(back + '?gift=no_points')
+        status = order._apply_program_reward(reward, coupon, product=product)
+        if isinstance(status, dict) and status.get('error'):
+            return request.redirect(back + '?gift=error')
+        return request.redirect('/shop/cart')
+
     @http.route(['/my/loyalty/gift_image/<int:product_id>'], type='http', auth='user')
     def jaguen_loyalty_gift_image(self, product_id, **kw):
         product = request.env['product.product'].sudo().browse(product_id).exists()
-        is_gift = product and any((t.name or '').startswith('Regalo ') for t in product.product_tag_ids)
+        is_gift = product and any((t.name or '').startswith('Regalo ') for t in product.all_product_tag_ids)
         record = product if is_gift else request.env['product.product'].sudo()
         stream = request.env['ir.binary']._get_image_stream_from(record, field_name='image_256')
         return stream.get_response()

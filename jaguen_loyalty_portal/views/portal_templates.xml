@@ -28,6 +28,13 @@
                     <h3 class="my-0">Mis Puntos</h3>
                 </div>
 
+                <div t-if="request.params.get('gift') == 'no_points'" class="alert alert-warning" role="alert">
+                    No pudimos agregar ese regalo a tu carrito: tus puntos o tu vale todavía no alcanzan, o están en otro contacto de tu empresa. Pídele a tu asesor que te lo agregue.
+                </div>
+                <div t-if="request.params.get('gift') == 'error'" class="alert alert-warning" role="alert">
+                    No pudimos agregar ese regalo a tu carrito. Pídele a tu asesor que te lo agregue.
+                </div>
+
                 <div t-if="not landing['recompensa'] and not landing['monto']['total_count'] and not landing['linea']['total_count']" class="alert alert-info" role="alert">
                     Todavía no tienes programas de puntos disponibles. Para participar, acepta los incentivos en «Editar mis preferencias de incentivos» (abajo). Solo se acumulan puntos de las compras hechas después de aceptar.
                 </div>
@@ -37,7 +44,7 @@
                     <div t-if="landing['recompensa']" class="col-12 col-md-4">
                         <a href="/my/loyalty/recompensa" class="card h-100 shadow-sm text-decoration-none text-reset jaguen-loyalty-tile">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title mb-2" t-esc="landing['recompensa']['program'].name"/>
+                                <h5 class="card-title mb-2" t-esc="landing['recompensa']['program_title']"/>
                                 <div class="fs-3 fw-bold text-primary">
                                     $<t t-esc="'{:,.0f}'.format(landing['recompensa']['points'])"/>
                                     <small class="text-muted fw-normal">pesos en compras</small>
@@ -367,7 +374,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.17)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.23)</p>
             </div>
         </t>
     </template>
@@ -379,6 +386,34 @@
              t-att-class="'opacity-50' if dim else ''"/>
     </template>
 
+    <!-- Aviso "Deseas escoger este regalo?" (Si / No) -->
+    <template id="jaguen_gift_modal" name="Aviso escoger regalo">
+        <div class="modal fade" t-att-id="modal_id" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">¿Deseas escoger este regalo?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
+                        <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
+                        <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu pedido.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="reward_id" t-att-value="reward_id"/>
+                            <input type="hidden" name="product_id" t-att-value="gift['id']"/>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                            <button type="submit" class="btn btn-primary">Sí</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <!-- Detalle del "Programa de Recompensa" (JAGUEN Starter o Rebate Anual): progreso + escalera -->
     <template id="portal_my_loyalty_recompensa" name="Mis Puntos - Programa de Recompensa">
         <t t-call="portal.portal_layout">
@@ -386,7 +421,7 @@
             <div class="o_portal_my_doc_table w-md-100 pb-5">
                 <div class="d-flex gap-2 my-3 align-items-center">
                     <a href="/my/loyalty" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
-                    <h3 class="my-0" t-esc="pdata['program'].name if pdata else 'Programa de Recompensa'"/>
+                    <h3 class="my-0" t-esc="pdata['program_title'] if pdata else 'Programa de Recompensa'"/>
                 </div>
 
                 <div t-if="not pdata" class="alert alert-info" role="alert">
@@ -397,11 +432,15 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-baseline mb-1">
                             <span class="fs-4 fw-bold text-primary">
+                                <small class="text-muted fw-normal">Llevas</small>
                                 $<t t-esc="'{:,.0f}'.format(pdata['points'])"/>
                                 <small class="text-muted fw-normal">pesos en compras</small>
                             </span>
-                            <span t-if="pdata['next_reward']" class="text-muted">
-                                Requieres comprar $<b t-esc="'{:,.0f}'.format(pdata['missing_points'])"/> pesos en lo que resta del año para alcanzar tu meta y ganarte <t t-esc="pdata['next_reward_label']"/>
+                            <span t-if="pdata['next_reward'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="text-muted">
+                                Requieres comprar $<b t-esc="'{:,.0f}'.format(pdata['missing_points'])"/> pesos para alcanzar tu próxima meta y ganarte <t t-esc="pdata['next_reward_label']"/>
+                            </span>
+                            <span t-elif="pdata['next_reward']" class="text-muted">
+                                Requieres comprar $<b t-esc="'{:,.0f}'.format(pdata['missing_points'])"/> pesos en lo que resta del año para alcanzar tu próxima meta y ganarte <t t-esc="pdata['next_reward_label']"/>
                             </span>
                             <span t-if="pdata['all_unlocked']" class="badge bg-success">
                                 ¡Desbloqueaste todos los regalos!
@@ -413,6 +452,14 @@
                                  t-attf-style="width: #{pdata['progress_pct']}%;"
                                  t-att-aria-valuenow="pdata['progress_pct']" aria-valuemin="0" aria-valuemax="100"/>
                         </div>
+                        <p t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding' and pdata['deadline_date']"
+                           t-attf-class="small fw-bold mb-2 #{'text-danger' if pdata['days_left'] &lt;= 15 else 'text-primary'}">
+                            <i class="fa fa-hourglass-half me-1"/>
+                            <t t-if="pdata['days_left'] &gt; 0">
+                                Te quedan <t t-esc="pdata['days_left']"/> <t t-esc="'día' if pdata['days_left'] == 1 else 'días'"/> de tu programa JAGUEN Starter (termina el <t t-esc="pdata['deadline_date']"/>).
+                            </t>
+                            <t t-else="">Tu periodo de 4 meses en JAGUEN Starter ya terminó (<t t-esc="pdata['deadline_date']"/>).</t>
+                        </p>
                         <p t-if="pdata['points_pending']" class="text-warning small mb-4">
                             <i class="fa fa-clock-o me-1"/>
                             Tienes $<b t-esc="'{:,.0f}'.format(pdata['points_pending'])"/> pesos de compras recientes pendientes de pago. Se suman a tu progreso en cuanto se liquide la factura correspondiente.
@@ -464,7 +511,10 @@
                                     <div t-if="tier['gifts']" t-att-id="tier_id" class="collapse mt-3">
                                         <div class="row g-3">
                                             <div t-foreach="tier['gifts']" t-as="gift" class="col-12 col-md-4">
-                                                <div class="card h-100 text-center">
+                                                <div class="card h-100 text-center"
+                                                     t-att-style="'cursor: pointer;' if tier['can_choose'] else ''"
+                                                     t-att-data-bs-toggle="'modal' if tier['can_choose'] else None"
+                                                     t-att-data-bs-target="('#jg-m-s%s-%s' % (tier_index, gift_index)) if tier['can_choose'] else None">
                                                     <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
                                                     <div class="card-body p-2">
                                                         <div class="fw-bold small" t-esc="gift['name']"/>
@@ -474,13 +524,25 @@
                                             </div>
                                         </div>
                                         <p t-if="tier['unlocked'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="small text-success mt-2 mb-0">
-                                            Ya alcanzaste este nivel: puedes canjear uno de estos regalos con
-                                            <b t-esc="'{:,.0f}'.format(tier['required_points'])"/> <t t-esc="pdata['point_name']"/>.
+                                            Ya alcanzaste este nivel: toca la foto del regalo que quieras escoger. Cuesta
+                                            <b t-esc="'{:,.0f}'.format(tier['required_points'])"/> <t t-esc="pdata['point_name']"/>,
+                                            que se descuentan hasta que confirmes tu pedido.
                                         </p>
                                     </div>
                                 </div>
                             </t>
                         </div>
+
+                        <t t-foreach="pdata['tiers']" t-as="tier">
+                            <t t-if="tier['can_choose']">
+                                <t t-foreach="tier['gifts']" t-as="gift">
+                                    <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
+                                        <t t-set="modal_id" t-value="'jg-m-s%s-%s' % (tier_index, gift_index)"/>
+                                        <t t-set="reward_id" t-value="tier['reward'].id"/>
+                                    </t>
+                                </t>
+                            </t>
+                        </t>
 
                         <div t-if="pdata['program'].x_jaguen_loyalty_group == 'rebate'" class="mt-4">
                             <p class="fw-bold mb-2">Condiciones según tu historial de pago</p>
@@ -578,7 +640,10 @@
                                 <div t-if="item['gifts']" t-att-id="item_id" class="collapse mt-3">
                                     <div class="row g-3">
                                         <div t-foreach="item['gifts']" t-as="gift" class="col-12 col-md-4">
-                                            <div class="card h-100 text-center">
+                                            <div class="card h-100 text-center"
+                                                 t-att-style="'cursor: pointer;' if item['can_choose'] else ''"
+                                                 t-att-data-bs-toggle="'modal' if item['can_choose'] else None"
+                                                 t-att-data-bs-target="('#jg-m-m%s-%s' % (item_index, gift_index)) if item['can_choose'] else None">
                                                 <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
                                                 <div class="card-body p-2">
                                                     <div class="fw-bold small" t-esc="gift['name']"/>
@@ -587,8 +652,19 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <p t-if="item['can_choose']" class="small text-success mt-2 mb-0">Toca la foto del regalo que quieras escoger.</p>
                                 </div>
                             </div>
+                        </t>
+                        <t t-foreach="checklist['items']" t-as="item">
+                            <t t-if="item['can_choose']">
+                                <t t-foreach="item['gifts']" t-as="gift">
+                                    <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
+                                        <t t-set="modal_id" t-value="'jg-m-m%s-%s' % (item_index, gift_index)"/>
+                                        <t t-set="reward_id" t-value="item['reward_id']"/>
+                                    </t>
+                                </t>
+                            </t>
                         </t>
                     </div>
                 </div>

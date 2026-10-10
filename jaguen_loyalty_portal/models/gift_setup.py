@@ -48,16 +48,19 @@ class JaguenGiftSetup(models.AbstractModel):
                     'purchase_ok': True,
                     'description': 'Codigo Odoo: %s | Proveedor: %s' % (code or 'pendiente', provider),
                 })
-            product.write({'product_tag_ids': [(4, tag.id)]})
-            wanted.setdefault(tag.id, set()).add(product.product_tmpl_id.id)
-        for tag_id, tmpl_ids in wanted.items():
-            # La etiqueta vive en la plantilla del producto (todas sus
-            # variantes la comparten), por eso se compara por plantilla.
+            # Etiqueta a nivel de VARIANTE: asi un producto con tallas (como la
+            # bota) solo ofrece la talla elegida y no todas.
+            product.write({'additional_product_tag_ids': [(4, tag.id)]})
+            wanted.setdefault(tag.id, set()).add(product.id)
+        for tag_id, product_ids in wanted.items():
             stale = Product.with_context(active_test=False).search([
-                ('product_tag_ids', 'in', [tag_id]),
-                ('product_tmpl_id', 'not in', list(tmpl_ids))])
+                '|', ('additional_product_tag_ids', 'in', [tag_id]), ('product_tag_ids', 'in', [tag_id]),
+                ('id', 'not in', list(product_ids))])
             if stale:
-                stale.write({'product_tag_ids': [(3, tag_id)]})
+                stale.write({
+                    'additional_product_tag_ids': [(3, tag_id)],
+                    'product_tag_ids': [(3, tag_id)],
+                })
         return True
 
     @api.model
