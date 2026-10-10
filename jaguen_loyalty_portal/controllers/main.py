@@ -413,20 +413,20 @@ class JaguenLoyaltyPortal(CustomerPortal):
         if order.state != 'draft':
             return request.redirect(back + '?gift=error')
         order = order.with_context(jaguen_portal_gift=True)
-        # Vale de Mi Primer Pedido: se aplica por su codigo (tarjeta con 1 punto).
-        if group == 'pedido_monto':
-            voucher = request.env['loyalty.card'].sudo().search([
-                ('partner_id', 'child_of', partner.id), ('program_id', '=', reward.program_id.id),
-                ('active', '=', True), ('points', '>', 0)], limit=1)
-            if not voucher:
-                return request.redirect(back + '?gift=no_points')
-            order.applied_coupon_ids |= voucher
         # Un regalo por nivel: si ya habia otro de este nivel en el carrito, se reemplaza.
         order.order_line.filtered(lambda l: l.reward_id == reward).unlink()
-        claimable = order._get_claimable_rewards()
-        coupon = next((cp for cp, rws in claimable.items() if reward in rws), None)
+        # La tarjeta con la que se paga el regalo: el vale de Mi Primer Pedido
+        # (1 punto) o la tarjeta de Starter con puntos suficientes.
+        cards = request.env['loyalty.card'].sudo().search([
+            ('partner_id', 'in', [order.partner_id.id, partner.id]),
+            ('program_id', '=', reward.program_id.id), ('active', '=', True),
+            ('points', '>', 0)])
+        coupon = next((cd for cd in cards
+                       if order._get_real_points_for_coupon(cd) >= reward.required_points), None)
         if not coupon:
             return request.redirect(back + '?gift=no_points')
+        if group == 'pedido_monto':
+            order.applied_coupon_ids |= coupon
         status = order._apply_program_reward(reward, coupon, product=product)
         if isinstance(status, dict) and status.get('error'):
             return request.redirect(back + '?gift=error')

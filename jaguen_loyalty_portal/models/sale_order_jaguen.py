@@ -114,3 +114,17 @@ class SaleOrder(models.Model):
             vals = dict(vals, partner_invoice_id=self.env['res.partner'].browse(
                 vals['partner_invoice_id']).commercial_partner_id.id)
         return super().write(vals)
+
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    def write(self, vals):
+        """El regalo de Starter / Mi Primer Pedido es UNA pieza por canje: ni el
+        cliente ni un vendedor pueden subirle la cantidad (saldrian 2 regalos
+        gratis por un solo vale o por los puntos de un nivel)."""
+        if 'product_uom_qty' in vals:
+            for line in self.filtered(lambda l: l.is_reward_line and l.reward_id.program_id.x_jaguen_loyalty_group in ('onboarding', 'pedido_monto')):
+                if vals['product_uom_qty'] != (line.reward_id.reward_product_qty or 1):
+                    raise UserError(_('El regalo de este programa es de una sola pieza por canje; no se puede cambiar su cantidad.'))
+        return super().write(vals)
