@@ -367,9 +367,22 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.13)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.16)</p>
             </div>
         </t>
+    </template>
+
+    <!-- Icono de regalo envuelto con mono (para los niveles de premio) -->
+    <template id="jaguen_gift_icon" name="Icono de regalo">
+        <svg viewBox="0 0 48 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Regalo"
+             t-att-style="'opacity: 0.45;' if dim else ''">
+            <rect x="8" y="22" width="32" height="20" rx="2" fill="#e5484d"/>
+            <rect x="6" y="16" width="36" height="8" rx="2" fill="#f06a6f"/>
+            <rect x="21" y="16" width="6" height="26" fill="#ffd23f"/>
+            <path d="M24 16 C 13 4, 6 14, 24 16 Z" fill="#ffd23f"/>
+            <path d="M24 16 C 35 4, 42 14, 24 16 Z" fill="#ffd23f"/>
+            <circle cx="24" cy="16" r="3.2" fill="#f5b700"/>
+        </svg>
     </template>
 
     <!-- Detalle del "Programa de Recompensa" (JAGUEN Starter o Rebate Anual): progreso + escalera -->
@@ -421,7 +434,9 @@
                                          t-att-data-bs-toggle="'collapse' if tier['gifts'] else None"
                                          t-att-data-bs-target="('#' + tier_id) if tier['gifts'] else None">
                                         <div class="flex-shrink-0" style="width: 48px; height: 48px;">
-                                            <img t-if="tier['gifts']" t-att-src="tier['gifts'][0]['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: contain;"/>
+                                            <t t-if="tier['gifts']" t-call="jaguen_loyalty_portal.jaguen_gift_icon">
+                                                <t t-set="dim" t-value="not tier['unlocked']"/>
+                                            </t>
                                             <img t-elif="tier['image_url']" t-att-src="tier['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;"/>
                                             <div t-else="" class="d-flex align-items-center justify-content-center bg-light rounded border h-100">
                                                 <i class="fa fa-gift text-muted"/>
@@ -430,9 +445,8 @@
                                         <div class="flex-grow-1">
                                             <t t-if="tier['gifts']">
                                                 <div class="fw-bold">
-                                                    Nivel de Compra Requerido $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos -
-                                                    <t t-if="tier['unlocked']">¡Alcanzaste el objetivo! Escoge uno de los regalos que se muestran a continuación</t>
-                                                    <t t-else="">Alcanza el objetivo y escoge uno de los regalos que se muestran a continuación</t>
+                                                    <t t-if="tier['unlocked']">¡Alcanzaste $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos! Escoge uno de estos regalos</t>
+                                                    <t t-else="">Compra $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos y escoge uno de estos regalos</t>
                                                 </div>
                                                 <small t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="text-muted">
                                                     Si prefieres acumular tus puntos no escojas ningún regalo
@@ -540,18 +554,22 @@
                                      t-att-style="'cursor: pointer;' if item['gifts'] else ''"
                                      t-att-data-bs-toggle="'collapse' if item['gifts'] else None"
                                      t-att-data-bs-target="('#' + item_id) if item['gifts'] else None">
-                                    <div class="flex-shrink-0">
-                                        <i t-if="item['done']" class="fa fa-check-circle text-success fs-4"/>
-                                        <i t-else="" class="fa fa-circle-o text-muted fs-4"/>
+                                    <div class="flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <t t-if="item['gifts']" t-call="jaguen_loyalty_portal.jaguen_gift_icon">
+                                            <t t-set="dim" t-value="not item['done']"/>
+                                        </t>
+                                        <t t-else="">
+                                            <i t-if="item['done']" class="fa fa-check-circle text-success fs-4"/>
+                                            <i t-else="" class="fa fa-circle-o text-muted fs-4"/>
+                                        </t>
                                     </div>
                                     <div class="flex-grow-1">
                                         <t t-if="item['gifts']">
                                             <div class="fw-bold">
-                                                Nivel de Compra Requerido: un pedido de <t t-esc="item['label']"/> pesos -
-                                                <t t-if="item['done']">¡Alcanzaste el objetivo! Escoge uno de los regalos que se muestran a continuación</t>
-                                                <t t-else="">Alcanza el objetivo y escoge uno de los regalos que se muestran a continuación</t>
+                                                <t t-if="item['done']">¡Lo lograste! Un pedido de <t t-esc="item['label']"/> pesos: escoge uno de estos regalos</t>
+                                                <t t-else="">Un pedido de <t t-esc="item['label']"/> pesos y escoges uno de estos regalos</t>
                                             </div>
-                                            <small class="text-muted">Se gana una sola vez, escoges un regalo y no se acumula</small>
+                                            <small class="text-muted">Un regalo por nivel, a tu elección. Una sola vez, la primera vez que llegues a este monto.</small>
                                         </t>
                                         <t t-else="">
                                             <div t-esc="item['label']" class="fw-bold"/>

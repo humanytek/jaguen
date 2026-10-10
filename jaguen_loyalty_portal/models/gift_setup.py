@@ -12,16 +12,17 @@ class JaguenGiftSetup(models.AbstractModel):
 
     @api.model
     def _find_product(self, code, name):
+        """Producto real por codigo interno. Si el regalo no trae codigo (por
+        ejemplo una bota que en Odoo existe por tallas), se usa un producto
+        de regalo propio, buscado por su nombre."""
         Product = self.env['product.product'].sudo()
         if code:
-            product = Product.search([('default_code', '=', code)], limit=1)
-            if product:
-                return product
-        else:
-            product = Product.search([('name', '=', name)], limit=1)
-            if product:
-                return product
-        return Product.browse()
+            return Product.search([('default_code', '=', code)], limit=1)
+        return Product.search([('name', '=', self._gift_name(name))], limit=1)
+
+    @api.model
+    def _gift_name(self, name):
+        return 'Regalo JAGUEN - %s' % name
 
     @api.model
     def setup_gifts(self):
@@ -38,7 +39,7 @@ class JaguenGiftSetup(models.AbstractModel):
             product = self._find_product(code, name)
             if not product:
                 product = Product.create({
-                    'name': name,
+                    'name': name if code else self._gift_name(name),
                     'default_code': code or False,
                     'type': 'consu',
                     'list_price': cost,
@@ -48,10 +49,13 @@ class JaguenGiftSetup(models.AbstractModel):
                     'description': 'Codigo Odoo: %s | Proveedor: %s' % (code or 'pendiente', provider),
                 })
             product.write({'product_tag_ids': [(4, tag.id)]})
-            wanted.setdefault(tag.id, set()).add(product.id)
-        for tag_id, product_ids in wanted.items():
+            wanted.setdefault(tag.id, set()).add(product.product_tmpl_id.id)
+        for tag_id, tmpl_ids in wanted.items():
+            # La etiqueta vive en la plantilla del producto (todas sus
+            # variantes la comparten), por eso se compara por plantilla.
             stale = Product.with_context(active_test=False).search([
-                ('product_tag_ids', 'in', [tag_id]), ('id', 'not in', list(product_ids))])
+                ('product_tag_ids', 'in', [tag_id]),
+                ('product_tmpl_id', 'not in', list(tmpl_ids))])
             if stale:
                 stale.write({'product_tag_ids': [(3, tag_id)]})
         return True

@@ -92,7 +92,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
             order = request.env['jaguen.gift.setup'].gift_order(program, amount)
         products = reward.reward_product_ids.sudo()
         def _pos(p):
-            key = p.default_code or p.name
+            key = p.default_code or p.name.replace('Regalo JAGUEN - ', '')
             return order.index(key) if key in order else len(order)
         gifts = []
         for p in sorted(products, key=_pos):
