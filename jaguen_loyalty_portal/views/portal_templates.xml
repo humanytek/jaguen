@@ -382,7 +382,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.39)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.40)</p>
             </div>
         </t>
     </template>
@@ -531,7 +531,7 @@
                             <t t-foreach="pdata['tiers']" t-as="tier">
                                 <t t-set="tier_id" t-value="'jg-tier-%s' % tier_index"/>
                                 <div t-attf-class="list-group-item #{'list-group-item-success' if tier['unlocked'] else ''}">
-                                    <div class="d-flex align-items-center gap-3"
+                                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3"
                                          t-att-style="'cursor: pointer;' if tier['gifts'] else ''"
                                          t-att-data-bs-toggle="'collapse' if tier['gifts'] else None"
                                          t-att-data-bs-target="('#' + tier_id) if tier['gifts'] else None">
@@ -545,7 +545,7 @@
                                                 <i class="fa fa-gift text-muted"/>
                                             </div>
                                         </div>
-                                        <div class="flex-grow-1">
+                                        <div style="flex: 1 1 0; min-width: 9rem;">
                                             <t t-if="tier['gifts']">
                                                 <div class="fw-bold">
                                                     <t t-if="tier['unlocked']">¡Alcanzaste $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos! Escoge uno de estos regalos</t>
@@ -620,7 +620,8 @@
                                 El % de arriba es el beneficio base por cumplir tu meta de compra. Si tienes facturas vencidas durante el año, el beneficio se reduce así:
                             </p>
                             <div class="table-responsive">
-                                <style>.jg-cond-table th, .jg-cond-table td { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; max-width: none !important; }</style>
+                                <style>.jg-cond-table th, .jg-cond-table td { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; max-width: none !important; }
+                                @media (max-width: 576px) { .jg-cond-table th, .jg-cond-table td { font-size: 0.7rem; padding: 0.2rem 0.25rem; } }</style>
                                 <table class="table table-sm table-bordered align-middle mb-2 jg-cond-table">
                                     <thead class="table-light">
                                         <tr>
