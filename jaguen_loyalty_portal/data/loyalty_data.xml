@@ -32,6 +32,36 @@
     <record id="tag_regalo_starter_100000" model="product.tag">
         <field name="name">Regalo Starter $100,000</field>
     </record>
+    <record id="tag_regalo_starter_110000" model="product.tag">
+        <field name="name">Regalo Starter $110,000</field>
+    </record>
+    <record id="tag_regalo_starter_120000" model="product.tag">
+        <field name="name">Regalo Starter $120,000</field>
+    </record>
+    <record id="tag_regalo_starter_130000" model="product.tag">
+        <field name="name">Regalo Starter $130,000</field>
+    </record>
+    <record id="tag_regalo_starter_140000" model="product.tag">
+        <field name="name">Regalo Starter $140,000</field>
+    </record>
+    <record id="tag_regalo_starter_150000" model="product.tag">
+        <field name="name">Regalo Starter $150,000</field>
+    </record>
+    <record id="tag_regalo_starter_160000" model="product.tag">
+        <field name="name">Regalo Starter $160,000</field>
+    </record>
+    <record id="tag_regalo_starter_170000" model="product.tag">
+        <field name="name">Regalo Starter $170,000</field>
+    </record>
+    <record id="tag_regalo_starter_180000" model="product.tag">
+        <field name="name">Regalo Starter $180,000</field>
+    </record>
+    <record id="tag_regalo_starter_190000" model="product.tag">
+        <field name="name">Regalo Starter $190,000</field>
+    </record>
+    <record id="tag_regalo_starter_200000" model="product.tag">
+        <field name="name">Regalo Starter $200,000</field>
+    </record>
     <record id="tag_regalo_mpp_5000" model="product.tag">
         <field name="name">Regalo Mi Primer Pedido $5,000</field>
     </record>
@@ -156,6 +186,96 @@
         <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_100000')])]"/>
     </record>
 
+    <record id="product_regalo_110000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Cargador inalambrico 15W</field>
+        <field name="type">consu</field>
+        <field name="list_price">1100</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_110000')])]"/>
+    </record>
+
+    <record id="product_regalo_120000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Mouse inalambrico ergonomico recargable</field>
+        <field name="type">consu</field>
+        <field name="list_price">1200</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_120000')])]"/>
+    </record>
+
+    <record id="product_regalo_130000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Teclado mecanico compacto</field>
+        <field name="type">consu</field>
+        <field name="list_price">1300</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_130000')])]"/>
+    </record>
+
+    <record id="product_regalo_140000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Cojin lumbar y reposapies ergonomico</field>
+        <field name="type">consu</field>
+        <field name="list_price">1400</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_140000')])]"/>
+    </record>
+
+    <record id="product_regalo_150000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Kit de escritorio premium (organizador, mousepad XL y soporte)</field>
+        <field name="type">consu</field>
+        <field name="list_price">1500</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_150000')])]"/>
+    </record>
+
+    <record id="product_regalo_160000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Mochila antirrobo para laptop</field>
+        <field name="type">consu</field>
+        <field name="list_price">1600</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_160000')])]"/>
+    </record>
+
+    <record id="product_regalo_170000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Combo teclado y mouse inalambricos</field>
+        <field name="type">consu</field>
+        <field name="list_price">1700</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_170000')])]"/>
+    </record>
+
+    <record id="product_regalo_180000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Camara de seguridad WiFi</field>
+        <field name="type">consu</field>
+        <field name="list_price">1800</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_180000')])]"/>
+    </record>
+
+    <record id="product_regalo_190000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Bocina bluetooth premium resistente al agua</field>
+        <field name="type">consu</field>
+        <field name="list_price">1900</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_190000')])]"/>
+    </record>
+
+    <record id="product_regalo_200000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Tableta de 10 pulgadas (premio de graduacion)</field>
+        <field name="type">consu</field>
+        <field name="list_price">2000</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_200000')])]"/>
+    </record>
+
     <!-- Opcion B de cada tramo de JAGUEN Starter (la opcion A son los productos de arriba) -->
     <record id="product_regalo_b_10000" model="product.product">
         <field name="name">Regalo JAGUEN Starter - Libreta ejecutiva con pluma</field>
@@ -246,6 +366,106 @@
         <field name="sale_ok" eval="False"/>
         <field name="purchase_ok" eval="True"/>
         <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_100000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_110000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Set de 2 termos de acero</field>
+        <field name="type">consu</field>
+        <field name="list_price">1100</field>
+        <field name="standard_price">1100</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_110000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_120000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Maletin porta laptop</field>
+        <field name="type">consu</field>
+        <field name="list_price">1200</field>
+        <field name="standard_price">1200</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_120000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_130000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Bocina bluetooth portatil</field>
+        <field name="type">consu</field>
+        <field name="list_price">1300</field>
+        <field name="standard_price">1300</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_130000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_140000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Lampara de escritorio con cargador inalambrico</field>
+        <field name="type">consu</field>
+        <field name="list_price">1400</field>
+        <field name="standard_price">1400</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_140000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_150000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Audifonos bluetooth con cancelacion de ruido</field>
+        <field name="type">consu</field>
+        <field name="list_price">1500</field>
+        <field name="standard_price">1500</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_150000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_160000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Smartwatch deportivo</field>
+        <field name="type">consu</field>
+        <field name="list_price">1600</field>
+        <field name="standard_price">1600</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_160000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_170000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Disco duro externo 1 TB</field>
+        <field name="type">consu</field>
+        <field name="list_price">1700</field>
+        <field name="standard_price">1700</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_170000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_180000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Cafetera de capsulas</field>
+        <field name="type">consu</field>
+        <field name="list_price">1800</field>
+        <field name="standard_price">1800</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_180000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_190000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Monitor de 22 pulgadas</field>
+        <field name="type">consu</field>
+        <field name="list_price">1900</field>
+        <field name="standard_price">1900</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_190000')])]"/>
+    </record>
+
+    <record id="product_regalo_b_200000" model="product.product">
+        <field name="name">Regalo JAGUEN Starter - Impresora multifuncional WiFi</field>
+        <field name="type">consu</field>
+        <field name="list_price">2000</field>
+        <field name="standard_price">2000</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="product_tag_ids" eval="[(6, 0, [ref('tag_regalo_starter_200000')])]"/>
     </record>
 
     <!-- Mi Primer Pedido de $X: 2 regalos a escoger por tramo (el cliente SIEMPRE escoge uno; no se acumula nada) -->
@@ -521,6 +741,76 @@
         <field name="reward_product_tag_id" ref="tag_regalo_starter_100000"/>
         <field name="reward_product_qty">1</field>
         <field name="required_points">100000</field>
+    </record>
+    <record id="reward_onboarding_110000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_110000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">110000</field>
+    </record>
+    <record id="reward_onboarding_120000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_120000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">120000</field>
+    </record>
+    <record id="reward_onboarding_130000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_130000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">130000</field>
+    </record>
+    <record id="reward_onboarding_140000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_140000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">140000</field>
+    </record>
+    <record id="reward_onboarding_150000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_150000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">150000</field>
+    </record>
+    <record id="reward_onboarding_160000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_160000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">160000</field>
+    </record>
+    <record id="reward_onboarding_170000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_170000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">170000</field>
+    </record>
+    <record id="reward_onboarding_180000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_180000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">180000</field>
+    </record>
+    <record id="reward_onboarding_190000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_190000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">190000</field>
+    </record>
+    <record id="reward_onboarding_200000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_200000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">200000</field>
     </record>
 
     <!-- ================================================================ -->
