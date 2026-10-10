@@ -237,7 +237,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
         la pantalla principal."""
         partner = self._jaguen_get_commercial_partner()
         if not partner.x_acepta_incentivos_personales:
-            return {'items': [], 'done_count': 0, 'total_count': 0}
+            return {'icon': 'monto_azul', 'items': [], 'done_count': 0, 'total_count': 0}
 
         partner_ids = self._jaguen_get_partner_ids()
         Card = request.env['loyalty.card'].sudo()
@@ -266,6 +266,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
 
         done_count = sum(1 for item in items if item['done'])
         return {
+            'icon': 'monto_azul' if group == 'pedido_monto' else 'linea_verde',
             'items': items,
             'done_count': done_count,
             'total_count': len(items),
