@@ -91,7 +91,7 @@ pagada en su totalidad - ya estaba en el texto de "El Portal" pero no en
 el documento legal de Términos y Condiciones.
 
     """,
-    'version': '18.0.20.0.43',
+    'version': '18.0.20.0.46',
     'category': 'Sales/Loyalty',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
@@ -102,6 +102,7 @@ el documento legal de Términos y Condiciones.
         'data/gift_setup.xml',
         'data/loyalty_data_rebate_anual_anios.xml',
         'data/automation_data.xml',
+        'data/fix_automations.xml',
         'views/portal_templates.xml',
         'views/res_partner_views.xml',
     ],

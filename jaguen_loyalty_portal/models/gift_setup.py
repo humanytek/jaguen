@@ -7,6 +7,8 @@ from .gift_catalog import GIFT_CATALOG
 
 _logger = logging.getLogger(__name__)
 
+# Fecha de puesta en marcha del programa en produccion (ver fix_onboarding_automations).
+ONBOARDING_DESDE = '2026-10-10 00:00:00'
 GIFT_PROGRAM_TAG = {'starter': 'tag_regalo_starter_%s', 'mpp': 'tag_regalo_mpp_%s'}
 
 
@@ -78,4 +80,34 @@ class JaguenGiftSetup(models.AbstractModel):
             return False
         self.env['ir.default'].sudo().set('res.partner', 'lang', 'es_MX')
         self.env['res.partner'].sudo().with_context(active_test=False).search([('lang', '=', False)]).write({'lang': 'es_MX'})
+        return True
+
+    @api.model
+    def fix_onboarding_automations(self):
+        """Las automatizaciones de onboarding (aviso de 2 semanas y aviso de
+        4 meses) solo deben aplicar a clientes NUEVOS (dados de alta desde la
+        puesta en marcha del programa) que activaron JAGUEN Starter. Sin este filtro, al instalar el modulo
+        en una base con clientes de antes, Odoo les manda el aviso y crea la
+        actividad a todos los que ya cumplieron esos plazos.
+
+        La fecha de inicio se guarda en el parametro del sistema
+        jaguen_loyalty_portal.onboarding_desde (se puede cambiar). Seguro de
+        correr varias veces."""
+        Param = self.env['ir.config_parameter'].sudo()
+        desde = Param.get_param('jaguen_loyalty_portal.onboarding_desde')
+        if not desde:
+            desde = ONBOARDING_DESDE
+            Param.set_param('jaguen_loyalty_portal.onboarding_desde', desde)
+        # Solo clientes nuevos, que SI activaron JAGUEN Starter (aceptaron los Incentivos
+        # Starter) y que todavia no pasaron a Rebate Anual (sin Objetivo del ano).
+        domain = repr([
+            ('create_date', '>=', desde),
+            ('parent_id', '=', False),
+            ('x_acepta_incentivos_personales', '=', True),
+            ('x_objetivo_anual_programa2', 'in', [0, False]),
+        ])
+        for xmlid in ('automation_aviso_2_semanas', 'automation_fin_onboarding_avisar_javier'):
+            rule = self.env.ref('jaguen_loyalty_portal.' + xmlid, raise_if_not_found=False)
+            if rule:
+                rule.sudo().write({'filter_domain': domain})
         return True
