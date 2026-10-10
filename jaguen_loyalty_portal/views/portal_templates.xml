@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tarjeta "Mis Puntos" en la página principal del portal (Mi cuenta) -->
+    <template id="portal_my_home_loyalty" name="Mis Puntos - tarjeta en Mi cuenta" inherit_id="portal.portal_my_home" customize_show="True" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
+            <t t-set="jaguen_loyalty_programs_sudo" t-value="request.env['loyalty.program'].sudo().search([('portal_visible', '=', True)], limit=1)"/>
+            <t t-if="jaguen_loyalty_programs_sudo" t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/jaguen_loyalty_portal/static/src/img/gift.svg'"/>
+                <t t-set="title">Mis Puntos</t>
+                <t t-set="text">Consulta tu progreso y tus recompensas con JAGUEN</t>
+                <t t-set="url" t-value="'/my/loyalty'"/>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- Pantalla principal "Mis Puntos": 3 botones, uno por programa -->
+    <template id="portal_my_loyalty" name="Mis Puntos">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a href="/my/" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0">Mis Puntos</h3>
+                </div>
+
+                <div t-if="request.params.get('gift') == 'no_points'" class="alert alert-warning" role="alert">
+                    No pudimos agregar ese regalo a tu carrito: tus puntos o tu vale todavía no alcanzan, o están en otro contacto de tu empresa. Pídele a tu asesor que te lo agregue.
+                </div>
+                <div t-if="request.params.get('gift') == 'claimed'" class="alert alert-info" role="alert">
+                    Ese nivel ya tiene su regalo escogido (en tu carrito o en un pedido). Cada nivel se escoge una sola vez.
+                </div>
+                <div t-if="request.params.get('gift') == 'error'" class="alert alert-warning" role="alert">
+                    No pudimos agregar ese regalo a tu carrito. Pídele a tu asesor que te lo agregue.
+                </div>
+
+                <div t-if="not landing['recompensa'] and not landing['monto']['total_count'] and not landing['linea']['total_count']" class="alert alert-info" role="alert">
+                    Todavía no tienes programas de puntos disponibles. Para participar, acepta los incentivos en «Editar mis preferencias de incentivos» (abajo). Solo se acumulan puntos de las compras hechas después de aceptar.
+                </div>
+
+                <div class="row g-3">
+                    <!-- Botón 1: Programa de Recompensa (JAGUEN Starter o Rebate Anual) -->
+                    <div t-if="landing['recompensa']" class="col-12 col-md-4">
+                        <a href="/my/loyalty/recompensa" class="card h-100 shadow-sm text-decoration-none text-reset jaguen-loyalty-tile">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title mb-2" t-esc="landing['recompensa']['program_title']"/>
+                                <div class="fs-3 fw-bold text-primary">
+                                    $<t t-esc="'{:,.0f}'.format(landing['recompensa']['points'])"/>
+                                    <small class="text-muted fw-normal">pesos en compras</small>
+                                </div>
+                                <p t-if="landing['recompensa']['next_reward']" class="text-muted mb-0 mt-auto">
+                                    Requieres comprar $<b t-esc="'{:,.0f}'.format(landing['recompensa']['missing_points'])"/> pesos
+                                    <t t-if="landing['recompensa']['program'].x_jaguen_loyalty_group == 'onboarding'">para alcanzar tu próxima meta</t>
+                                    <t t-else="">en lo que resta del año para cumplir tu meta anual</t>
+                                </p>
+                                <p t-if="landing['recompensa']['all_unlocked']" class="mb-0 mt-auto">
+                                    <span class="badge bg-success">
+                                        <t t-if="landing['recompensa']['program'].x_jaguen_loyalty_group == 'rebate'">¡Cumpliste tu meta del año!</t>
+                                        <t t-else="">¡Desbloqueaste todos los regalos!</t>
+                                    </span>
+                                </p>
+                                <div class="mt-3"><span class="btn btn-sm btn-primary">Ver mi progreso</span></div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Botón 2: Mi Primer Pedido de $X -->
+                    <div t-if="landing['monto']['total_count']" class="col-12 col-md-4">
+                        <a href="/my/loyalty/pedido-monto" class="card h-100 shadow-sm text-decoration-none text-reset jaguen-loyalty-tile">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title mb-2">Mi Primer Pedido de $X</h5>
+                                <div class="fs-3 fw-bold text-primary">
+                                    <t t-esc="landing['monto']['done_count']"/> <small class="text-muted fw-normal">de <t t-esc="landing['monto']['total_count']"/> premios ganados</small>
+                                </div>
+                                <p class="text-muted mb-0 mt-auto">Entre mas grande sea tu pedido, mejor el premio.</p>
+                                <div class="mt-3"><span class="btn btn-sm btn-primary">Ver mis premios</span></div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Botón 3: Mi Primer Pedido por Línea -->
+                    <div t-if="landing['linea']['total_count']" class="col-12 col-md-4">
+                        <a href="/my/loyalty/pedido-linea" class="card h-100 shadow-sm text-decoration-none text-reset jaguen-loyalty-tile">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title mb-2">Mi Primer Pedido por Línea</h5>
+                                <div class="fs-3 fw-bold text-primary">
+                                    <t t-esc="landing['linea']['done_count']"/> <small class="text-muted fw-normal">de <t t-esc="landing['linea']['total_count']"/> premios ganados</small>
+                                </div>
+                                <p class="text-muted mb-0 mt-auto">$350 en Vales de Gasolina la primera vez que un pedido llegue a $10,000 en cada línea.</p>
+                                <div class="mt-3"><span class="btn btn-sm btn-primary">Ver mis premios</span></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <p class="text-muted mt-4 mb-0">
+                    <a href="/my/loyalty/terminos"><i class="fa fa-cog me-1"/>Editar mis preferencias de incentivos</a>
+                    <span class="mx-2">·</span>
+                    <a href="/my/loyalty/terminos/completos" target="_blank" rel="noopener"><i class="fa fa-file-text-o me-1"/>Ver términos y condiciones completos</a>
+                </p>
+            </div>
+        </t>
+    </template>
+
+    <!-- Términos y Condiciones: candado antes de dejar ver "Mis Puntos" -->
+    <template id="portal_my_loyalty_terminos" name="Mis Puntos - Términos y Condiciones">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5" style="max-width: 720px;">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a href="/my/" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0">Mis Puntos - Términos y Condiciones</h3>
+                </div>
+
+                <p>
+                    JAGUEN ofrece estos beneficios comerciales a sus clientes:
+                </p>
+                <ul>
+                    <li><b>JAGUEN Starter</b> — Regalos Promocionales por tu nivel de compra acumulada.</li>
+                    <li><b>Mi Primer Pedido</b> — Regalos Promocionales y Vales de Gasolina por alcanzar ciertos montos en tus pedidos.</li>
+                    <li><b>Rebate Anual</b> — Nota de Crédito a tu empresa al cumplir tus objetivos de compra anuales.</li>
+                </ul>
+                <p>
+                    Los puntos se acreditan una vez que Jaguen recibe tu pago y lo concilia con
+                    el banco; la conciliación se realiza periódicamente, por lo que tus puntos
+                    pueden reflejarse durante el mes siguiente a tu pago. Los montos son antes
+                    de IVA, y solo acumulas puntos de las compras hechas después de aceptar.
+                </p>
+                <p>
+                    Antes de mostrarte tu progreso, necesitamos que nos confirmes cuáles aplican
+                    para ti — abajo te explicamos cada casilla, y aquí puedes leer los
+                    <a href="/my/loyalty/terminos/completos" target="_blank" rel="noopener">términos y condiciones</a>
+                    del programa si quieres más detalles.
+                </p>
+
+                <form action="/my/loyalty/terminos/guardar" method="POST" class="card shadow-sm">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="card-body">
+                        <div class="form-check mb-3 py-3 pe-3 ps-5 border rounded">
+                            <input class="form-check-input" style="width: 1.35em; height: 1.35em; margin-left: -2em;" type="checkbox" name="acepta_personales" id="acepta_personales" value="1"
+                                   t-att-checked="'checked' if partner.x_acepta_incentivos_personales else None"/>
+                            <label class="form-check-label" for="acepta_personales">
+                                <b>Incentivos Starter</b>
+                                <div class="text-muted small mt-1">
+                                    Regalos Promocionales y Vales de Gasolina que JAGUEN entrega,
+                                    como parte de la relación comercial con mi empresa, a la
+                                    persona que gestiona la cuenta en representación del Cliente
+                                    (JAGUEN Starter, Mi Primer Pedido, y la tarjeta de regalo
+                                    dentro de Rebate Anual). Al aceptar, confirmo que tengo la
+                                    autorización de mi empresa para recibir este tipo de
+                                    incentivos de proveedores. JAGUEN no verifica ni se hace
+                                    responsable de las políticas internas de mi empresa.
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3 py-3 pe-3 ps-5 border rounded">
+                            <input class="form-check-input" style="width: 1.35em; height: 1.35em; margin-left: -2em;" type="checkbox" name="acepta_rebate" id="acepta_rebate" value="1"
+                                   t-att-checked="'checked' if partner.x_acepta_rebate_anual else None"/>
+                            <label class="form-check-label" for="acepta_rebate">
+                                <b>Rebate Anual</b>
+                                <div class="text-muted small mt-1">
+                                    Nota de crédito a la cuenta de mi empresa por volumen de compra y
+                                    pago puntual, evaluada una vez al año. Es independiente de los
+                                    Incentivos Starter de arriba: puedo aceptar esta y no esa, o
+                                    viceversa.
+                                </div>
+                            </label>
+                        </div>
+
+                        <p class="text-muted small mb-0">
+                            Puedes dejar una, las dos, o ninguna sin marcar — y puedes volver a esta
+                            pantalla cuando quieras para cambiar tu respuesta.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <button type="submit" class="btn btn-primary">Guardar y continuar</button>
+                    </div>
+                </form>
+
+                <p class="text-muted small mt-3">
+                    <a href="/my/loyalty/terminos/completos" target="_blank" rel="noopener"><i class="fa fa-file-text-o me-1"/>Ver términos y condiciones completos</a>
+                </p>
+            </div>
+        </t>
+    </template>
+
+    <!-- Términos y Condiciones completos: página de lectura, sin formulario -->
+    <template id="portal_my_loyalty_terminos_completos" name="Mis Puntos - Términos y Condiciones completos">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5" style="max-width: 760px;">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a href="javascript:history.back()" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0">Términos y Condiciones — Programas de Recompensas</h3>
+                </div>
+
+                <p>
+                    Bienvenido a los Programas de Recompensas de Jaguen S.A. de C.V. ("Jaguen"),
+                    con RFC JAG120815RT0 y domicilio fiscal en Calle Riada #6, Hermosillo,
+                    Sonora, C.P. 83147. Los presentes Términos y Condiciones
+                    ("Los TyC de Rewards") complementan a los Términos y Condiciones generales de
+                    www.jaguen.com y regulan específicamente la participación del Cliente en los
+                    programas de incentivos comerciales de Jaguen.
+                </p>
+
+                <h5 class="mt-4">1. Objeto</h5>
+                <p>
+                    "Los TyC de Rewards" regulan el acceso y la participación del "Cliente" en los
+                    beneficios comerciales que Jaguen ofrece a través de su portal de clientes
+                    ("El Portal"), en la sección "Mis Puntos", agrupados en tres programas (en
+                    conjunto, "Los Programas"):
+                </p>
+                <ul>
+                    <li><b>JAGUEN Starter:</b> Regalos Promocionales conforme el Cliente avanza en su nivel de compra acumulada, durante su periodo de incorporación como cliente nuevo.</li>
+                    <li><b>Mi Primer Pedido:</b> Regalos Promocionales y Vales de Gasolina por alcanzar ciertos montos en sus pedidos, y por alcanzarlos en cada línea de producto que maneja Jaguen.</li>
+                    <li><b>Rebate Anual:</b> Nota de Crédito a la cuenta del Cliente, y una tarjeta de regalo, al cumplir los objetivos de compra anuales fijados conforme a su historial de compra.</li>
+                </ul>
+
+                <h5 class="mt-4">2. Mecánica de Los Programas</h5>
+                <p>
+                    <b>2.1 Acreditación de puntos y avances.</b> Los puntos, montos, niveles de
+                    compra y demás avances de "Los Programas" se acreditan en la cuenta del
+                    Cliente en "El Portal" únicamente cuando se cumplan, en conjunto, las
+                    siguientes condiciones:
+                </p>
+                <ul>
+                    <li>Jaguen haya recibido el pago de la factura correspondiente a la compra, en su totalidad; y</li>
+                    <li>dicho pago haya sido conciliado por Jaguen contra su estado de cuenta bancario.</li>
+                </ul>
+                <p>
+                    La conciliación bancaria se realiza de manera periódica, conforme al cierre
+                    contable de Jaguen, por lo que la acreditación puede reflejarse en "El
+                    Portal" durante el mes siguiente a aquel en que el Cliente realizó su pago.
+                    Un pedido confirmado, una factura emitida, o un pago registrado que aún no
+                    haya sido conciliado, no generan puntos ni avance alguno.
+                </p>
+                <p>
+                    Cuando un pedido se factura y/o se paga solo parcialmente, el avance se
+                    acredita en la proporción correspondiente a cada factura pagada y conciliada,
+                    y no se otorga por la parte pendiente. Los beneficios de un solo evento (como
+                    "Mi Primer Pedido") se acreditan hasta que el pedido completo haya sido
+                    pagado y conciliado.
+                </p>
+                <p>
+                    <b>2.2 Montos.</b> Todos los montos de compra señalados en "Los Programas"
+                    se entienden antes de IVA (es decir, la cantidad indicada más IVA).
+                </p>
+                <p>
+                    (a) <b>JAGUEN Starter:</b> durante su periodo de incorporación como cliente
+                    nuevo de Jaguen, el Cliente acumula puntos conforme su compra acumulada alcanza
+                    distintos niveles. Al alcanzar un nivel, el Cliente podrá canjear sus puntos por
+                    un Regalo Promocional a escoger entre las opciones que se muestren para ese nivel; al canjear, se descuentan de
+                    su saldo los puntos correspondientes a ese nivel. El Cliente no está obligado a
+                    canjear: puede conservar sus puntos y seguir acumulando para canjearlos después
+                    por un premio de mayor nivel. Solo los primeros $150,000 (antes de IVA) de
+                    compras acumuladas generan puntos en JAGUEN Starter; las compras que
+                    excedan ese monto ya no generan puntos de este programa. Los niveles,
+                    montos y regalos vigentes se muestran en "El Portal", en la sección
+                    "Mis Puntos".
+                </p>
+                <p>
+                    (b) <b>Mi Primer Pedido:</b> Jaguen premia al Cliente la primera vez que un
+                    pedido individual alcanza ciertos montos mínimos — tanto en general ("Mi
+                    Primer Pedido de $X") como dentro de
+                    cada línea de producto que maneja Jaguen ("Mi Primer Pedido por Línea"). Cada
+                    nivel se otorga una sola vez por Cliente. En cada pedido se otorga únicamente
+                    el nivel más alto de "Mi Primer Pedido de $X" que el pedido alcance y que el
+                    Cliente aún no haya recibido; los niveles menores quedan disponibles para sus
+                    pedidos posteriores. Cada nivel de "Mi Primer Pedido de $X" otorga un Regalo
+                    Promocional a escoger entre las opciones que se muestren para ese nivel; no genera puntos acumulables, y el
+                    premio permanece disponible hasta que el Cliente lo seleccione. "Mi Primer
+                    Pedido por Línea" se evalúa por separado: cada línea de producto que alcance
+                    su monto en el pedido otorga su propio beneficio (Vale de Gasolina), que el Cliente
+                    solicita desde "El Portal" (botón "Redimir") y que se entrega mediante un código QR
+                    para usarse en gasolinera. Los montos y recompensas vigentes se muestran en "El Portal".
+                </p>
+                <p>
+                    (c) <b>Rebate Anual:</b> a partir de cierto tiempo de actividad del Cliente,
+                    Jaguen observa su promedio de compra mensual para fijar una meta anual de
+                    compra. Al cierre de cada año, si el Cliente alcanza dicha meta, se le otorga
+                    una nota de crédito a la cuenta de su empresa y una tarjeta de regalo — ambas
+                    calculadas como un porcentaje del volumen comprado en el periodo evaluado. El
+                    comportamiento de
+                    pago de la cuenta durante el año incrementa, reduce o elimina este beneficio,
+                    conforme a la política vigente de Jaguen: hasta 3 facturas vencidas a 30–59
+                    días durante el año no afectan el beneficio; de la 4ta factura vencida en ese
+                    rango en adelante, el beneficio se reduce a la mitad; una sola factura vencida
+                    a 60 días o más deja al Cliente en 0% de beneficio ese año. Los porcentajes y
+                    condiciones vigentes se muestran en "El Portal".
+                </p>
+
+                <h5 class="mt-4">3. Aceptación</h5>
+                <p>
+                    El Cliente manifiesta su aceptación a "Los TyC de Rewards" mediante las
+                    casillas dispuestas en "El Portal", pudiendo aceptar una, ambas, o ninguna:
+                </p>
+                <p>
+                    (a) <b>Incentivos Starter:</b> aplica a JAGUEN Starter, Mi Primer Pedido, y a
+                    la tarjeta de regalo dentro de Rebate Anual. Estos beneficios se entregan,
+                    como parte de la relación comercial con la empresa del Cliente, a la persona
+                    que gestiona la cuenta en representación del Cliente. Al aceptar, la persona
+                    que gestiona la cuenta confirma que tiene la autorización de su organización
+                    para recibir este tipo de incentivos de proveedores, y que dicha participación
+                    cumple con las políticas internas del Cliente a quien representa. Jaguen no
+                    verifica ni se hace responsable del cumplimiento de dichas políticas internas.
+                </p>
+                <p>
+                    (b) <b>Rebate Anual:</b> aplica a la nota de crédito a la cuenta del Cliente
+                    por volumen de compra y comportamiento de pago, evaluada anualmente. Es
+                    independiente de la aceptación señalada en el inciso anterior.
+                </p>
+                <p>
+                    La aceptación es lo que habilita la participación en el programa
+                    correspondiente. Las compras realizadas antes de que el Cliente acepte no
+                    generan puntos ni avance, y mientras el Cliente no tenga la aceptación
+                    vigente no podrá acumular ni reclamar beneficios de ese programa. Los puntos
+                    ya acreditados se conservan y se muestran nuevamente si el Cliente vuelve a
+                    aceptar.
+                </p>
+                <p>
+                    El Cliente podrá modificar su aceptación en cualquier momento desde "El
+                    Portal", en la sección "Editar mis preferencias de incentivos".
+                </p>
+
+                <h5 class="mt-4">4. Elegibilidad</h5>
+                <p>
+                    La participación en "Los Programas" está limitada a clientes privados de
+                    Jaguen con cuenta activa en "El Portal". Quedan excluidos de "Los Programas":
+                </p>
+                <p>
+                    (a) El gobierno y las dependencias y entidades públicas, en cualquiera de sus
+                    niveles (federal, estatal o municipal), así como cualquier cuenta que opere
+                    mediante licitaciones públicas o a través de portales de compras
+                    gubernamentales (como Compranet, CFE, u otros equivalentes).
+                </p>
+                <p>
+                    (b) Cualquier cuenta privada cuyo propio proceso de compra sea comparable con
+                    una licitación donde se requiera ofertar el mejor precio para competir y
+                    congelar los precios por tiempos mayores a 6 meses, o cuyas políticas internas
+                    prohíban este tipo de esquema de incentivos.
+                </p>
+
+                <h5 class="mt-4">5. Modificaciones</h5>
+                <p>
+                    Jaguen se reserva el derecho de modificar, suspender o cancelar total o
+                    parcialmente "Los Programas", sus mecánicas, montos, metas y vigencias, en
+                    cualquier momento y sin previo aviso. Los cambios no afectan los beneficios ya
+                    otorgados y confirmados al Cliente antes de la modificación.
+                </p>
+
+                <h5 class="mt-4">6. Entrega de Beneficios</h5>
+                <p>
+                    Los regalos, vales y notas de crédito se otorgan conforme a la política
+                    comercial vigente de Jaguen, sujeto a que la cuenta del Cliente se encuentre
+                    al corriente en sus pagos. Jaguen podrá posponer o ajustar la entrega de un
+                    beneficio en caso de mora, conforme a dicha política. Los Regalos Promocionales que
+                    el Cliente escoja en "El Portal" se agregan a su carrito sin costo y se entregan
+                    junto con su siguiente pedido; un pedido no puede constar únicamente de regalos.
+                </p>
+
+                <h5 class="mt-4">7. Responsabilidad</h5>
+                <p>
+                    Jaguen no será responsable por el uso que el Cliente o la persona que recibe
+                    un beneficio le dé al mismo, ni por el cumplimiento de las políticas internas
+                    de la empresa del Cliente respecto a la recepción de incentivos de
+                    proveedores, conforme a lo señalado en la cláusula 3.
+                </p>
+
+                <h5 class="mt-4">8. Legislación y Jurisdicción Aplicable</h5>
+                <p>
+                    Para la interpretación y cumplimiento de "Los TyC de Rewards", las partes se
+                    someten a la legislación mexicana vigente y a la jurisdicción de los
+                    tribunales de la ciudad de Hermosillo, Sonora, México, renunciando a cualquier
+                    otro fuero que por razón de domicilio presente o futuro pudiera corresponderles.
+                </p>
+
+                <h5 class="mt-4">9. Domicilio y Datos de Contacto</h5>
+                <p>
+                    Para efectos de "Los TyC de Rewards", se señala como domicilio fiscal de
+                    Jaguen el ubicado en Calle Riada #6, Hermosillo, Sonora, C.P. 83147, así
+                    como el correo electrónico de contacto contacto.jaguen@gmail.com.
+                </p>
+
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.43)</p>
+            </div>
+        </t>
+    </template>
+
+    <!-- Icono de regalo de cada programa: rojo = Starter, azul = Mi Primer Pedido de $X, verde = por Linea -->
+    <template id="jaguen_gift_icon" name="Icono de regalo">
+        <img t-att-src="'/jaguen_loyalty_portal/static/src/img/gift_%s.png' % color" alt="Regalo"
+             style="width: 48px; height: 48px; object-fit: contain;"
+             t-att-class="'opacity-50' if dim else ''"/>
+    </template>
+
+    <!-- Aviso "Deseas escoger este regalo?" (Si / No) -->
+    <template id="jaguen_gift_modal" name="Aviso escoger regalo">
+        <div class="modal fade" t-att-id="modal_id" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <t t-if="affordable">
+                        <div class="modal-header">
+                            <h5 class="modal-title">¿Deseas escoger este regalo?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
+                            <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
+                            <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="reward_id" t-att-value="reward_id"/>
+                                <input type="hidden" name="product_id" t-att-value="gift['id']"/>
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                                <button type="submit" class="btn btn-primary">Sí</button>
+                            </form>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="modal-header">
+                            <h5 class="modal-title">No te alcanzan los puntos</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 120px; object-fit: contain;"/>
+                            <p class="fw-bold mt-2 mb-2" t-esc="gift['name']"/>
+                            <p class="mb-1">Este regalo requiere <b t-esc="'{:,.0f}'.format(cost)"/> puntos.</p>
+                            <p class="mb-1">Tienes <b t-esc="'{:,.0f}'.format(available)"/> puntos disponibles<t t-if="reserved"> (ya tienes <b t-esc="'{:,.0f}'.format(reserved)"/> apartados en regalos de tu carrito)</t>.</p>
+                            <p class="text-muted small mb-0">Sigue comprando para juntar los puntos que faltan.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Aviso "Deseas solicitar tu vale de gasolina?" (Si / No) -->
+    <template id="jaguen_vale_modal" name="Aviso solicitar vale de gasolina">
+        <div class="modal fade" t-att-id="modal_id" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">¿Deseas solicitar tu vale de $<t t-esc="'{:,.0f}'.format(monto)"/> de <t t-esc="linea"/>?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="/jaguen_loyalty_portal/static/src/img/gift_linea_verde.png" alt="Vale" style="height: 90px; object-fit: contain;"/>
+                        <p class="text-muted small mt-2 mb-0">Tu asesor recibirá tu solicitud y te entregará tu código QR para usarlo en la gasolinera.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form action="/my/loyalty/vale-gasolina/solicitar" method="post" class="d-flex gap-2 w-100 justify-content-end">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="program_id" t-att-value="program_id"/>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                            <button type="submit" class="btn btn-primary">Sí</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Detalle del "Programa de Recompensa" (JAGUEN Starter o Rebate Anual): progreso + escalera -->
+    <template id="portal_my_loyalty_recompensa" name="Mis Puntos - Programa de Recompensa">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a href="/my/loyalty" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0" t-esc="pdata['program_title'] if pdata else 'Programa de Recompensa'"/>
+                </div>
+
+                <div t-if="not pdata" class="alert alert-info" role="alert">
+                    Todavía no tienes este programa disponible. En cuanto hagas tu primera compra, tu progreso aparecerá aquí.
+                </div>
+
+                <div t-if="pdata" class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-1">
+                            <span class="fs-4 fw-bold text-primary">
+                                <small class="text-muted fw-normal">Llevas</small>
+                                $<t t-esc="'{:,.0f}'.format(pdata['points'])"/>
+                                <small class="text-muted fw-normal">pesos en compras</small>
+                            </span>
+                            <span t-if="pdata['next_reward'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="text-muted">
+                                Requieres comprar $<b t-esc="'{:,.0f}'.format(pdata['missing_points'])"/> pesos para alcanzar tu próxima meta y ganarte <t t-esc="pdata['next_reward_label']"/>
+                            </span>
+                            <span t-elif="pdata['next_reward']" class="text-muted">
+                                Requieres comprar $<b t-esc="'{:,.0f}'.format(pdata['missing_points'])"/> pesos en lo que resta del año para cumplir tu meta anual y ganarte <t t-esc="pdata['next_reward_label']"/>
+                            </span>
+                            <span t-if="pdata['all_unlocked']" class="badge bg-success">
+                                <t t-if="pdata['program'].x_jaguen_loyalty_group == 'rebate'">¡Cumpliste tu meta del año!</t><t t-else="">¡Desbloqueaste todos los regalos!</t>
+                            </span>
+                        </div>
+
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 t-attf-style="width: #{pdata['progress_pct']}%;"
+                                 t-att-aria-valuenow="pdata['progress_pct']" aria-valuemin="0" aria-valuemax="100"/>
+                        </div>
+                        <p t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding' and pdata['deadline_date']"
+                           t-attf-class="small fw-bold mb-2 #{'text-danger' if pdata['days_left'] &lt;= 15 else 'text-primary'}">
+                            <i class="fa fa-hourglass-half me-1"/>
+                            <t t-if="pdata['days_left'] &gt; 0">
+                                Te quedan <t t-esc="pdata['days_left']"/> <t t-esc="'día' if pdata['days_left'] == 1 else 'días'"/> de tu programa JAGUEN Starter (termina el <t t-esc="pdata['deadline_date']"/>).
+                            </t>
+                            <t t-else="">Tu periodo de 4 meses en JAGUEN Starter ya terminó (<t t-esc="pdata['deadline_date']"/>).</t>
+                        </p>
+                        <p t-if="pdata['points_pending']" class="small mb-4" style="color: #0e8fa8;">
+                            <i class="fa fa-clock-o me-1"/>
+                            Tienes $<b t-esc="'{:,.0f}'.format(pdata['points_pending'])"/> pesos de compras recientes pendientes de pago. Se suman a tu progreso en cuanto se liquide la factura correspondiente.
+                        </p>
+                        <div t-else="" class="mb-4"/>
+
+                        <div t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="alert alert-warning small" role="alert">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            <b>Importante:</b> el máximo de puntos que puedes ganar en JAGUEN Starter es de
+                            <b>$<t t-esc="'{:,.0f}'.format(pdata['max_points'])"/></b> en compras (antes de IVA). Llegar a esa cantidad
+                            no significa que te lleves el regalo más grande: los regalos se pagan con tus puntos, y si canjeas
+                            regalos de los primeros niveles ya no te alcanzarán los puntos para los niveles de más abajo.
+                            <b>La única manera de alcanzar los mejores premios es acumulando tus puntos.</b>
+                        </div>
+
+                        <div class="list-group">
+                            <t t-foreach="pdata['tiers']" t-as="tier">
+                                <t t-set="tier_id" t-value="'jg-tier-%s' % tier_index"/>
+                                <div t-attf-class="list-group-item #{'list-group-item-success' if tier['unlocked'] else ''}">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3"
+                                         t-att-style="'cursor: pointer;' if tier['gifts'] else ''"
+                                         t-att-data-bs-toggle="'collapse' if tier['gifts'] else None"
+                                         t-att-data-bs-target="('#' + tier_id) if tier['gifts'] else None">
+                                        <div class="flex-shrink-0" style="width: 48px; height: 48px;">
+                                            <t t-if="tier['gifts']" t-call="jaguen_loyalty_portal.jaguen_gift_icon">
+                                                <t t-set="color" t-value="'starter_rojo'"/>
+                                                <t t-set="dim" t-value="not tier['unlocked']"/>
+                                            </t>
+                                            <img t-elif="tier['image_url']" t-att-src="tier['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;"/>
+                                            <div t-else="" class="d-flex align-items-center justify-content-center bg-light rounded border h-100">
+                                                <i class="fa fa-gift text-muted"/>
+                                            </div>
+                                        </div>
+                                        <div style="flex: 1 1 0; min-width: 9rem;">
+                                            <t t-if="tier['gifts']">
+                                                <div class="fw-bold">
+                                                    <t t-if="tier['unlocked']">¡Alcanzaste $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos! Escoge uno de estos regalos</t>
+                                                    <t t-else="">Compra $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos y escoge uno de estos regalos</t>
+                                                </div>
+                                                <small t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="text-muted">
+                                                    Si prefieres acumular tus puntos no escojas ningún regalo
+                                                </small>
+                                            </t>
+                                            <t t-else="">
+                                                <div t-esc="tier['label'][:1].upper() + tier['label'][1:]" class="fw-bold"/>
+                                                <small class="text-muted">
+                                                    $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos en compras
+                                                </small>
+                                            </t>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <span t-if="tier['unlocked']" class="badge bg-success"><i class="fa fa-check me-1"/>Desbloqueado</span>
+                                            <span t-elif="pdata['next_reward'] and tier['reward'].required_points == pdata['next_reward'].required_points" class="badge bg-primary">Siguiente</span>
+                                            <span t-else="" class="badge bg-light text-muted">Bloqueado</span>
+                                        </div>
+                                        <i t-if="tier['gifts']" class="fa fa-chevron-down text-muted flex-shrink-0"/>
+                                    </div>
+                                    <div t-if="tier['gifts']" t-att-id="tier_id" class="collapse mt-3">
+                                        <div class="row g-3">
+                                            <div t-foreach="tier['gifts']" t-as="gift" class="col-12 col-md-4">
+                                                <div class="card h-100 text-center"
+                                                     t-att-style="'cursor: pointer;' if tier['can_choose'] else ''"
+                                                     t-att-data-bs-toggle="'modal' if tier['can_choose'] else None"
+                                                     t-att-data-bs-target="('#jg-m-s%s-%s' % (tier_index, gift_index)) if tier['can_choose'] else None">
+                                                    <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
+                                                    <div class="card-body p-2">
+                                                        <div class="fw-bold small" t-esc="gift['name']"/>
+                                                        <div t-if="gift['description']" class="text-muted small mt-1" t-esc="gift['description']"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p t-if="tier['claimed']" class="small text-primary fw-bold mt-2 mb-0">
+                                            <i class="fa fa-gift me-1"/>Ya escogiste: <t t-esc="tier['claimed']['name']"/>
+                                            (<t t-esc="'en tu carrito' if tier['claimed']['in_cart'] else 'en el pedido ' + tier['claimed']['order']"/>).
+                                            Cada nivel se escoge una sola vez. Si lo quitas del carrito o se cancela ese pedido, puedes escoger otro.
+                                        </p>
+                                        <p t-elif="tier['unlocked'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="small text-success mt-2 mb-0">
+                                            Ya alcanzaste este nivel: toca la foto del regalo que quieras escoger. Cuesta
+                                            <b t-esc="'{:,.0f}'.format(tier['required_points'])"/> <t t-esc="pdata['point_name']"/>,
+                                            que se descuentan hasta que confirmes tu pedido.
+                                        </p>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <t t-foreach="pdata['tiers']" t-as="tier">
+                            <t t-if="tier['can_choose']">
+                                <t t-foreach="tier['gifts']" t-as="gift">
+                                    <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
+                                        <t t-set="modal_id" t-value="'jg-m-s%s-%s' % (tier_index, gift_index)"/>
+                                        <t t-set="reward_id" t-value="tier['reward'].id"/>
+                                        <t t-set="affordable" t-value="tier['affordable']"/>
+                                        <t t-set="cost" t-value="tier['required_points']"/>
+                                        <t t-set="available" t-value="pdata['available_points']"/>
+                                        <t t-set="reserved" t-value="pdata['reserved_points']"/>
+                                    </t>
+                                </t>
+                            </t>
+                        </t>
+
+                        <div t-if="pdata['program'].x_jaguen_loyalty_group == 'rebate'" class="mt-4">
+                            <p class="fw-bold mb-2">Condiciones según tu historial de pago</p>
+                            <p class="text-muted small mb-2">
+                                El % de arriba es el beneficio base por cumplir tu meta de compra. Si tienes facturas vencidas durante el año, el beneficio se reduce así:
+                            </p>
+                            <div class="table-responsive">
+                                <style>.jg-cond-table th, .jg-cond-table td { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; max-width: none !important; }
+                                @media (max-width: 576px) { .jg-cond-table th, .jg-cond-table td { font-size: 0.7rem; padding: 0.2rem 0.25rem; } }</style>
+                                <table class="table table-sm table-bordered align-middle mb-2 jg-cond-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Cumplimiento de meta anual</th>
+                                            <th>Sin atraso</th>
+                                            <th>Mas de 3 Facturas Vencidas entre 30-59 dias</th>
+                                            <th>Cualquier Factura a 60+ Dias Vencidos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>100% o más de la meta</td>
+                                            <td>3% - 1%</td>
+                                            <td>1.5% - 0.5%</td>
+                                            <td>0.0% - 0.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Entre 90% y 99% de la meta</td>
+                                            <td>1.5% - 0.5%</td>
+                                            <td>0.75% - 0.25%</td>
+                                            <td>0.0% - 0.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Menos de 90% de la meta</td>
+                                            <td>0.0% - 0.0%</td>
+                                            <td>0.0% - 0.0%</td>
+                                            <td>0.0% - 0.0%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Formato de cada celda: % en nota de crédito a tu empresa - % en tarjeta de regalo. Hasta 3 facturas a 30–59 días vencidas en el año no afectan tu beneficio; de la 4ta factura a 30–59 días vencidas en adelante, tu beneficio se corta a la mitad; una factura a 60 días o más vencida te deja en 0% ese año. El nivel de mora se fija en el momento en que ocurre y aplica a todo el año, aunque la factura se ponga al corriente después. El cálculo final se procesa en enero del año siguiente, y el ciclo vuelve a empezar limpio cada año.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Detalle de los grupos "Mi Primer Pedido de $X" / "...por Línea": checklist Hecho/Pendiente -->
+    <template id="portal_my_loyalty_checklist" name="Mis Puntos - Checklist de premios">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a t-att-href="back_url" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0" t-esc="page_title"/>
+                </div>
+                <div t-if="request.params.get('vale') == 'ok'" class="alert alert-success" role="alert">
+                    Listo: tu solicitud se envió a tu asesor. Te entregará tu código QR para el vale de gasolina.
+                </div>
+                <div t-if="request.params.get('vale') == 'error'" class="alert alert-warning" role="alert">
+                    No pudimos registrar tu solicitud. Avísale a tu asesor.
+                </div>
+                <p class="text-muted" t-esc="page_subtitle"/>
+
+                <div class="card shadow-sm">
+                    <div class="list-group list-group-flush">
+                        <t t-foreach="checklist['items']" t-as="item">
+                            <t t-set="item_id" t-value="'jg-item-%s' % item_index"/>
+                            <div t-attf-class="list-group-item #{'list-group-item-success' if item['done'] else ''}">
+                                <div class="d-flex align-items-center gap-3"
+                                     t-att-style="'cursor: pointer;' if (item['gifts'] or item['can_redeem']) else ''"
+                                     t-att-data-bs-toggle="'collapse' if item['gifts'] else ('modal' if item['can_redeem'] else None)"
+                                     t-att-data-bs-target="('#' + item_id) if item['gifts'] else (('#jg-v-%s' % item_index) if item['can_redeem'] else None)">
+                                    <div class="flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <t t-call="jaguen_loyalty_portal.jaguen_gift_icon">
+                                            <t t-set="color" t-value="checklist['icon']"/>
+                                            <t t-set="dim" t-value="not item['done']"/>
+                                        </t>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <t t-if="item['gifts']">
+                                            <div class="fw-bold">
+                                                <t t-if="item['done']">¡Lo lograste! Un pedido de <t t-esc="item['label']"/> pesos: escoge uno de estos regalos</t>
+                                                <t t-else="">Un pedido de <t t-esc="item['label']"/> pesos y escoges uno de estos regalos</t>
+                                            </div>
+                                            <small class="text-muted">Un regalo por nivel, a tu elección. Una sola vez, la primera vez que llegues a este monto.</small>
+                                        </t>
+                                        <t t-else="">
+                                            <div t-esc="item['label']" class="fw-bold"/>
+                                            <small t-if="item['reward_label']" class="text-muted" t-esc="item['reward_label']"/>
+                                        </t>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span t-if="item['redeemed']" class="badge bg-info text-dark">Redimido</span>
+                                        <span t-elif="item['can_redeem']" class="badge bg-primary">Redimir</span>
+                                        <span t-elif="item['done']" class="badge bg-success">Hecho</span>
+                                        <span t-elif="item['pending_payment']" class="badge bg-warning text-dark">Pendiente de pago</span>
+                                        <span t-else="" class="badge bg-light text-muted">Pendiente</span>
+                                    </div>
+                                    <i t-if="item['gifts']" class="fa fa-chevron-down text-muted flex-shrink-0"/>
+                                </div>
+                                <div t-if="item['gifts']" t-att-id="item_id" class="collapse mt-3">
+                                    <div class="row g-3">
+                                        <div t-foreach="item['gifts']" t-as="gift" class="col-12 col-md-4">
+                                            <div class="card h-100 text-center"
+                                                 t-att-style="'cursor: pointer;' if item['can_choose'] else ''"
+                                                 t-att-data-bs-toggle="'modal' if item['can_choose'] else None"
+                                                 t-att-data-bs-target="('#jg-m-m%s-%s' % (item_index, gift_index)) if item['can_choose'] else None">
+                                                <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
+                                                <div class="card-body p-2">
+                                                    <div class="fw-bold small" t-esc="gift['name']"/>
+                                                    <div t-if="gift['description']" class="text-muted small mt-1" t-esc="gift['description']"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p t-if="item['claimed']" class="small text-primary fw-bold mt-2 mb-0">
+                                        <i class="fa fa-gift me-1"/>Ya escogiste: <t t-esc="item['claimed']['name']"/>
+                                        (<t t-esc="'en tu carrito' if item['claimed']['in_cart'] else 'en el pedido ' + item['claimed']['order']"/>).
+                                        Si lo quitas del carrito o se cancela ese pedido, puedes escoger otro.
+                                    </p>
+                                    <p t-elif="item['can_choose']" class="small text-success mt-2 mb-0">Toca la foto del regalo que quieras escoger.</p>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-foreach="checklist['items']" t-as="item">
+                            <t t-if="item['can_redeem']">
+                                <t t-call="jaguen_loyalty_portal.jaguen_vale_modal">
+                                    <t t-set="modal_id" t-value="'jg-v-%s' % item_index"/>
+                                    <t t-set="program_id" t-value="item['program_id']"/>
+                                    <t t-set="linea" t-value="item['label']"/>
+                                    <t t-set="monto" t-value="item['amount']"/>
+                                </t>
+                            </t>
+                            <t t-if="item['can_choose']">
+                                <t t-foreach="item['gifts']" t-as="gift">
+                                    <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
+                                        <t t-set="modal_id" t-value="'jg-m-m%s-%s' % (item_index, gift_index)"/>
+                                        <t t-set="reward_id" t-value="item['reward_id']"/>
+                                        <t t-set="affordable" t-value="True"/>
+                                    </t>
+                                </t>
+                            </t>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+    <!-- Aviso en el carrito: un pedido de solo regalo no se puede finalizar -->
+    <template id="cart_gift_only_warning" inherit_id="website_sale.cart" name="JAGUEN: carrito solo con regalo">
+        <xpath expr="//h3[hasclass('mb-4')]" position="after">
+            <div t-if="website_sale_order and website_sale_order.sudo().jaguen_is_gift_only()" class="alert alert-warning" role="alert">
+                Tu regalo se entrega junto con una compra: agrega al menos un producto a tu carrito para poder finalizar tu pedido.
+            </div>
+        </xpath>
+    </template>
+
+
+    <!-- Ningun codigo de cupon o tarjeta de regalo se muestra al cliente (carrito, resumen de
+         compra y pedido en el portal): se vacia la plantilla que lo pinta. -->
+    <template id="hide_coupon_code" inherit_id="sale_loyalty.used_gift_card" name="JAGUEN: sin codigos de cupon">
+        <xpath expr="//div" position="replace"/>
+    </template>
+
+
+    <!-- "Mi cuenta": el recuadro nativo de puntos (con su boton "Reclamar") se oculta para todos los
+         programas; el cliente ve y escoge sus regalos solo desde "Mis Puntos". -->
+    <template id="hide_native_loyalty_box" inherit_id="loyalty.loyalty_buttons" name="JAGUEN: sin recuadro de puntos en Mi cuenta">
+        <xpath expr="//div[hasclass('o_loyalty_container')]" position="replace"/>
+    </template>
+
+</odoo>

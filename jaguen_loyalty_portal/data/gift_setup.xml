@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Asigna a cada nivel sus regalos (productos reales buscados por codigo).
+         Corre solo en la instalacion; en una base ya instalada se corre a mano. -->
+    <function model="jaguen.gift.setup" name="setup_gifts"/>
+    <!-- Idioma por defecto de los contactos: espanol (es_MX). -->
+    <function model="jaguen.gift.setup" name="setup_language"/>
+</odoo>

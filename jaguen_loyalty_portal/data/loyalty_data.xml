@@ -1,0 +1,936 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Etiquetas de producto: cada tramo ofrece los 2 productos que llevan su etiqueta -->
+    <record id="tag_regalo_starter_10000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $10,000</field>
+    </record>
+    <record id="tag_regalo_starter_20000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $20,000</field>
+    </record>
+    <record id="tag_regalo_starter_30000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $30,000</field>
+    </record>
+    <record id="tag_regalo_starter_40000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $40,000</field>
+    </record>
+    <record id="tag_regalo_starter_50000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $50,000</field>
+    </record>
+    <record id="tag_regalo_starter_60000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $60,000</field>
+    </record>
+    <record id="tag_regalo_starter_70000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $70,000</field>
+    </record>
+    <record id="tag_regalo_starter_80000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $80,000</field>
+    </record>
+    <record id="tag_regalo_starter_90000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $90,000</field>
+    </record>
+    <record id="tag_regalo_starter_100000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $100,000</field>
+    </record>
+    <record id="tag_regalo_starter_110000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $110,000</field>
+    </record>
+    <record id="tag_regalo_starter_120000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $120,000</field>
+    </record>
+    <record id="tag_regalo_starter_130000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $130,000</field>
+    </record>
+    <record id="tag_regalo_starter_140000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $140,000</field>
+    </record>
+    <record id="tag_regalo_starter_150000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Starter $150,000</field>
+    </record>
+    <record id="tag_regalo_mpp_5000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $5,000</field>
+    </record>
+    <record id="tag_regalo_mpp_10000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $10,000</field>
+    </record>
+    <record id="tag_regalo_mpp_15000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $15,000</field>
+    </record>
+    <record id="tag_regalo_mpp_20000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $20,000</field>
+    </record>
+    <record id="tag_regalo_mpp_25000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $25,000</field>
+    </record>
+    <record id="tag_regalo_mpp_30000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $30,000</field>
+    </record>
+    <record id="tag_regalo_mpp_35000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $35,000</field>
+    </record>
+    <record id="tag_regalo_mpp_40000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $40,000</field>
+    </record>
+    <record id="tag_regalo_mpp_45000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $45,000</field>
+    </record>
+    <record id="tag_regalo_mpp_50000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
+        <field name="name">Regalo Mi Primer Pedido $50,000</field>
+    </record>
+
+    <!-- Los regalos (productos reales) los asigna data/gift_setup.xml segun models/gift_catalog.py -->
+
+    <!-- ================================================================ -->
+    <!-- Productos placeholder: regalos de la escalera acumulada JAGUEN Starter -->
+    <!-- ================================================================ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Opcion B de cada tramo de JAGUEN Starter (la opcion A son los productos de arriba) -->
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Mi Primer Pedido de $X: hasta 3 regalos a escoger por tramo (el cliente SIEMPRE escoge uno; no se acumula nada) -->
+
+    <!-- ================================================================ -->
+    <!-- 1) JAGUEN Starter - Onboarding (acumulado) -->
+    <!-- ================================================================ -->
+    <record id="program_onboarding" model="loyalty.program">
+        <field name="name">1) JAGUEN Starter</field>
+        <field name="program_type">loyalty</field>
+        <field name="applies_on">both</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">pesos en compras (sin IVA)</field>
+        <field name="is_nominative" eval="True"/>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">onboarding</field>
+    </record>
+    <record id="rule_onboarding" model="loyalty.rule">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_point_amount">0.862069</field>
+        <field name="reward_point_mode">money</field>
+        <field name="minimum_amount">0</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_onboarding_10000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_10000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">10000</field>
+    </record>
+    <record id="reward_onboarding_20000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_20000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">20000</field>
+    </record>
+    <record id="reward_onboarding_30000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_30000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">30000</field>
+    </record>
+    <record id="reward_onboarding_40000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_40000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">40000</field>
+    </record>
+    <record id="reward_onboarding_50000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_50000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">50000</field>
+    </record>
+    <record id="reward_onboarding_60000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_60000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">60000</field>
+    </record>
+    <record id="reward_onboarding_70000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_70000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">70000</field>
+    </record>
+    <record id="reward_onboarding_80000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_80000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">80000</field>
+    </record>
+    <record id="reward_onboarding_90000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_90000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">90000</field>
+    </record>
+    <record id="reward_onboarding_100000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_100000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">100000</field>
+    </record>
+    <record id="reward_onboarding_110000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_110000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">110000</field>
+    </record>
+    <record id="reward_onboarding_120000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_120000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">120000</field>
+    </record>
+    <record id="reward_onboarding_130000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_130000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">130000</field>
+    </record>
+    <record id="reward_onboarding_140000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_140000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">140000</field>
+    </record>
+    <record id="reward_onboarding_150000" model="loyalty.reward">
+        <field name="program_id" ref="program_onboarding"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_starter_150000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">150000</field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- 4) Rebate Anual (Programa 2) -->
+    <!-- ================================================================ -->
+    <!-- (Los programas de Rebate Anual viven en loyalty_data_rebate_anual_anios.xml, uno por anio.) -->
+
+    <!-- ================================================================ -->
+    <!-- 2) Mi Primer Pedido de $X (10 programas, uno por tramo) -->
+    <!-- ================================================================ -->
+    <record id="program_pedido_monto_5000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $5,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_5000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_5000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">5000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_5000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_5000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_5000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_10000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $10,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_10000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_10000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_10000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_10000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_10000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_15000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $15,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_15000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_15000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">15000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_15000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_15000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_15000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_20000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $20,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_20000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_20000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">20000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_20000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_20000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_20000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_25000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $25,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_25000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_25000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">25000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_25000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_25000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_25000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_30000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $30,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_30000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_30000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">30000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_30000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_30000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_30000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_35000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $35,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_35000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_35000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">35000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_35000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_35000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_35000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_40000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $40,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_40000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_40000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">40000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_40000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_40000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_40000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_45000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $45,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_45000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_45000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">45000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_45000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_45000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_45000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_monto_50000" model="loyalty.program">
+        <field name="name">2) Mi Primer Pedido de $50,000+</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_monto</field>
+    </record>
+    <record id="rule_pedido_monto_50000" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_monto_50000"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">50000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+    </record>
+    <record id="reward_pedido_monto_50000" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_monto_50000"/>
+        <field name="reward_type">product</field>
+        <field name="reward_product_tag_id" ref="tag_regalo_mpp_50000"/>
+        <field name="reward_product_qty">1</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- 3) Mi Primer Pedido $10,000 por Línea (11 programas, uno por linea) -->
+    <!-- ================================================================ -->
+    <record id="program_pedido_linea_papeleria_oficina" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Papeleria de Oficina</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_papeleria_oficina" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_papeleria_oficina"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="196"/>
+    </record>
+    <record id="reward_pedido_linea_papeleria_oficina" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_papeleria_oficina"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_papeleria_escolar" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Papeleria Escolar</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_papeleria_escolar" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_papeleria_escolar"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="197"/>
+    </record>
+    <record id="reward_pedido_linea_papeleria_escolar" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_papeleria_escolar"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_limpieza" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Limpieza Institucional</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_limpieza" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_limpieza"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="198"/>
+    </record>
+    <record id="reward_pedido_linea_limpieza" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_limpieza"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_empaque_industrial" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Empaque Industrial</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_empaque_industrial" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_empaque_industrial"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="199"/>
+    </record>
+    <record id="reward_pedido_linea_empaque_industrial" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_empaque_industrial"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_computo" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Computo y Tecnologia</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_computo" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_computo"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="200"/>
+    </record>
+    <record id="reward_pedido_linea_computo" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_computo"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_higiene_personal" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Higiene Personal</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_higiene_personal" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_higiene_personal"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="201"/>
+    </record>
+    <record id="reward_pedido_linea_higiene_personal" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_higiene_personal"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_seguridad_industrial" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Seguridad Industrial</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_seguridad_industrial" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_seguridad_industrial"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="202"/>
+    </record>
+    <record id="reward_pedido_linea_seguridad_industrial" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_seguridad_industrial"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_cafeteria" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Productos de Cafeteria</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_cafeteria" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_cafeteria"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="203"/>
+    </record>
+    <record id="reward_pedido_linea_cafeteria" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_cafeteria"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_ferreteria" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Material de Ferreteria</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_ferreteria" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_ferreteria"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="204"/>
+    </record>
+    <record id="reward_pedido_linea_ferreteria" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_ferreteria"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_promocionales" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Articulos Promocionales</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_promocionales" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_promocionales"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="205"/>
+    </record>
+    <record id="reward_pedido_linea_promocionales" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_promocionales"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+    <record id="program_pedido_linea_productos_varios" model="loyalty.program">
+        <field name="name">3) Mi Primer Pedido $10,000 por Línea - Productos Varios</field>
+        <field name="program_type">next_order_coupons</field>
+        <field name="applies_on">future</field>
+        <field name="trigger">auto</field>
+        <field name="portal_visible" eval="True"/>
+        <field name="portal_point_name">Vale</field>
+        <field name="date_from" eval="'2026-10-06'"/>
+        <field name="date_to" eval="'2030-12-31'"/>
+        <field name="x_jaguen_loyalty_group">pedido_linea</field>
+    </record>
+    <record id="rule_pedido_linea_productos_varios" model="loyalty.rule">
+        <field name="program_id" ref="program_pedido_linea_productos_varios"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_qty">0</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+        <field name="reward_point_name">Vale</field>
+        <field name="product_category_id" eval="206"/>
+    </record>
+    <record id="reward_pedido_linea_productos_varios" model="loyalty.reward">
+        <field name="program_id" ref="program_pedido_linea_productos_varios"/>
+        <field name="reward_type">discount</field>
+        <field name="discount">350</field>
+        <field name="discount_mode">per_order</field>
+        <field name="discount_applicability">order</field>
+        <field name="required_points">1</field>
+        <field name="point_name">Vale</field>
+    </record>
+
+</odoo>
