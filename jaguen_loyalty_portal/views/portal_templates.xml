@@ -377,7 +377,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.34)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.35)</p>
             </div>
         </t>
     </template>
@@ -486,6 +486,15 @@
                             Tienes $<b t-esc="'{:,.0f}'.format(pdata['points_pending'])"/> pesos de compras recientes pendientes de pago. Se suman a tu progreso en cuanto se liquide la factura correspondiente.
                         </p>
                         <div t-else="" class="mb-4"/>
+
+                        <div t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="alert alert-warning small" role="alert">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            <b>Importante:</b> el máximo de puntos que puedes ganar en JAGUEN Starter es de
+                            <b>$<t t-esc="'{:,.0f}'.format(pdata['max_points'])"/></b> en compras (antes de IVA). Llegar a esa cantidad
+                            no significa que te lleves el regalo más grande: los regalos se pagan con tus puntos, y si canjeas
+                            regalos de los primeros niveles ya no te alcanzarán los puntos para los niveles de más abajo.
+                            <b>La única manera de alcanzar los mejores premios es acumulando tus puntos.</b>
+                        </div>
 
                         <div class="list-group">
                             <t t-foreach="pdata['tiers']" t-as="tier">

@@ -236,9 +236,12 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'label': self._jaguen_reward_label(reward),
                 'image_url': self._jaguen_get_reward_image_url(reward),
                 'gifts': self._jaguen_get_reward_gifts(reward),
-                'claimed': claims.get(reward.id, False),
+                # En Starter los puntos se gastan: un mismo nivel se puede escoger
+                # varias veces mientras alcancen los puntos. Solo Mi Primer Pedido
+                # (vale de una vez) cierra el nivel al escogerlo.
+                'claimed': False,
                 'affordable': available >= umbral,
-                'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding' and reward.id not in claims,
+                'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding',
                 'required_points': umbral,
             })
 
@@ -460,8 +463,9 @@ class JaguenLoyaltyPortal(CustomerPortal):
         if order.state != 'draft':
             return request.redirect(back + '?gift=error')
         order = order.with_context(jaguen_portal_gift=True)
-        # Un regalo por nivel: si ya lo escogio (carrito, cotizacion o pedido), no se repite.
-        if reward.id in self._jaguen_get_claims():
+        # Mi Primer Pedido: un regalo por nivel (vale de una vez). En Starter se puede
+        # repetir mientras alcancen los puntos (los valida Odoo al aplicar el regalo).
+        if group == 'pedido_monto' and reward.id in self._jaguen_get_claims():
             return request.redirect(back + '?gift=claimed')
         # La tarjeta con la que se paga el regalo: el vale de Mi Primer Pedido
         # (1 punto) o la tarjeta de Starter con puntos suficientes.
