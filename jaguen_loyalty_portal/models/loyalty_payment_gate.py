@@ -76,6 +76,13 @@ class LoyaltyCard(models.Model):
         ),
     )
 
+    x_vale_solicitado_fecha = fields.Datetime(
+        string='Vale de gasolina solicitado (fecha)',
+        help="Se llena cuando el cliente pide su vale de gasolina desde el portal "
+             "(Mi Primer Pedido por Linea). Con esto el portal muestra 'Redimido' "
+             "y no deja pedirlo dos veces.",
+    )
+
     def _jaguen_is_accepted(self):
         """True si la empresa de esta tarjeta ya acepto los Terminos y
         Condiciones que abren este programa. Sin aceptar, no se gana nada

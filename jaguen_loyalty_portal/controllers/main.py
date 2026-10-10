@@ -326,10 +326,17 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'can_choose': bool(done and reward and group == 'pedido_monto' and reward.id not in claims),
                 'done': done,
                 'pending_payment': pending_payment,
+                # Vale de gasolina (Por Linea): se puede pedir una vez; despues dice "Redimido".
+                'redeemed': any(cd.x_vale_solicitado_fecha for cd in cards),
+                'can_redeem': bool(group == 'pedido_linea' and done
+                                   and not any(cd.x_vale_solicitado_fecha for cd in cards)),
+                'program_id': program.id,
+                'amount': reward.discount if reward and reward.reward_type == 'discount' else 0.0,
             })
 
         done_count = sum(1 for item in items if item['done'])
         return {
+            'group': group,
             'icon': 'monto_azul' if group == 'pedido_monto' else 'linea_verde',
             'items': items,
             'done_count': done_count,
@@ -483,6 +490,44 @@ class JaguenLoyaltyPortal(CustomerPortal):
         if isinstance(status, dict) and status.get('error'):
             return request.redirect(back + '?gift=error')
         return request.redirect('/shop/cart')
+
+    @http.route(['/my/loyalty/vale-gasolina/solicitar'], type='http', auth='user', methods=['POST'], website=True)
+    def jaguen_loyalty_request_gas_voucher(self, program_id=None, **kw):
+        """El cliente pide su vale de gasolina: se marca como solicitado y se le crea
+        una actividad por hacer al vendedor del cliente."""
+        if self._jaguen_terminos_pendientes():
+            return request.redirect('/my/loyalty/terminos')
+        back = '/my/loyalty/pedido-linea'
+        partner = self._jaguen_get_commercial_partner()
+        try:
+            program = request.env['loyalty.program'].sudo().browse(int(program_id)).exists()
+        except (TypeError, ValueError):
+            program = request.env['loyalty.program']
+        if (not program or program.x_jaguen_loyalty_group != 'pedido_linea'
+                or not partner.x_acepta_incentivos_personales):
+            return request.redirect(back + '?vale=error')
+        cards = request.env['loyalty.card'].sudo().search([
+            ('partner_id', 'child_of', partner.id), ('program_id', '=', program.id),
+            ('active', '=', True), ('points', '>', 0)])
+        if not cards or any(cd.x_vale_solicitado_fecha for cd in cards):
+            return request.redirect(back + '?vale=error')
+        now = fields.Datetime.now()
+        cards.write({'x_vale_solicitado_fecha': now})
+        reward = program.reward_ids[:1]
+        monto = reward.discount if reward and reward.reward_type == 'discount' else 0.0
+        linea = self._jaguen_group_item_label(program)
+        sudo_partner = partner.sudo()
+        vendedor = sudo_partner.user_id or request.env['res.users'].sudo().search(
+            [('login', '=', 'ventas.jaguen@hotmail.com')], limit=1) or request.env.ref('base.user_admin')
+        sudo_partner.activity_schedule(
+            'mail.mail_activity_data_todo',
+            summary='Vale de gasolina solicitado: %s ($%s)' % (linea, '{:,.0f}'.format(monto)),
+            note='%s pidio su vale de gasolina de $%s de la linea %s (solicitado el %s). '
+                 'Entregale su codigo QR para la gasolinera.' % (
+                     partner.name, '{:,.2f}'.format(monto), linea, fields.Datetime.to_string(now)),
+            user_id=vendedor.id,
+        )
+        return request.redirect(back + '?vale=ok')
 
     @http.route(['/my/loyalty/gift_image/<int:product_id>'], type='http', auth='user')
     def jaguen_loyalty_gift_image(self, product_id, **kw):

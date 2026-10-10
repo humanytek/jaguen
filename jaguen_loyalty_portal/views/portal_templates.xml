@@ -377,7 +377,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.35)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.36)</p>
             </div>
         </t>
     </template>
@@ -430,6 +430,32 @@
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
                         </div>
                     </t>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Aviso "Deseas solicitar tu vale de gasolina?" (Si / No) -->
+    <template id="jaguen_vale_modal" name="Aviso solicitar vale de gasolina">
+        <div class="modal fade" t-att-id="modal_id" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">¿Deseas solicitar tu vale de $<t t-esc="'{:,.0f}'.format(monto)"/> de <t t-esc="linea"/>?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="/jaguen_loyalty_portal/static/src/img/gift_linea_verde.png" alt="Vale" style="height: 90px; object-fit: contain;"/>
+                        <p class="text-muted small mt-2 mb-0">Tu asesor recibirá tu solicitud y te entregará tu código QR para usarlo en la gasolinera.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form action="/my/loyalty/vale-gasolina/solicitar" method="post" class="d-flex gap-2 w-100 justify-content-end">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="program_id" t-att-value="program_id"/>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                            <button type="submit" class="btn btn-primary">Sí</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -639,6 +665,12 @@
                     <a t-att-href="back_url" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
                     <h3 class="my-0" t-esc="page_title"/>
                 </div>
+                <div t-if="request.params.get('vale') == 'ok'" class="alert alert-success" role="alert">
+                    Listo: tu solicitud se envió a tu asesor. Te entregará tu código QR para el vale de gasolina.
+                </div>
+                <div t-if="request.params.get('vale') == 'error'" class="alert alert-warning" role="alert">
+                    No pudimos registrar tu solicitud. Avísale a tu asesor.
+                </div>
                 <p class="text-muted" t-esc="page_subtitle"/>
 
                 <div class="card shadow-sm">
@@ -647,9 +679,9 @@
                             <t t-set="item_id" t-value="'jg-item-%s' % item_index"/>
                             <div t-attf-class="list-group-item #{'list-group-item-success' if item['done'] else ''}">
                                 <div class="d-flex align-items-center gap-3"
-                                     t-att-style="'cursor: pointer;' if item['gifts'] else ''"
-                                     t-att-data-bs-toggle="'collapse' if item['gifts'] else None"
-                                     t-att-data-bs-target="('#' + item_id) if item['gifts'] else None">
+                                     t-att-style="'cursor: pointer;' if (item['gifts'] or item['can_redeem']) else ''"
+                                     t-att-data-bs-toggle="'collapse' if item['gifts'] else ('modal' if item['can_redeem'] else None)"
+                                     t-att-data-bs-target="('#' + item_id) if item['gifts'] else (('#jg-v-%s' % item_index) if item['can_redeem'] else None)">
                                     <div class="flex-shrink-0" style="width: 48px; height: 48px;">
                                         <t t-call="jaguen_loyalty_portal.jaguen_gift_icon">
                                             <t t-set="color" t-value="checklist['icon']"/>
@@ -670,7 +702,9 @@
                                         </t>
                                     </div>
                                     <div class="flex-shrink-0">
-                                        <span t-if="item['done']" class="badge bg-success">Hecho</span>
+                                        <span t-if="item['redeemed']" class="badge bg-info text-dark">Redimido</span>
+                                        <span t-elif="item['can_redeem']" class="badge bg-primary">Redimir</span>
+                                        <span t-elif="item['done']" class="badge bg-success">Hecho</span>
                                         <span t-elif="item['pending_payment']" class="badge bg-warning text-dark">Pendiente de pago</span>
                                         <span t-else="" class="badge bg-light text-muted">Pendiente</span>
                                     </div>
@@ -701,6 +735,14 @@
                             </div>
                         </t>
                         <t t-foreach="checklist['items']" t-as="item">
+                            <t t-if="item['can_redeem']">
+                                <t t-call="jaguen_loyalty_portal.jaguen_vale_modal">
+                                    <t t-set="modal_id" t-value="'jg-v-%s' % item_index"/>
+                                    <t t-set="program_id" t-value="item['program_id']"/>
+                                    <t t-set="linea" t-value="item['label']"/>
+                                    <t t-set="monto" t-value="item['amount']"/>
+                                </t>
+                            </t>
                             <t t-if="item['can_choose']">
                                 <t t-foreach="item['gifts']" t-as="gift">
                                     <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
