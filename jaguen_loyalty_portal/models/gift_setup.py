@@ -30,6 +30,10 @@ class JaguenGiftSetup(models.AbstractModel):
         interno); NUNCA crea productos. Es seguro correrlo varias veces: deja en cada etiqueta exactamente los
         productos del catalogo."""
         Product = self.env['product.product'].sudo()
+        # Las etiquetas son internas: no deben verse en la tienda en linea.
+        self.env['product.tag'].sudo().search(
+            [('name', '=like', 'Regalo %'), ('visible_on_ecommerce', '=', True)]
+        ).write({'visible_on_ecommerce': False})
         wanted = {}
         missing = []
         for program, amount, code, name, cost, provider in GIFT_CATALOG:

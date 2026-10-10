@@ -3,78 +3,103 @@
 
     <!-- Etiquetas de producto: cada tramo ofrece los 2 productos que llevan su etiqueta -->
     <record id="tag_regalo_starter_10000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $10,000</field>
     </record>
     <record id="tag_regalo_starter_20000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $20,000</field>
     </record>
     <record id="tag_regalo_starter_30000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $30,000</field>
     </record>
     <record id="tag_regalo_starter_40000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $40,000</field>
     </record>
     <record id="tag_regalo_starter_50000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $50,000</field>
     </record>
     <record id="tag_regalo_starter_60000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $60,000</field>
     </record>
     <record id="tag_regalo_starter_70000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $70,000</field>
     </record>
     <record id="tag_regalo_starter_80000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $80,000</field>
     </record>
     <record id="tag_regalo_starter_90000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $90,000</field>
     </record>
     <record id="tag_regalo_starter_100000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $100,000</field>
     </record>
     <record id="tag_regalo_starter_110000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $110,000</field>
     </record>
     <record id="tag_regalo_starter_120000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $120,000</field>
     </record>
     <record id="tag_regalo_starter_130000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $130,000</field>
     </record>
     <record id="tag_regalo_starter_140000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $140,000</field>
     </record>
     <record id="tag_regalo_starter_150000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Starter $150,000</field>
     </record>
     <record id="tag_regalo_mpp_5000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $5,000</field>
     </record>
     <record id="tag_regalo_mpp_10000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $10,000</field>
     </record>
     <record id="tag_regalo_mpp_15000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $15,000</field>
     </record>
     <record id="tag_regalo_mpp_20000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $20,000</field>
     </record>
     <record id="tag_regalo_mpp_25000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $25,000</field>
     </record>
     <record id="tag_regalo_mpp_30000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $30,000</field>
     </record>
     <record id="tag_regalo_mpp_35000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $35,000</field>
     </record>
     <record id="tag_regalo_mpp_40000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $40,000</field>
     </record>
     <record id="tag_regalo_mpp_45000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $45,000</field>
     </record>
     <record id="tag_regalo_mpp_50000" model="product.tag">
+        <field name="visible_on_ecommerce" eval="False"/>
         <field name="name">Regalo Mi Primer Pedido $50,000</field>
     </record>
 
