@@ -64,3 +64,18 @@ class JaguenGiftSetup(models.AbstractModel):
     def gift_order(self, program, amount):
         """Orden (codigo o nombre) de las opciones de un nivel, segun el catalogo."""
         return [c or n for p, a, c, n, _cost, _prov in GIFT_CATALOG if p == program and a == amount]
+
+    @api.model
+    def setup_language(self):
+        """Idioma por defecto de los contactos: espanol (es_MX).
+
+        Evita que los contactos nuevos (y sus PDF/correos) salgan en ingles.
+        Tambien pone espanol a los contactos que no tienen idioma. No cambia
+        a los que ya tienen otro idioma asignado. Seguro de correr varias veces."""
+        lang = self.env['res.lang'].sudo().search([('code', '=', 'es_MX'), ('active', '=', True)], limit=1)
+        if not lang:
+            _logger.warning("jaguen_loyalty_portal: es_MX no esta activo; no se cambia el idioma por defecto.")
+            return False
+        self.env['ir.default'].sudo().set('res.partner', 'lang', 'es_MX')
+        self.env['res.partner'].sudo().with_context(active_test=False).search([('lang', '=', False)]).write({'lang': 'es_MX'})
+        return True
