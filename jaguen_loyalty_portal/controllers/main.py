@@ -6,6 +6,7 @@ from odoo import http, fields, _
 from odoo.http import request
 from odoo.tools.misc import format_date
 from odoo.addons.portal.controllers.portal import CustomerPortal
+from odoo.addons.website_sale.controllers.main import WebsiteSale
 
 
 class JaguenLoyaltyPortal(CustomerPortal):
@@ -78,6 +79,28 @@ class JaguenLoyaltyPortal(CustomerPortal):
         if reward.reward_type == 'shipping':
             return _('Envío gratis')
         return reward.description or _('Recompensa')
+
+    def _jaguen_get_claims(self):
+        """Regalos de nivel que la empresa ya escogio: estan en un carrito,
+        cotizacion o pedido sin cancelar. {reward_id: {'name', 'order'}}.
+        Un regalo por nivel: mientras exista, ese nivel queda cerrado."""
+        partner = self._jaguen_get_commercial_partner()
+        lines = request.env['sale.order.line'].sudo().search([
+            ('order_id.partner_id', 'child_of', partner.id),
+            ('order_id.state', '!=', 'cancel'),
+            ('reward_id', '!=', False),
+            ('reward_id.program_id.x_jaguen_loyalty_group', 'in', ('onboarding', 'pedido_monto')),
+        ])
+        claims = {}
+        for line in lines:
+            if not line.is_reward_line:
+                continue
+            claims[line.reward_id.id] = {
+                'name': line.product_id.display_name,
+                'order': line.order_id.name,
+                'in_cart': bool(line.order_id.website_id and line.order_id.state == 'draft'),
+            }
+        return claims
 
     def _jaguen_get_reward_gifts(self, reward):
         """Opciones de regalo de un nivel (foto, nombre, descripcion), en el
@@ -185,6 +208,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
             maestro para el resto de los programas."""
             return objetivo_individual if is_rebate and objetivo_individual else reward.required_points
 
+        claims = self._jaguen_get_claims()
         tiers = []
         next_reward = None
         for reward in rewards:
@@ -198,7 +222,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'label': self._jaguen_reward_label(reward),
                 'image_url': self._jaguen_get_reward_image_url(reward),
                 'gifts': self._jaguen_get_reward_gifts(reward),
-                'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding',
+                'claimed': claims.get(reward.id, False),
+                'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding' and reward.id not in claims,
                 'required_points': umbral,
             })
 
@@ -261,6 +286,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
             ('x_jaguen_loyalty_group', '=', group),
         ], order='id')
 
+        claims = self._jaguen_get_claims()
         items = []
         for program in programs:
             cards = Card.search([
@@ -276,7 +302,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'reward_label': self._jaguen_reward_label(reward) if reward else False,
                 'gifts': self._jaguen_get_reward_gifts(reward) if reward else [],
                 'reward_id': reward.id if reward else False,
-                'can_choose': bool(done and reward and group == 'pedido_monto'),
+                'claimed': claims.get(reward.id, False) if reward else False,
+                'can_choose': bool(done and reward and group == 'pedido_monto' and reward.id not in claims),
                 'done': done,
                 'pending_payment': pending_payment,
             })
@@ -360,9 +387,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
             'page_name': 'loyalty',
             'page_title': _('Mi Primer Pedido de $X'),
             'page_subtitle': _(
-                'No tiene que ser literalmente tu primer pedido: es la '
-                'primera vez que uno de tus pedidos alcance cada uno de '
-                'estos montos. Cada tramo se desbloquea una sola vez. En cada pedido '
+                'Desbloquea cada nivel alcanzando los montos en un solo '
+                'pedido. Cada tramo se desbloquea una sola vez. En cada pedido '
                 'se desbloquea únicamente el tramo más alto que alcances y que aún '
                 'no tengas; los demás se desbloquean en tus siguientes pedidos.'
             ),
@@ -411,10 +437,15 @@ class JaguenLoyaltyPortal(CustomerPortal):
             return request.redirect(back + '?gift=error')
         order = request.website.sale_get_order(force_create=True).sudo()
         if order.state != 'draft':
+            # El carrito de esta sesion ya era un pedido confirmado: se abre uno nuevo.
+            request.session['sale_order_id'] = None
+            order = request.website.sale_get_order(force_create=True).sudo()
+        if order.state != 'draft':
             return request.redirect(back + '?gift=error')
         order = order.with_context(jaguen_portal_gift=True)
-        # Un regalo por nivel: si ya habia otro de este nivel en el carrito, se reemplaza.
-        order.order_line.filtered(lambda l: l.reward_id == reward).unlink()
+        # Un regalo por nivel: si ya lo escogio (carrito, cotizacion o pedido), no se repite.
+        if reward.id in self._jaguen_get_claims():
+            return request.redirect(back + '?gift=claimed')
         # La tarjeta con la que se paga el regalo: el vale de Mi Primer Pedido
         # (1 punto) o la tarjeta de Starter con puntos suficientes.
         cards = request.env['loyalty.card'].sudo().search([
@@ -449,3 +480,14 @@ class JaguenLoyaltyPortal(CustomerPortal):
             record, field_name='image_256',
         )
         return stream.get_response()
+
+
+class JaguenWebsiteSale(WebsiteSale):
+
+    @http.route()
+    def shop_checkout(self, **post):
+        """"Finalizar compra": un carrito con solo regalo (y envio) no avanza."""
+        order = request.website.sale_get_order()
+        if order and order.sudo().jaguen_is_gift_only():
+            return request.redirect('/shop/cart?gift_only=1')
+        return super().shop_checkout(**post)

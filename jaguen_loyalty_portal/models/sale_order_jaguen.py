@@ -41,10 +41,22 @@ class SaleOrder(models.Model):
         En Starter y Mi Primer Pedido cada canje es UN regalo y solo cuesta
         los puntos de ese nivel (el cliente puede conservar el resto)."""
         values = super()._get_reward_values_product(reward, coupon, product=product, **kwargs)
-        if reward.program_id.x_jaguen_loyalty_group in ('onboarding', 'pedido_monto'):
+        group = reward.program_id.x_jaguen_loyalty_group
+        if group in ('onboarding', 'pedido_monto'):
+            if group == 'onboarding':
+                etiqueta = '[Regalo JAGUEN Starter]'
+            else:
+                monto = (reward.program_id.name or '').split(' de ', 1)[-1].rstrip('+').strip()
+                etiqueta = '[Regalo Mi Primer Pedido de %s]' % monto
             for vals in values:
                 vals['product_uom_qty'] = reward.reward_product_qty or 1
                 vals['points_cost'] = reward.required_points
+                # Solo la DESCRIPCION de la linea lleva la etiqueta del regalo;
+                # el nombre del producto no se toca.
+                prod = self.env['product.product'].browse(vals.get('product_id'))
+                if prod:
+                    vals['name'] = '%s - %s' % (etiqueta, prod.with_context(
+                        lang=self.partner_id.lang).get_product_multiline_description_sale())
         return values
 
     # -- 2) Nada de regalos JAGUEN en la tienda en linea -------------------
@@ -76,8 +88,14 @@ class SaleOrder(models.Model):
         """True si el pedido solo trae regalos de recompensa (nada con costo)."""
         self.ensure_one()
         lines = self.order_line.filtered(lambda l: not l.display_type)
-        paid = lines.filtered(lambda l: not l.is_reward_line and l.price_subtotal > 0)
+        # El cargo de envio no cuenta como compra: solo productos reales.
+        paid = lines.filtered(lambda l: not l.is_reward_line and not ('is_delivery' in l._fields and l.is_delivery) and l.price_subtotal > 0)
         return bool(lines.filtered('is_reward_line')) and not paid
+
+    def jaguen_is_gift_only(self):
+        """Version publica (para el aviso del carrito)."""
+        self.ensure_one()
+        return self._jaguen_gift_only()
 
     def _check_cart_is_ready_to_be_paid(self):
         if self.website_id and self._jaguen_gift_only():

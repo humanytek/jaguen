@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import api, models
 
 from .gift_catalog import GIFT_CATALOG
+
+_logger = logging.getLogger(__name__)
 
 GIFT_PROGRAM_TAG = {'starter': 'tag_regalo_starter_%s', 'mpp': 'tag_regalo_mpp_%s'}
 
@@ -12,42 +16,29 @@ class JaguenGiftSetup(models.AbstractModel):
 
     @api.model
     def _find_product(self, code, name):
-        """Producto real por codigo interno. Si el regalo no trae codigo (por
-        ejemplo una bota que en Odoo existe por tallas), se usa un producto
-        de regalo propio, buscado por su nombre."""
+        """Producto real por codigo interno (o por nombre si el regalo no trae codigo)."""
         Product = self.env['product.product'].sudo()
         if code:
             return Product.search([('default_code', '=', code)], limit=1)
-        return Product.search([('name', '=', self._gift_name(name))], limit=1)
-
-    @api.model
-    def _gift_name(self, name):
-        return 'Regalo JAGUEN - %s' % name
+        return Product.search([('name', '=', name)], limit=1)
 
     @api.model
     def setup_gifts(self):
         """Pone cada regalo del catalogo en la etiqueta de su nivel.
 
         Usa los productos que ya existen en Odoo (se buscan por codigo
-        interno); solo crea el producto cuando no lo encuentra. Es seguro
-        correrlo varias veces: deja en cada etiqueta exactamente los
+        interno); NUNCA crea productos. Es seguro correrlo varias veces: deja en cada etiqueta exactamente los
         productos del catalogo."""
         Product = self.env['product.product'].sudo()
         wanted = {}
+        missing = []
         for program, amount, code, name, cost, provider in GIFT_CATALOG:
             tag = self.env.ref('jaguen_loyalty_portal.' + GIFT_PROGRAM_TAG[program] % amount)
             product = self._find_product(code, name)
             if not product:
-                product = Product.create({
-                    'name': name if code else self._gift_name(name),
-                    'default_code': code or False,
-                    'type': 'consu',
-                    'list_price': cost,
-                    'standard_price': cost,
-                    'sale_ok': False,
-                    'purchase_ok': True,
-                    'description': 'Codigo Odoo: %s | Proveedor: %s' % (code or 'pendiente', provider),
-                })
+                # No se crean productos: si falta uno, se salta y se avisa.
+                missing.append(code or name)
+                continue
             # Etiqueta a nivel de VARIANTE: asi un producto con tallas (como la
             # bota) solo ofrece la talla elegida y no todas.
             product.write({'additional_product_tag_ids': [(4, tag.id)]})
@@ -61,7 +52,9 @@ class JaguenGiftSetup(models.AbstractModel):
                     'additional_product_tag_ids': [(3, tag_id)],
                     'product_tag_ids': [(3, tag_id)],
                 })
-        return True
+        if missing:
+            _logger.warning('Regalos sin producto en Odoo (no se crearon): %s', missing)
+        return missing
 
     @api.model
     def gift_order(self, program, amount):

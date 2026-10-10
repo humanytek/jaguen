@@ -31,6 +31,9 @@
                 <div t-if="request.params.get('gift') == 'no_points'" class="alert alert-warning" role="alert">
                     No pudimos agregar ese regalo a tu carrito: tus puntos o tu vale todavía no alcanzan, o están en otro contacto de tu empresa. Pídele a tu asesor que te lo agregue.
                 </div>
+                <div t-if="request.params.get('gift') == 'claimed'" class="alert alert-info" role="alert">
+                    Ese nivel ya tiene su regalo escogido (en tu carrito o en un pedido). Cada nivel se escoge una sola vez.
+                </div>
                 <div t-if="request.params.get('gift') == 'error'" class="alert alert-warning" role="alert">
                     No pudimos agregar ese regalo a tu carrito. Pídele a tu asesor que te lo agregue.
                 </div>
@@ -374,7 +377,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.25)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.31)</p>
             </div>
         </t>
     </template>
@@ -398,7 +401,7 @@
                     <div class="modal-body text-center">
                         <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
                         <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
-                        <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu pedido.</p>
+                        <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
                     </div>
                     <div class="modal-footer">
                         <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
@@ -460,7 +463,7 @@
                             </t>
                             <t t-else="">Tu periodo de 4 meses en JAGUEN Starter ya terminó (<t t-esc="pdata['deadline_date']"/>).</t>
                         </p>
-                        <p t-if="pdata['points_pending']" class="text-warning small mb-4">
+                        <p t-if="pdata['points_pending']" class="small mb-4" style="color: #0e8fa8;">
                             <i class="fa fa-clock-o me-1"/>
                             Tienes $<b t-esc="'{:,.0f}'.format(pdata['points_pending'])"/> pesos de compras recientes pendientes de pago. Se suman a tu progreso en cuanto se liquide la factura correspondiente.
                         </p>
@@ -523,7 +526,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <p t-if="tier['unlocked'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="small text-success mt-2 mb-0">
+                                        <p t-if="tier['claimed']" class="small text-primary fw-bold mt-2 mb-0">
+                                            <i class="fa fa-gift me-1"/>Ya escogiste: <t t-esc="tier['claimed']['name']"/>
+                                            (<t t-esc="'en tu carrito' if tier['claimed']['in_cart'] else 'en el pedido ' + tier['claimed']['order']"/>).
+                                            Cada nivel se escoge una sola vez. Si lo quitas del carrito o se cancela ese pedido, puedes escoger otro.
+                                        </p>
+                                        <p t-elif="tier['unlocked'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="small text-success mt-2 mb-0">
                                             Ya alcanzaste este nivel: toca la foto del regalo que quieras escoger. Cuesta
                                             <b t-esc="'{:,.0f}'.format(tier['required_points'])"/> <t t-esc="pdata['point_name']"/>,
                                             que se descuentan hasta que confirmes tu pedido.
@@ -652,7 +660,12 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <p t-if="item['can_choose']" class="small text-success mt-2 mb-0">Toca la foto del regalo que quieras escoger.</p>
+                                    <p t-if="item['claimed']" class="small text-primary fw-bold mt-2 mb-0">
+                                        <i class="fa fa-gift me-1"/>Ya escogiste: <t t-esc="item['claimed']['name']"/>
+                                        (<t t-esc="'en tu carrito' if item['claimed']['in_cart'] else 'en el pedido ' + item['claimed']['order']"/>).
+                                        Si lo quitas del carrito o se cancela ese pedido, puedes escoger otro.
+                                    </p>
+                                    <p t-elif="item['can_choose']" class="small text-success mt-2 mb-0">Toca la foto del regalo que quieras escoger.</p>
                                 </div>
                             </div>
                         </t>
@@ -670,6 +683,23 @@
                 </div>
             </div>
         </t>
+    </template>
+
+
+    <!-- Aviso en el carrito: un pedido de solo regalo no se puede finalizar -->
+    <template id="cart_gift_only_warning" inherit_id="website_sale.cart" name="JAGUEN: carrito solo con regalo">
+        <xpath expr="//h3[hasclass('mb-4')]" position="after">
+            <div t-if="website_sale_order and website_sale_order.sudo().jaguen_is_gift_only()" class="alert alert-warning" role="alert">
+                Tu regalo se entrega junto con una compra: agrega al menos un producto a tu carrito para poder finalizar tu pedido.
+            </div>
+        </xpath>
+    </template>
+
+
+    <!-- Ningun codigo de cupon o tarjeta de regalo se muestra al cliente (carrito, resumen de
+         compra y pedido en el portal): se vacia la plantilla que lo pinta. -->
+    <template id="hide_coupon_code" inherit_id="sale_loyalty.used_gift_card" name="JAGUEN: sin codigos de cupon">
+        <xpath expr="//div" position="replace"/>
     </template>
 
 </odoo>
