@@ -55,8 +55,10 @@ class SaleOrder(models.Model):
                 # el nombre del producto no se toca.
                 prod = self.env['product.product'].browse(vals.get('product_id'))
                 if prod:
+                    # Nombre con codigo, sin la descripcion de venta (el carrito de la
+                    # tienda ya imprime esa descripcion debajo y salia repetida).
                     vals['name'] = '%s - %s' % (etiqueta, prod.with_context(
-                        lang=self.partner_id.lang).get_product_multiline_description_sale())
+                        lang=self.partner_id.lang).display_name)
         return values
 
     # -- 2) Nada de regalos JAGUEN en la tienda en linea -------------------

@@ -102,6 +102,18 @@ class JaguenLoyaltyPortal(CustomerPortal):
             }
         return claims
 
+    def _jaguen_get_reserved_points(self):
+        """Puntos de Starter ya apartados por regalos que estan en un carrito o
+        cotizacion SIN confirmar (al confirmar, Odoo los descuenta de la
+        tarjeta; mientras tanto no se pueden volver a usar)."""
+        partner = self._jaguen_get_commercial_partner()
+        lines = request.env['sale.order.line'].sudo().search([
+            ('order_id.partner_id', 'child_of', partner.id),
+            ('order_id.state', 'in', ('draft', 'sent')),
+            ('reward_id.program_id.x_jaguen_loyalty_group', '=', 'onboarding'),
+        ])
+        return sum(l.points_cost for l in lines if l.is_reward_line)
+
     def _jaguen_get_reward_gifts(self, reward):
         """Opciones de regalo de un nivel (foto, nombre, descripcion), en el
         orden del catalogo. No lleva puntos: se muestran aparte, solo
@@ -209,6 +221,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
             return objetivo_individual if is_rebate and objetivo_individual else reward.required_points
 
         claims = self._jaguen_get_claims()
+        reserved = self._jaguen_get_reserved_points() if program.x_jaguen_loyalty_group == 'onboarding' else 0.0
+        available = points - reserved
         tiers = []
         next_reward = None
         for reward in rewards:
@@ -223,6 +237,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'image_url': self._jaguen_get_reward_image_url(reward),
                 'gifts': self._jaguen_get_reward_gifts(reward),
                 'claimed': claims.get(reward.id, False),
+                'affordable': available >= umbral,
                 'can_choose': unlocked and program.x_jaguen_loyalty_group == 'onboarding' and reward.id not in claims,
                 'required_points': umbral,
             })
@@ -246,6 +261,8 @@ class JaguenLoyaltyPortal(CustomerPortal):
             'program_title': re.sub(r'^\d\)\s*', '', program.name or ''),
             'points': points,
             'points_pending': points_pending,
+            'available_points': available,
+            'reserved_points': reserved,
             'point_name': point_name,
             'tiers': tiers,
             'next_reward': next_reward,

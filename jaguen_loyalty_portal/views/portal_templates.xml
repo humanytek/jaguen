@@ -377,7 +377,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.31)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.34)</p>
             </div>
         </t>
     </template>
@@ -394,24 +394,42 @@
         <div class="modal fade" t-att-id="modal_id" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">¿Deseas escoger este regalo?</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
-                        <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
-                        <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
-                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                            <input type="hidden" name="reward_id" t-att-value="reward_id"/>
-                            <input type="hidden" name="product_id" t-att-value="gift['id']"/>
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
-                            <button type="submit" class="btn btn-primary">Sí</button>
-                        </form>
-                    </div>
+                    <t t-if="affordable">
+                        <div class="modal-header">
+                            <h5 class="modal-title">¿Deseas escoger este regalo?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
+                            <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
+                            <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="reward_id" t-att-value="reward_id"/>
+                                <input type="hidden" name="product_id" t-att-value="gift['id']"/>
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                                <button type="submit" class="btn btn-primary">Sí</button>
+                            </form>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="modal-header">
+                            <h5 class="modal-title">No te alcanzan los puntos</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"/>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 120px; object-fit: contain;"/>
+                            <p class="fw-bold mt-2 mb-2" t-esc="gift['name']"/>
+                            <p class="mb-1">Este regalo requiere <b t-esc="'{:,.0f}'.format(cost)"/> puntos.</p>
+                            <p class="mb-1">Tienes <b t-esc="'{:,.0f}'.format(available)"/> puntos disponibles<t t-if="reserved"> (ya tienes <b t-esc="'{:,.0f}'.format(reserved)"/> apartados en regalos de tu carrito)</t>.</p>
+                            <p class="text-muted small mb-0">Sigue comprando para juntar los puntos que faltan.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                        </div>
+                    </t>
                 </div>
             </div>
         </div>
@@ -547,6 +565,10 @@
                                     <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
                                         <t t-set="modal_id" t-value="'jg-m-s%s-%s' % (tier_index, gift_index)"/>
                                         <t t-set="reward_id" t-value="tier['reward'].id"/>
+                                        <t t-set="affordable" t-value="tier['affordable']"/>
+                                        <t t-set="cost" t-value="tier['required_points']"/>
+                                        <t t-set="available" t-value="pdata['available_points']"/>
+                                        <t t-set="reserved" t-value="pdata['reserved_points']"/>
                                     </t>
                                 </t>
                             </t>
@@ -675,6 +697,7 @@
                                     <t t-call="jaguen_loyalty_portal.jaguen_gift_modal">
                                         <t t-set="modal_id" t-value="'jg-m-m%s-%s' % (item_index, gift_index)"/>
                                         <t t-set="reward_id" t-value="item['reward_id']"/>
+                                        <t t-set="affordable" t-value="True"/>
                                     </t>
                                 </t>
                             </t>
@@ -700,6 +723,13 @@
          compra y pedido en el portal): se vacia la plantilla que lo pinta. -->
     <template id="hide_coupon_code" inherit_id="sale_loyalty.used_gift_card" name="JAGUEN: sin codigos de cupon">
         <xpath expr="//div" position="replace"/>
+    </template>
+
+
+    <!-- "Mi cuenta": el recuadro nativo de puntos (con su boton "Reclamar") se oculta para todos los
+         programas; el cliente ve y escoge sus regalos solo desde "Mis Puntos". -->
+    <template id="hide_native_loyalty_box" inherit_id="loyalty.loyalty_buttons" name="JAGUEN: sin recuadro de puntos en Mi cuenta">
+        <xpath expr="//div[hasclass('o_loyalty_container')]" position="replace"/>
     </template>
 
 </odoo>
