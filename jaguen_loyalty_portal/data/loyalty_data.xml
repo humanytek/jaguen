@@ -248,43 +248,7 @@
     <!-- ================================================================ -->
     <!-- 4) Rebate Anual (Programa 2) -->
     <!-- ================================================================ -->
-    <record id="program_rebate_anual" model="loyalty.program">
-        <field name="name">Rebate Anual</field>
-        <field name="program_type">loyalty</field>
-        <field name="applies_on">both</field>
-        <field name="trigger">auto</field>
-        <field name="portal_visible" eval="True"/>
-        <field name="portal_point_name">pesos comprados en el año</field>
-        <field name="is_nominative" eval="True"/>
-        <field name="date_from" eval="'2026-10-06'"/>
-        <field name="date_to" eval="'2026-12-31'"/>
-        <field name="x_jaguen_loyalty_group">rebate</field>
-    </record>
-    <record id="rule_rebate_anual" model="loyalty.rule">
-        <field name="program_id" ref="program_rebate_anual"/>
-        <field name="reward_point_amount">0.862069</field>
-        <field name="reward_point_mode">money</field>
-        <field name="minimum_amount">0</field>
-        <field name="mode">auto</field>
-    </record>
-    <record id="reward_rebate_anual" model="loyalty.reward">
-        <field name="program_id" ref="program_rebate_anual"/>
-        <field name="reward_type">discount</field>
-        <field name="discount">0.01</field>
-        <field name="discount_mode">percent</field>
-        <field name="required_points">360000</field>
-        <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">empresa</field>
-    </record>
-    <record id="reward_rebate_anual_comprador" model="loyalty.reward">
-        <field name="program_id" ref="program_rebate_anual"/>
-        <field name="reward_type">discount</field>
-        <field name="discount">0.01</field>
-        <field name="discount_mode">percent</field>
-        <field name="required_points">360000</field>
-        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">comprador</field>
-    </record>
+    <!-- (Los programas de Rebate Anual viven en loyalty_data_rebate_anual_anios.xml, uno por anio.) -->
 
     <!-- ================================================================ -->
     <!-- 2) Mi Primer Pedido de $X (10 programas, uno por tramo) -->

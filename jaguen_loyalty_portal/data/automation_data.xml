@@ -36,7 +36,10 @@
         <field name="state">code</field>
         <field name="code">
 onboarding_programs = env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'onboarding')])
-rebate_program = env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'rebate')], limit=1)
+# El programa de Rebate VIGENTE es el que esta visible en el portal (el cron de
+# cambio de anio lo va moviendo cada 1 de enero). Sin este filtro se podia
+# escoger un programa de otro anio.
+rebate_program = env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'rebate'), ('portal_visible', '=', True)], limit=1) or env['loyalty.program'].search([('x_jaguen_loyalty_group', '=', 'rebate')], limit=1)
 if record.x_objetivo_anual_programa2 and rebate_program:
     empresa = record.commercial_partner_id
     cards = env['loyalty.card'].search([

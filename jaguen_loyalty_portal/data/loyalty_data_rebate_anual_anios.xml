@@ -4,9 +4,9 @@
     <!-- ========================================================================= -->
     <!-- Rebate Anual por ejercicio (oct/2026): un programa de lealtad nuevo e      -->
     <!-- independiente por cada año calendario, en vez de un solo "Rebate Anual"   -->
-    <!-- corrido sin fecha de corte (program_rebate_anual, en loyalty_data.xml,    -->
-    <!-- se deja como estaba por compatibilidad con datos ya probados en staging, -->
-    <!-- pero deja de usarse en producción a partir de aquí).                     -->
+    <!-- corrido sin fecha de corte. No hay programa de 2026: todo cliente nuevo   -->
+    <!-- empieza en JAGUEN Starter (4 meses), asi que nadie llega a Rebate antes   -->
+    <!-- de 2027. Rebate Anual 2027 queda visible desde la instalacion.            -->
     <!--                                                                           -->
     <!-- Por qué un programa nuevo por año y no un solo acumulado corrido:        -->
     <!-- - loyalty.card (el acumulado de puntos) es por programa, no por "año" -   -->
@@ -26,7 +26,9 @@
     <!-- solo programa "rebate" visible/activo a la vez - ver                     -->
     <!-- controllers/main.py (_jaguen_get_recompensa_program, limit=1) y          -->
     <!-- data/automation_data.xml (action_objetivo_activa_programa2, limit=1).    -->
-    <!-- Los 3 de abajo se crean con portal_visible=False a propósito - activar   -->
+    <!-- Rebate Anual 2027 se crea con portal_visible=True (es el unico visible);     -->
+    <!-- los de 2028 y 2029 se crean apagados, y el cron del 1 de enero enciende     -->
+    <!-- el del anio que empieza y apaga el del anio que termina. -->
     <!-- el del año en curso (y apagar el del año anterior) es un paso manual al  -->
     <!-- arrancar cada ejercicio (ver nota en memoria del proyecto). -->
     <!-- ========================================================================= -->
@@ -37,7 +39,7 @@
         <field name="program_type">loyalty</field>
         <field name="applies_on">both</field>
         <field name="trigger">auto</field>
-        <field name="portal_visible" eval="False"/>
+        <field name="portal_visible" eval="True"/>
         <field name="portal_point_name">pesos comprados en el año</field>
         <field name="is_nominative" eval="True"/>
         <field name="date_from" eval="'2027-01-01'"/>
