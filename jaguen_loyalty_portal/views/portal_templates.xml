@@ -367,7 +367,7 @@
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.11)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.13)</p>
             </div>
         </t>
     </template>
@@ -413,26 +413,64 @@
                         <div t-else="" class="mb-4"/>
 
                         <div class="list-group">
-                            <div t-foreach="pdata['tiers']" t-as="tier"
-                                 t-attf-class="list-group-item d-flex align-items-center gap-3 #{'list-group-item-success' if tier['unlocked'] else ''}">
-                                <div class="flex-shrink-0" style="width: 48px; height: 48px;">
-                                    <img t-if="tier['image_url']" t-att-src="tier['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;"/>
-                                    <div t-else="" class="d-flex align-items-center justify-content-center bg-light rounded border h-100">
-                                        <i class="fa fa-gift text-muted"/>
+                            <t t-foreach="pdata['tiers']" t-as="tier">
+                                <t t-set="tier_id" t-value="'jg-tier-%s' % tier_index"/>
+                                <div t-attf-class="list-group-item #{'list-group-item-success' if tier['unlocked'] else ''}">
+                                    <div class="d-flex align-items-center gap-3"
+                                         t-att-style="'cursor: pointer;' if tier['gifts'] else ''"
+                                         t-att-data-bs-toggle="'collapse' if tier['gifts'] else None"
+                                         t-att-data-bs-target="('#' + tier_id) if tier['gifts'] else None">
+                                        <div class="flex-shrink-0" style="width: 48px; height: 48px;">
+                                            <img t-if="tier['gifts']" t-att-src="tier['gifts'][0]['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: contain;"/>
+                                            <img t-elif="tier['image_url']" t-att-src="tier['image_url']" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;"/>
+                                            <div t-else="" class="d-flex align-items-center justify-content-center bg-light rounded border h-100">
+                                                <i class="fa fa-gift text-muted"/>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <t t-if="tier['gifts']">
+                                                <div class="fw-bold">
+                                                    Nivel de Compra Requerido $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos -
+                                                    <t t-if="tier['unlocked']">¡Alcanzaste el objetivo! Escoge uno de los regalos que se muestran a continuación</t>
+                                                    <t t-else="">Alcanza el objetivo y escoge uno de los regalos que se muestran a continuación</t>
+                                                </div>
+                                                <small t-if="pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="text-muted">
+                                                    Si prefieres acumular tus puntos no escojas ningún regalo
+                                                </small>
+                                            </t>
+                                            <t t-else="">
+                                                <div t-esc="tier['label'][:1].upper() + tier['label'][1:]" class="fw-bold"/>
+                                                <small class="text-muted">
+                                                    $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos en compras
+                                                </small>
+                                            </t>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <span t-if="tier['unlocked']" class="badge bg-success"><i class="fa fa-check me-1"/>Desbloqueado</span>
+                                            <span t-elif="pdata['next_reward'] and tier['reward'].required_points == pdata['next_reward'].required_points" class="badge bg-primary">Siguiente</span>
+                                            <span t-else="" class="badge bg-light text-muted">Bloqueado</span>
+                                        </div>
+                                        <i t-if="tier['gifts']" class="fa fa-chevron-down text-muted flex-shrink-0"/>
+                                    </div>
+                                    <div t-if="tier['gifts']" t-att-id="tier_id" class="collapse mt-3">
+                                        <div class="row g-3">
+                                            <div t-foreach="tier['gifts']" t-as="gift" class="col-12 col-md-4">
+                                                <div class="card h-100 text-center">
+                                                    <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
+                                                    <div class="card-body p-2">
+                                                        <div class="fw-bold small" t-esc="gift['name']"/>
+                                                        <div t-if="gift['description']" class="text-muted small mt-1" t-esc="gift['description']"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p t-if="tier['unlocked'] and pdata['program'].x_jaguen_loyalty_group == 'onboarding'" class="small text-success mt-2 mb-0">
+                                            Ya alcanzaste este nivel: puedes canjear uno de estos regalos con
+                                            <b t-esc="'{:,.0f}'.format(tier['required_points'])"/> <t t-esc="pdata['point_name']"/>.
+                                        </p>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div t-esc="tier['label']" class="fw-bold"/>
-                                    <small class="text-muted">
-                                        $<t t-esc="'{:,.0f}'.format(tier['required_points'])"/> pesos en compras
-                                    </small>
-                                </div>
-                                <div class="flex-shrink-0">
-                                    <span t-if="tier['unlocked']" class="badge bg-success"><i class="fa fa-check me-1"/>Desbloqueado</span>
-                                    <span t-elif="pdata['next_reward'] and tier['reward'].required_points == pdata['next_reward'].required_points" class="badge bg-primary">Siguiente</span>
-                                    <span t-else="" class="badge bg-light text-muted">Bloqueado</span>
-                                </div>
-                            </div>
+                            </t>
                         </div>
 
                         <div t-if="pdata['program'].x_jaguen_loyalty_group == 'rebate'" class="mt-4">
@@ -495,22 +533,53 @@
 
                 <div class="card shadow-sm">
                     <div class="list-group list-group-flush">
-                        <div t-foreach="checklist['items']" t-as="item"
-                             t-attf-class="list-group-item d-flex align-items-center gap-3 #{'list-group-item-success' if item['done'] else ''}">
-                            <div class="flex-shrink-0">
-                                <i t-if="item['done']" class="fa fa-check-circle text-success fs-4"/>
-                                <i t-else="" class="fa fa-circle-o text-muted fs-4"/>
+                        <t t-foreach="checklist['items']" t-as="item">
+                            <t t-set="item_id" t-value="'jg-item-%s' % item_index"/>
+                            <div t-attf-class="list-group-item #{'list-group-item-success' if item['done'] else ''}">
+                                <div class="d-flex align-items-center gap-3"
+                                     t-att-style="'cursor: pointer;' if item['gifts'] else ''"
+                                     t-att-data-bs-toggle="'collapse' if item['gifts'] else None"
+                                     t-att-data-bs-target="('#' + item_id) if item['gifts'] else None">
+                                    <div class="flex-shrink-0">
+                                        <i t-if="item['done']" class="fa fa-check-circle text-success fs-4"/>
+                                        <i t-else="" class="fa fa-circle-o text-muted fs-4"/>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <t t-if="item['gifts']">
+                                            <div class="fw-bold">
+                                                Nivel de Compra Requerido: un pedido de <t t-esc="item['label']"/> pesos -
+                                                <t t-if="item['done']">¡Alcanzaste el objetivo! Escoge uno de los regalos que se muestran a continuación</t>
+                                                <t t-else="">Alcanza el objetivo y escoge uno de los regalos que se muestran a continuación</t>
+                                            </div>
+                                            <small class="text-muted">Se gana una sola vez, escoges un regalo y no se acumula</small>
+                                        </t>
+                                        <t t-else="">
+                                            <div t-esc="item['label']" class="fw-bold"/>
+                                            <small t-if="item['reward_label']" class="text-muted" t-esc="item['reward_label']"/>
+                                        </t>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span t-if="item['done']" class="badge bg-success">Hecho</span>
+                                        <span t-elif="item['pending_payment']" class="badge bg-warning text-dark">Pendiente de pago</span>
+                                        <span t-else="" class="badge bg-light text-muted">Pendiente</span>
+                                    </div>
+                                    <i t-if="item['gifts']" class="fa fa-chevron-down text-muted flex-shrink-0"/>
+                                </div>
+                                <div t-if="item['gifts']" t-att-id="item_id" class="collapse mt-3">
+                                    <div class="row g-3">
+                                        <div t-foreach="item['gifts']" t-as="gift" class="col-12 col-md-4">
+                                            <div class="card h-100 text-center">
+                                                <img t-att-src="gift['image_url']" t-att-alt="gift['name']" class="card-img-top p-2" style="height: 160px; object-fit: contain;"/>
+                                                <div class="card-body p-2">
+                                                    <div class="fw-bold small" t-esc="gift['name']"/>
+                                                    <div t-if="gift['description']" class="text-muted small mt-1" t-esc="gift['description']"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <div t-esc="item['label']" class="fw-bold"/>
-                                <small t-if="item['reward_label']" class="text-muted" t-esc="item['reward_label']"/>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <span t-if="item['done']" class="badge bg-success">Hecho</span>
-                                <span t-elif="item['pending_payment']" class="badge bg-warning text-dark">Pendiente de pago</span>
-                                <span t-else="" class="badge bg-light text-muted">Pendiente</span>
-                            </div>
-                        </div>
+                        </t>
                     </div>
                 </div>
             </div>

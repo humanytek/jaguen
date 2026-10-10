@@ -55,9 +55,10 @@ class JaguenLoyaltyPortal(CustomerPortal):
             return reward.description or _('Recompensa')
         if reward.reward_type == 'product':
             if reward.multi_product and reward.reward_product_ids:
-                names = ' o '.join(n.split(' - ', 1)[-1] for n in reward.reward_product_ids.mapped('name'))
-                return _('Escoge: %s') % names
+                return _('un regalo a tu elección entre %s opciones') % len(reward.reward_product_ids)
             product = reward.reward_product_id
+            if not product and len(reward.reward_product_ids) == 1:
+                product = reward.reward_product_ids
             if product:
                 qty = reward.reward_product_qty or 1
                 if qty > 1:
@@ -75,6 +76,32 @@ class JaguenLoyaltyPortal(CustomerPortal):
         if reward.reward_type == 'shipping':
             return _('Envío gratis')
         return reward.description or _('Recompensa')
+
+    def _jaguen_get_reward_gifts(self, reward):
+        """Opciones de regalo de un nivel (foto, nombre, descripcion), en el
+        orden del catalogo. No lleva puntos: se muestran aparte, solo
+        cuando el cliente ya alcanzo el nivel."""
+        reward = reward.sudo()
+        if reward.reward_type != 'product':
+            return []
+        tag = reward.reward_product_tag_id
+        program = 'starter' if reward.program_id.x_jaguen_loyalty_group == 'onboarding' else 'mpp'
+        order = []
+        if tag:
+            amount = int(tag.name.split('$')[-1].replace(',', '')) if '$' in (tag.name or '') else 0
+            order = request.env['jaguen.gift.setup'].gift_order(program, amount)
+        products = reward.reward_product_ids.sudo()
+        def _pos(p):
+            key = p.default_code or p.name
+            return order.index(key) if key in order else len(order)
+        gifts = []
+        for p in sorted(products, key=_pos):
+            gifts.append({
+                'name': p.name,
+                'description': (p.description_sale or '').strip(),
+                'image_url': '/my/loyalty/gift_image/%s' % p.id,
+            })
+        return gifts
 
     def _jaguen_get_reward_image_url(self, reward):
         reward = reward.sudo()
@@ -167,6 +194,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'unlocked': unlocked,
                 'label': self._jaguen_reward_label(reward),
                 'image_url': self._jaguen_get_reward_image_url(reward),
+                'gifts': self._jaguen_get_reward_gifts(reward),
                 'required_points': umbral,
             })
 
@@ -231,6 +259,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
                 'program': program,
                 'label': self._jaguen_group_item_label(program),
                 'reward_label': self._jaguen_reward_label(reward) if reward else False,
+                'gifts': self._jaguen_get_reward_gifts(reward) if reward else [],
                 'done': done,
                 'pending_payment': pending_payment,
             })
@@ -342,6 +371,14 @@ class JaguenLoyaltyPortal(CustomerPortal):
             'checklist': self._jaguen_get_checklist_data('pedido_linea'),
         })
         return request.render('jaguen_loyalty_portal.portal_my_loyalty_checklist', values)
+
+    @http.route(['/my/loyalty/gift_image/<int:product_id>'], type='http', auth='user')
+    def jaguen_loyalty_gift_image(self, product_id, **kw):
+        product = request.env['product.product'].sudo().browse(product_id).exists()
+        is_gift = product and any((t.name or '').startswith('Regalo ') for t in product.product_tag_ids)
+        record = product if is_gift else request.env['product.product'].sudo()
+        stream = request.env['ir.binary']._get_image_stream_from(record, field_name='image_256')
+        return stream.get_response()
 
     @http.route(['/my/loyalty/reward_image/<int:reward_id>'], type='http', auth='public')
     def jaguen_loyalty_reward_image(self, reward_id, **kw):
