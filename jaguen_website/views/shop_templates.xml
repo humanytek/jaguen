@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- /shop no trae titulo principal (H1) cuando no hay categoria; se agrega uno oculto para SEO -->
+    <template id="shop_h1" inherit_id="website_sale.products" name="JAGUEN - H1 de la Tienda">
+        <xpath expr="//h1[@t-if='category']" position="before">
+            <h1 t-if="not category" class="visually-hidden">Catálogo de productos</h1>
+        </xpath>
+    </template>
+</odoo>
