@@ -39,15 +39,20 @@ modelo en otros colores, complementos) no cambien. Los alternativos sin posicion
 se muestran al final, en orden alfabetico. Las posiciones se cargan con una
 importacion (Ajustes > tecnico) y no cambian los alternativos de cada producto.
 
+Espacio en el carrito
+---------------------
+Deja unos 160 px (64 px en celular) entre los productos del carrito y el titulo
+"Accesorios sugeridos", para que no se vea amontonado.
+
 Solo se consideran productos publicados en el sitio, vendibles, con un unico
 variante (no requieren elegir atributos) y con precio mayor a $1.
 """,
-    'version': '18.0.1.1.0',
+    'version': '18.0.1.2.0',
     'category': 'Website/Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
     'depends': ['website_sale'],
-    'data': ['security/ir.model.access.csv'],
+    'data': ['security/ir.model.access.csv', 'views/cart_templates.xml'],
     'installable': True,
     'application': False,
     'auto_install': False,
