@@ -9,15 +9,27 @@ Ajustes del sitio web de JAGUEN
 - Oculta /website/info (lista de aplicaciones instaladas) al publico: solo personal interno.
 - Agrega un titulo principal (H1) oculto a /shop para SEO.
 - Pago con PayPal: pregunta obligatoria credito/debito; marca la transaccion del carrito; pago y factura salen con forma 04 / 28 y la factura PUE. No afecta pagos manuales ni facturas PPD.
+- Asistente web con IA (Ale, con Claude): Haiku filtra al visitante conversando; Sonnet atiende a empresas y clientes con
+  sesion; busca productos, crea leads, avisa de prospectos calientes y de coincidencias en CRM/Ventas. Requiere el parametro de sistema jaguen_website.anthropic_api_key.
 """,
-    'version': '18.0.1.3.0',
+    'version': '18.0.1.5.3',
     'category': 'Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
-    'depends': ['payment_paypal', 'website', 'website_sale', 'l10n_mx_edi_website_sale'],
-    'data': ['views/shop_templates.xml', 'views/payment_templates.xml'],
+    'depends': ['payment_paypal', 'website', 'website_sale', 'l10n_mx_edi_website_sale', 'crm', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/ai_data.xml',
+        'views/shop_templates.xml',
+        'views/payment_templates.xml',
+        'views/ai_views.xml',
+    ],
     'assets': {
-        'web.assets_frontend': ['jaguen_website/static/src/js/payment_form.js'],
+        'web.assets_frontend': [
+            'jaguen_website/static/src/js/payment_form.js',
+            'jaguen_website/static/src/js/chat_widget.js',
+            'jaguen_website/static/src/css/chat_widget.css',
+        ],
     },
     'installable': True,
     'application': False,

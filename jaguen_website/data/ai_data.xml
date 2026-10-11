@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Contactos internos para firmar los mensajes del asistente (no son usuarios: no consumen licencia) -->
+    <record id="partner_jaguen_bot" model="res.partner">
+        <field name="name">Ale (asistente virtual de JAGUEN)</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="partner_jaguen_visitor" model="res.partner">
+        <field name="name">Visitante web</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Parametros editables en Ajustes > Tecnico > Parametros del sistema.
+         La llave de API NO va aqui: se crea a mano como jaguen_website.anthropic_api_key -->
+    <record id="param_ai_enabled" model="ir.config_parameter"><field name="key">jaguen_website.ai_enabled</field><field name="value">1</field></record>
+    <record id="param_ai_model_visitor" model="ir.config_parameter"><field name="key">jaguen_website.ai_model_visitor</field><field name="value">claude-haiku-5-5</field></record>
+    <record id="param_ai_model_client" model="ir.config_parameter"><field name="key">jaguen_website.ai_model_client</field><field name="value">claude-sonnet-5-5</field></record>
+    <record id="param_ai_max_tokens_visitor" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_tokens_visitor</field><field name="value">450</field></record>
+    <record id="param_ai_max_tokens_client" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_tokens_client</field><field name="value">800</field></record>
+    <record id="param_ai_max_turns_visitor" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_turns_visitor</field><field name="value">8</field></record>
+    <record id="param_ai_max_turns_client" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_turns_client</field><field name="value">30</field></record>
+    <record id="param_ai_daily_ip_visitor" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_ip_visitor</field><field name="value">40</field></record>
+    <record id="param_ai_daily_user_client" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_user_client</field><field name="value">120</field></record>
+    <record id="param_ai_daily_global" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_global</field><field name="value">600</field></record>
+    <record id="param_ai_hours" model="ir.config_parameter"><field name="key">jaguen_website.ai_hours</field><field name="value">08:30-19:00</field></record>
+    <record id="param_ai_name" model="ir.config_parameter"><field name="key">jaguen_website.ai_name</field><field name="value">Ale</field></record>
+    <record id="param_ai_model_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_model_company</field><field name="value">claude-sonnet-5-5</field></record>
+    <record id="param_ai_max_tokens_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_tokens_company</field><field name="value">600</field></record>
+    <record id="param_ai_max_turns_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_turns_company</field><field name="value">14</field></record>
+    <record id="param_ai_daily_ip_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_ip_company</field><field name="value">60</field></record>
+    <record id="param_ai_max_tokens_unqualified" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_tokens_unqualified</field><field name="value">350</field></record>
+    <record id="param_ai_max_turns_unqualified" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_turns_unqualified</field><field name="value">6</field></record>
+    <record id="param_ai_hot_volume" model="ir.config_parameter"><field name="key">jaguen_website.ai_hot_volume</field><field name="value">15000</field></record>
+    <record id="param_ai_handoff_login" model="ir.config_parameter"><field name="key">jaguen_website.ai_handoff_login</field><field name="value">ventas.jaguen@hotmail.com</field></record>
+</odoo>
