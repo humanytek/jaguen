@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Deja aire entre los productos del carrito y "Accesorios sugeridos":
+         unos 160 px en computadora (casi la altura de un producto) y 64 px en celular. -->
+    <template id="suggested_products_spacing" inherit_id="website_sale.suggested_products_list"
+              name="JAGUEN - Espacio antes de los accesorios sugeridos" priority="99">
+        <xpath expr="//h5[@t-if='suggested_products']" position="attributes">
+            <attribute name="t-attf-class">jaguen_acc_title mb-3</attribute>
+        </xpath>
+        <xpath expr="//h5[@t-if='suggested_products']" position="before">
+            <style t-if="suggested_products">.jaguen_acc_title{margin-top:10rem}@media (max-width:767.98px){.jaguen_acc_title{margin-top:4rem}}</style>
+        </xpath>
+    </template>
+</odoo>
