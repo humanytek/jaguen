@@ -45,3 +45,12 @@ class PaymentTransaction(models.Model):
                 else:
                     display.pop('business_email')
         return payload
+
+    def _create_payment(self, **extra_create_values):
+        """El pago de PayPal usa la forma de pago (04 / 28) que el cliente declaro en el pedido."""
+        payment = super()._create_payment(**extra_create_values)
+        if self.provider_code == 'paypal':
+            method = self.sale_order_ids[:1].l10n_mx_edi_payment_method_id
+            if method and method.code in ('04', '28'):
+                payment.l10n_mx_edi_payment_method_id = method
+        return payment
