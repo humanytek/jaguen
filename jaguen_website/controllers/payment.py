@@ -21,9 +21,12 @@ class PaymentPortalJaguen(PaymentPortal):
                 "Selecciona si pagarás con tarjeta de crédito o con tarjeta de débito."))
         result = super().shop_payment_transaction(order_id, access_token, **kwargs)
         if is_paypal:
-            method = request.env['l10n_mx_edi.payment.method'].sudo().search(
-                [('code', '=', '04' if card_type == 'credit' else '28')], limit=1)
-            order = request.env['sale.order'].sudo().browse(order_id).exists()
-            if method and order:
-                order.l10n_mx_edi_payment_method_id = method
+            tx = request.env['payment.transaction'].sudo().search(
+                [('reference', '=', result.get('reference'))], limit=1)
+            if tx:
+                tx.jaguen_cart_card_type = card_type
+                method = tx._jaguen_card_method()
+                order = request.env['sale.order'].sudo().browse(order_id).exists()
+                if method and order:
+                    order.l10n_mx_edi_payment_method_id = method
         return result
