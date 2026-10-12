@@ -4,3 +4,6 @@ from . import sale_order
 from . import ai_chat
 from . import ai_service
 from . import ai_digest
+from . import attachment
+from . import sepomex
+from . import wishlist

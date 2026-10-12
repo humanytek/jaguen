@@ -178,6 +178,7 @@
         addMessages(msgs);
         if (state === 'human') { startPolling(); }
         setTimeout(function () { input.focus(); }, 50);
+        setTimeout(function () { if (typeof flushPending === 'function') { flushPending(); } }, 300);
     }
 
     function start() {
@@ -253,6 +254,31 @@
         panel.classList.add('jgc-hidden'); btn.classList.remove('jgc-hidden');
     }
 
+    // API para abrir el chat desde otra pagina (Registrate): precarga el formulario y manda un primer mensaje.
+    var pendingMsg = null;
+    window.jaguenChat = {
+        openWith: function (pre, msg) {
+            pendingMsg = msg || null;
+            openPanel();
+            if (token && started) { flushPending(); return; }
+            setTimeout(function () {
+                if (pre && !token) {
+                    fName.value = pre.nombre || fName.value; fCompany.value = pre.empresa || fCompany.value;
+                    fEmail.value = pre.correo || fEmail.value; fPhone.value = pre.telefono || fPhone.value;
+                    if (fName.value && fEmail.value && fPhone.value.replace(/\D/g, '').length >= 10) {
+                        form0.dispatchEvent(new Event('submit', {cancelable: true}));
+                    }
+                }
+            }, 400);
+        }
+    };
+    function flushPending() {
+        if (!pendingMsg || !token || connecting) { return; }
+        var m = pendingMsg; pendingMsg = null;
+        input.value = m;
+        form.dispatchEvent(new Event('submit', {cancelable: true}));
+    }
+
     btn.addEventListener('click', openPanel);
     close.addEventListener('click', closePanel);
     form.addEventListener('submit', function (ev) {
@@ -262,7 +288,9 @@
         busy = true; input.value = ''; send.disabled = true;
         bubble('user', text);
         var typing = bubble('sys', 'Escribiendo...');
-        rpc('/jaguen/chat/send', {token: token, text: text}).then(function (r) {
+        var formCtx = '';
+        try { formCtx = (typeof window.jaguenChatContext === 'function' && window.jaguenChatContext()) || ''; } catch (e) { formCtx = ''; }
+        rpc('/jaguen/chat/send', {token: token, text: text, ctx: formCtx}).then(function (r) {
             typing.remove();
             if (r.user_message_id && r.user_message_id > lastId) { lastId = r.user_message_id; }
             addMessages(r.messages);

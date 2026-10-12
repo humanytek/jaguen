@@ -72,9 +72,11 @@ class PaymentTransaction(models.Model):
                 payment.l10n_mx_edi_payment_method_id = method
         return payment
 
+    jaguen_pay_notified = fields.Boolean(string='Aviso de pago enviado', readonly=True, copy=False)
+
     def _post_process(self):
         """Avisa al equipo cuando un cliente paga en linea (el pedido solo avisaba "se asigno a ti")."""
-        pending = self.filtered(lambda t: t.state == 'done' and not t.is_post_processed)
+        pending = self.filtered(lambda t: t.state == 'done' and not t.is_post_processed and not t.jaguen_pay_notified)
         res = super()._post_process()
         for tx in pending:
             try:
@@ -85,6 +87,9 @@ class PaymentTransaction(models.Model):
 
     def _jaguen_notify_payment(self):
         self.ensure_one()
+        if self.sudo().jaguen_pay_notified:
+            return
+        self.sudo().jaguen_pay_notified = True   # una sola vez por pago, pase lo que pase despues
         orders = self.sudo().sale_order_ids
         if not orders or self.provider_code == 'custom':
             return

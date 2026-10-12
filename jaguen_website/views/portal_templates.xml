@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tarjeta "Mis documentos" en Mi cuenta -->
+    <template id="portal_my_home_documents" name="Mis documentos - tarjeta en Mi cuenta" inherit_id="portal.portal_my_home" priority="45">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/jaguen_website/static/src/img/docs.svg'"/>
+                <t t-set="title">Mis documentos</t>
+                <t t-set="text">Sube y consulta los documentos de tu empresa</t>
+                <t t-set="url" t-value="'/my/documentos'"/>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </div>
+    </template>
+
+    <template id="portal_my_documents" name="Mis documentos">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <div class="o_portal_my_doc_table w-md-100 pb-5" style="max-width: 860px;">
+                <div class="d-flex gap-2 my-3 align-items-center">
+                    <a href="/my/home" title="Regresar" class="btn btn-light px-2"><i class="oi oi-chevron-left"/></a>
+                    <h3 class="my-0">Mis documentos</h3>
+                </div>
+                <p class="text-muted">Aquí se guardan los documentos de <b t-esc="partner.name"/>. Solo tu empresa los ve. Acepta PDF, JPG o PNG de hasta <span t-esc="max_mb"/> MB.</p>
+                <div t-if="ok" class="alert alert-success" role="status">Listo, recibimos tu archivo.</div>
+                <div t-if="error" class="alert alert-danger" role="alert"><span t-esc="error"/></div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header fw-bold">Subir un documento</div>
+                    <div class="card-body">
+                        <form action="/my/documentos/subir" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-5">
+                                    <label for="tipo" class="form-label">¿Qué documento es?</label>
+                                    <select name="tipo" id="tipo" class="form-select" required="required">
+                                        <option t-foreach="tipos" t-as="t" t-att-value="t" t-esc="t"/>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="archivo" class="form-label">Archivo</label>
+                                    <input type="file" name="archivo" id="archivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required="required"/>
+                                </div>
+                                <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Subir</button></div>
+                            </div>
+                            <div class="form-text mt-2">Para tu crédito: sube aquí tu solicitud llena y firmada y los documentos que pide la política
+                                (<a href="/solicitud-de-credito-1" target="_blank">ver solicitudes y políticas</a>). Tu asesor se entera.</div>
+                        </form>
+                    </div>
+                </div>
+
+                <h5>Documentos de tu empresa</h5>
+                <t t-if="docs">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead><tr><th>Documento</th><th>Archivo</th><th>Fecha</th><th/></tr></thead>
+                            <tbody>
+                                <tr t-foreach="docs" t-as="d">
+                                    <td t-esc="d.description or 'Documento'"/>
+                                    <td t-esc="d.name"/>
+                                    <td><span t-field="d.create_date" t-options="{'widget': 'date'}"/></td>
+                                    <td class="text-end"><a t-att-href="'/my/documentos/%s/descargar' % d.id" class="btn btn-sm btn-outline-primary"><i class="fa fa-download me-1"/>Descargar</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+                <p t-else="" class="text-muted">Todavía no hay documentos. Sube tu primera constancia o tu solicitud de crédito.</p>
+            </div>
+        </t>
+    </template>
+
+    <!-- Boton en la ficha del contacto: pasar el usuario de portal de la empresa a este contacto -->
+    <record id="view_partner_form_jaguen_move_user" model="ir.ui.view">
+        <field name="name">res.partner.form.jaguen.move.user</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_jaguen_move_user_here" type="object" class="oe_stat_button" icon="fa-exchange"
+                        string="Pasar usuario aquí" groups="base.group_system"
+                        invisible="not parent_id or user_ids"
+                        confirm="El usuario de portal que hoy está en la empresa pasará a este contacto (mismo correo y contraseña). ¿Continuar?"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

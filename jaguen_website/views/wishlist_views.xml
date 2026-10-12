@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_wishlist_list" model="ir.ui.view">
+        <field name="name">jaguen.product.wishlist.list</field>
+        <field name="model">product.wishlist</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="1" edit="1" delete="1">
+                <field name="create_date" string="Guardado el"/>
+                <field name="partner_id" string="Cliente (usuario)" options="{'no_create': True}"/>
+                <field name="product_id" string="Producto" options="{'no_create': True}"/>
+                <field name="price" string="Precio" optional="show"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_wishlist_search" model="ir.ui.view">
+        <field name="name">jaguen.product.wishlist.search</field>
+        <field name="model">product.wishlist</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id" string="Cliente"/>
+                <field name="product_id" string="Producto"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="g_partner" string="Cliente" context="{'group_by': 'partner_id'}"/>
+                    <filter name="g_product" string="Producto" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_jaguen_wishlist" model="ir.actions.act_window">
+        <field name="name">Favoritos de clientes</field>
+        <field name="res_model">product.wishlist</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_g_partner': 1}</field>
+    </record>
+    <menuitem id="menu_jaguen_wishlist" name="Favoritos" parent="website_sale.menu_ecommerce"
+              action="action_jaguen_wishlist" sequence="30" groups="sales_team.group_sale_manager"/>
+    <record id="view_partner_form_jaguen_wishlist" model="ir.ui.view">
+        <field name="name">res.partner.form.jaguen.wishlist</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_jaguen_wishlist" type="object" class="oe_stat_button" icon="fa-heart"
+                        invisible="jaguen_wishlist_count == 0" groups="sales_team.group_sale_manager">
+                    <field name="jaguen_wishlist_count" widget="statinfo" string="Favoritos"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

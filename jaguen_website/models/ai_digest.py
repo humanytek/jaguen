@@ -30,6 +30,9 @@ class JaguenChatSessionDigest(models.Model):
             return
         tz = pytz.timezone('America/Hermosillo')
         today = datetime.now(pytz.utc).astimezone(tz).date()
+        params = self.env['ir.config_parameter'].sudo()
+        if params.get_param('jaguen_website.ai_digest_last') == str(today):
+            return   # ya se mandó hoy: nunca dos veces el mismo día
         start = tz.localize(datetime.combine(today, time.min)).astimezone(pytz.utc).replace(tzinfo=None)
         end = start + timedelta(days=1)
         sessions = self.sudo().search([('create_date', '>=', start), ('create_date', '<', end)], order='create_date')
@@ -78,6 +81,7 @@ class JaguenChatSessionDigest(models.Model):
                       '<p style="color:#6b7280;font-size:12px">Detalle completo en Asistente web (menú de Odoo). '
                       'Para dejar de recibirlo: parámetro jaguen_website.ai_digest_enabled = 0.</p></div>') % (
             today.strftime('%d/%m/%Y'), summary, rows)
+        params.set_param('jaguen_website.ai_digest_last', str(today))
         self.env['mail.mail'].sudo().create({
             'subject': 'Resumen del asistente web – %s (%s conversaciones)' % (today.strftime('%d/%m/%Y'), len(sessions)),
             'body_html': body, 'email_to': to, 'auto_delete': False,

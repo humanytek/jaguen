@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Titulos de los contactos que se registran: se eligen solos segun el nombre (Señor / Srta.) -->
+    <record id="title_senor" model="res.partner.title">
+        <field name="name">Señor</field>
+        <field name="shortcut">Sr.</field>
+    </record>
+    <record id="title_senorita" model="res.partner.title">
+        <field name="name">Señorita</field>
+        <field name="shortcut">Srta.</field>
+    </record>
+</odoo>
