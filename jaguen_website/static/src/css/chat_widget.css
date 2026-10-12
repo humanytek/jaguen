@@ -1,4 +1,4 @@
-#jaguen_chat_root { position: fixed; right: 16px; bottom: 90px; z-index: 1040; font-family: inherit; }
+#jaguen_chat_root { position: fixed; right: 16px; bottom: 20px; z-index: 1040; font-family: inherit; }
 #jaguen_chat_root .jgc-hidden { display: none !important; }
 #jaguen_chat_root .jgc-btn { background: #11819e; color: #fff; border: 0; border-radius: 18px; padding: 10px 20px 10px 10px; display: flex; align-items: center; gap: 12px; text-align: left; box-shadow: 0 4px 18px rgba(0,0,0,.35); cursor: pointer; }
 #jaguen_chat_root .jgc-btn:hover { background: #0e6d85; }
@@ -29,7 +29,7 @@
 #jaguen_chat_root .jgc-input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 14px; min-width: 0; }
 #jaguen_chat_root .jgc-send { background: #11819e; color: #fff; border: 0; border-radius: 8px; padding: 0 14px; cursor: pointer; }
 #jaguen_chat_root .jgc-send[disabled] { opacity: .5; }
-@media (max-width: 480px) { #jaguen_chat_root { right: 8px; bottom: 80px; } #jaguen_chat_root .jgc-btn-sub { display: none; } #jaguen_chat_root .jgc-group .jgc-avatar { width: 46px; height: 46px; } #jaguen_chat_root .jgc-group .jgc-avatar + .jgc-avatar { margin-left: -16px; } }
+@media (max-width: 480px) { #jaguen_chat_root { right: 8px; bottom: 14px; } #jaguen_chat_root .jgc-btn-sub { display: none; } #jaguen_chat_root .jgc-group .jgc-avatar { width: 46px; height: 46px; } #jaguen_chat_root .jgc-group .jgc-avatar + .jgc-avatar { margin-left: -16px; } }
 #jaguen_chat_root .jgc-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 #jaguen_chat_root .jgc-chatview { display: flex; }
 #jaguen_chat_root .jgc-prechat { padding: 12px 14px; overflow-y: auto; flex: 1; background: #fff; }
