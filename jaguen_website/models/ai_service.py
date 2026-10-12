@@ -72,8 +72,8 @@ REGLAS (obligatorias):
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
 REGISTER_INVITE = ("Los precios que ves ahora en la página son precios al público, porque aún no has iniciado sesión. Con solo registrarte "
-                   "tienes una lista de precios especial, un vendedor que te contacta y te da atención personalizada, y acceso a los programas "
-                   "de recompensas (Rewards). Registrarte toma menos de 5 minutos: https://www.jaguen.com/registrate . Después un asesor se "
+                   "obtienes tu usuario, lista de precios especiales, un asesor personal y acceso a los Programas Rewards. "
+                   "Registrarte toma menos de 5 minutos: https://www.jaguen.com/registrate . Después un asesor se "
                    "comunica contigo (en horario laboral, de lunes a viernes de 8:30 a 19:00).")
 
 MODE_PROMPTS = {

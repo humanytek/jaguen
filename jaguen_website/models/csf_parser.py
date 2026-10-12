@@ -23,6 +23,30 @@ REGIMEN = {
 }
 
 
+def _lab(label):
+    """Etiqueta como regex tolerante: las librerias de PDF a veces quitan los espacios ("NombredeVialidad:")."""
+    return r'\s*'.join(re.escape(w) for w in label.split())
+
+
+_ETIQUETAS = ['RFC', 'CURP', 'Nombre (s)', 'Primer Apellido', 'Segundo Apellido', 'Denominación/Razón Social',
+              'Régimen Capital', 'Nombre Comercial', 'Fecha inicio de operaciones', 'Estatus en el padrón',
+              'Fecha de último cambio de estado', 'Código Postal', 'Tipo de Vialidad', 'Nombre de Vialidad',
+              'Número Exterior', 'Número Interior', 'Nombre de la Colonia', 'Nombre de la Localidad',
+              'Nombre del Municipio o Demarcación Territorial', 'Nombre de la Entidad Federativa', 'Entre Calle', 'Y Calle',
+              'Regímenes', 'Obligaciones', 'Actividades Económicas']
+_FIN = r'(?=\s*(?:' + '|'.join(_lab(e) for e in _ETIQUETAS) + r')\s*:|\n|$)'
+
+
+def campo(t, *labels):
+    """Valor que sigue a la etiqueta (hasta la siguiente etiqueta o el fin de la linea); '' si viene vacio."""
+    for lab in labels:
+        m = re.search(_lab(lab) + r'\s*:[ \t]*(.*?)' + _FIN, t)
+        if m and m.group(1).strip():
+            return re.sub(r'\s{2,}.*$', '', m.group(1).strip()).strip()
+    return ''
+
+
+
 def norm(txt):
     txt = unicodedata.normalize('NFKD', txt or '')
     txt = ''.join(c for c in txt if not unicodedata.combining(c)).upper()
@@ -35,55 +59,42 @@ def clean_name(txt):
     return re.sub(r'\s+', ' ', n).strip()
 
 
+def _nospace(txt):
+    return norm(txt).replace(' ', '')
+
+
 def parse(text):
-    """Devuelve dict con rfc, nombre, cp, regimenes (lista) o {} si no parece una CSF."""
+    """Devuelve dict con rfc, nombre, cp, regimenes (lista de textos) y regimen_codes, o {} si no parece una CSF.
+    Tolerante a que la libreria de PDF quite espacios o cambie los saltos de linea."""
     t = text.replace('\r', '')
-    if 'CONSTANCIA DE SITUACI' not in norm(t).replace(' ', ' ') and 'SITUACION FISCAL' not in norm(t):
+    ns = _nospace(t)
+    if 'CONSTANCIADESITUACION' not in ns and 'SITUACIONFISCAL' not in ns:
         return {}
     out = {}
-    m = re.search(r'RFC:\s*([A-ZÑ&0-9]{12,13})', t)
+    m = re.search(r'RFC\s*:\s*([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})', t)
     if m:
         out['rfc'] = m.group(1)
-    m = re.search(r'Denominaci[oó]n/Raz[oó]n Social:\s*(.+)', t)
-    if m:
-        nombre = m.group(1)
-        nombre = re.split(r'\s{3,}', nombre.strip())[0]
-        out['nombre'] = nombre.strip()
-    else:
-        parts = []
-        for lab in ('Nombre (s)', 'Primer Apellido', 'Segundo Apellido'):
-            mm = re.search(re.escape(lab) + r':\s*(.+)', t)
-            if mm:
-                parts.append(re.split(r'\s{3,}', mm.group(1).strip())[0])
-        if parts:
-            out['nombre'] = ' '.join(parts)
-    m = re.search(r'C[oó]digo Postal:\s*(\d{5})', t)
+    nombre = campo(t, 'Denominación/Razón Social')
+    if not nombre:
+        parts = [campo(t, lab) for lab in ('Nombre (s)', 'Primer Apellido', 'Segundo Apellido')]
+        nombre = ' '.join(x for x in parts if x)
+    if nombre:
+        out['nombre'] = nombre
+    m = re.search(_lab('Código Postal') + r'\s*:\s*(\d{5})', t)
     if m:
         out['cp'] = m.group(1)
+    sec = re.search(_lab('Regímenes') + r'\s*:(.*?)(?:' + _lab('Obligaciones') + r'\s*:|$)', t, re.S)
+    sec_txt = sec.group(1) if sec else ''
+    sec_ns = _nospace(sec_txt)
+    codes = [c for c, key in REGIMEN.items() if _nospace(key) in sec_ns]
     reg = []
-    sec = re.search(r'Reg[ií]menes:(.*?)(?:Obligaciones:|$)', t, re.S)
-    if sec:
-        for line in sec.group(1).split('\n'):
-            line = line.strip()
-            if not line or re.match(r'^R[eé]gimen\s+Fecha', line) or line.lower().startswith('régimen fecha'):
-                continue
-            line = re.split(r'\s{2,}|\s\d{2}/\d{2}/\d{4}', line)[0].strip()
-            if len(line) > 8 and not re.match(r'^(R[eé]gimen|Fecha)\s*$', line):
-                reg.append(line)
+    for line in sec_txt.split('\n'):
+        line = re.split(r'\s{2,}|\s?\d{2}/\d{2}/\d{4}', line.strip())[0].strip()
+        if len(line) > 8 and not re.match(r'^R[eé]gimen\s*(Fecha.*)?$', line):
+            reg.append(line)
     out['regimenes'] = reg
+    out['regimen_codes'] = codes
     return out
-
-
-def _campo(t, *labels):
-    for lab in labels:
-        m = re.search(re.escape(lab) + r':[ \t]*(.*)', t)
-        if m:
-            v = re.split(r'\s{3,}', m.group(1).strip())[0].strip()
-            # algunas lineas traen dos etiquetas pegadas: "HERMOSILLO Nombre del Municipio ...: HERMOSILLO"
-            v = re.split(r'\s+(?:Nombre del?|N[u\u00fa]mero|C[o\u00f3]digo|Entre Calle|Y Calle|Tipo de|Fecha|Estatus|Correo|Tel)[^:\n]{0,70}:', v)[0].strip()
-            if v and not re.match(r'^(Nombre|N[uú]mero|C[oó]digo|Entre|Y Calle|Tipo|Fecha|Estatus|Correo|Tel)\b.*:', v):
-                return v
-    return ''
 
 
 def datos_formulario(text):
@@ -92,25 +103,17 @@ def datos_formulario(text):
     if not csf or not csf.get('rfc'):
         return {}
     t = text.replace('\r', '')
-    reg = ''
-    for line in csf.get('regimenes') or []:
-        for code, key in REGIMEN.items():
-            if key in norm(line).lower():
-                reg = code
-                break
-        if reg:
-            break
-    out = {
+    codes = csf.get('regimen_codes') or []
+    return {
         'rfc': csf['rfc'], 'nombre': csf.get('nombre', ''), 'cp': csf.get('cp', ''),
-        'nombre_comercial': _campo(t, 'Nombre Comercial'),
-        'calle': _campo(t, 'Nombre de Vialidad'), 'num_ext': _campo(t, 'N\u00famero Exterior', 'Numero Exterior'),
-        'num_int': _campo(t, 'N\u00famero Interior', 'Numero Interior'),
-        'colonia': _campo(t, 'Nombre de la Colonia'), 'localidad': _campo(t, 'Nombre de la Localidad'),
-        'municipio': _campo(t, 'Nombre del Municipio o Demarcaci\u00f3n Territorial', 'Nombre del Municipio o Demarcacion Territorial'),
-        'estado': _campo(t, 'Nombre de la Entidad Federativa'), 'regimen': reg,
-        'es_persona_fisica': 'Nombre (s)' in t,
+        'nombre_comercial': campo(t, 'Nombre Comercial'),
+        'calle': campo(t, 'Nombre de Vialidad'), 'num_ext': campo(t, 'Número Exterior'),
+        'num_int': campo(t, 'Número Interior'), 'colonia': campo(t, 'Nombre de la Colonia'),
+        'localidad': campo(t, 'Nombre de la Localidad'),
+        'municipio': campo(t, 'Nombre del Municipio o Demarcación Territorial'),
+        'estado': campo(t, 'Nombre de la Entidad Federativa'), 'regimen': codes[0] if codes else '',
+        'es_persona_fisica': bool(re.search(_lab('Nombre (s)') + r'\s*:', t)),
     }
-    return out
 
 
 def compare(csf, nombre, rfc, cp, regimen_code):
@@ -130,11 +133,9 @@ def compare(csf, nombre, rfc, cp, regimen_code):
             diffs.append('Nombre: el cliente escribio "%s" y la CSF dice "%s"' % (nombre, csf['nombre']))
     if csf.get('cp') and cp and re.sub(r'\D', '', cp) != csf['cp']:
         diffs.append('Codigo postal: el cliente escribio %s y la CSF dice %s' % (cp, csf['cp']))
-    regs = csf.get('regimenes') or []
-    if regs and regimen_code in REGIMEN:
-        want = REGIMEN[regimen_code]
-        if not any(want in norm(r).lower() or want.upper() in norm(r) for r in regs):
-            diffs.append('Regimen fiscal: el cliente eligio %s y la CSF dice "%s"' % (regimen_code, '; '.join(regs)))
+    codes = csf.get('regimen_codes') or []
+    if codes and regimen_code in REGIMEN and regimen_code not in codes:
+        diffs.append('Regimen fiscal: el cliente eligio %s y la CSF dice "%s"' % (regimen_code, '; '.join(csf.get('regimenes') or codes)))
     return diffs
 
 
@@ -144,7 +145,7 @@ MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto
 def fecha_emision(text):
     """Fecha de emision de la CSF ("Lugar y Fecha de Emision: HERMOSILLO, SONORA A 12 DE MARZO DE 2026") -> (anio, mes, dia) o None."""
     t = norm(text)
-    m = re.search(r'\bA (\d{1,2}) DE (ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE) (?:DE |DEL )?(\d{4})\b', t)
+    m = re.search(r'A\s*(\d{1,2})\s*DE\s*%s\s*(?:DEL|DE)?\s*(\d{4})' % '(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)', t)
     if not m:
         return None
     mes = m.group(2).lower().replace('setiembre', 'septiembre')
@@ -154,16 +155,17 @@ def fecha_emision(text):
 def parse_opinion(text):
     """Opinion de cumplimiento (32-D): rfc, sentido (POSITIVO/NEGATIVO), fecha (anio, mes, dia) o {} si no lo parece."""
     t = norm(text)
-    if 'OPINION DEL CUMPLIMIENTO' not in t and 'OPINION DE CUMPLIMIENTO' not in t:
+    tn = t.replace(' ', '')
+    if 'OPINIONDELCUMPLIMIENTO' not in tn and 'OPINIONDECUMPLIMIENTO' not in tn:
         return {}
     out = {}
-    m = re.search(r'RFC:?\s+(?:Folio\s+)?([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})\b', text.replace('\n', ' '))
+    m = re.search(r'RFC:?\s*(?:Folio\s*)?([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})', text.replace('\n', ' '))
     if m:
         out['rfc'] = m.group(1)
-    m = re.search(r'\b(POSITIVO|NEGATIVO)\b', t)
+    m = re.search(r'(POSITIVO|NEGATIVO)', t)
     if m:
         out['sentido'] = m.group(1)
-    m = re.search(r'FECHA Y HORA DE EMISION\s+(\d{1,2}) DE (ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE) (?:DE |DEL )?(\d{4})', t)
+    m = re.search(r'FECHA\s*Y\s*HORA\s*DE\s*EMISION\s*(\d{1,2})\s*DE\s*%s\s*(?:DEL|DE)?\s*(\d{4})' % '(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)', t)
     if m:
         out['fecha'] = (int(m.group(3)), MESES.index(m.group(2).lower().replace('setiembre', 'septiembre')) + 1, int(m.group(1)))
     return out
