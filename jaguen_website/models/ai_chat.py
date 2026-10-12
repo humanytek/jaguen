@@ -45,6 +45,8 @@ class JaguenChatSession(models.Model):
     is_buyer = fields.Selection([('yes', 'Es quien compra'), ('no', 'Apoya a quien compra')], readonly=True)
     person_amount_ok = fields.Boolean(string="Compra mayor a $5,000 + IVA", readonly=True)
     alerted = fields.Boolean(readonly=True)
+    lookup_fails = fields.Integer(string='Consultas de pedido fallidas', readonly=True)
+    lookup_locked_until = fields.Datetime(string='Consulta de pedidos bloqueada hasta', readonly=True)
     alerted_contact = fields.Boolean(readonly=True)
     hot = fields.Boolean(string="Prospecto caliente", readonly=True)
     hot_reasons = fields.Char(string="Por qué es caliente", readonly=True)

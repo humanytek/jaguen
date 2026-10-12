@@ -3,7 +3,7 @@ import logging
 import random
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 import requests
@@ -36,6 +36,7 @@ REGLAS (obligatorias):
    - Compra personal: sí se puede igualar un precio de la competencia, sujeto a la compra mínima ($4,000 más IVA), a la existencia y al cargo de envío si lo hay. No hay descuentos extra: los precios son los de la página.
    - Empresa que aún no es cliente: "Tengo entendido que sí, de acuerdo a tus volúmenes de compra mensuales, pero eso lo platicas con tu asesor ya que te registres y te demos de alta en el sistema." No prometas nada más.
    - Cliente con sesión: eso lo revisa su asesor; ofrece pasarlo con una persona.
+12. ESTADO DE UN PEDIDO O COTIZACIÓN: solo con la herramienta consultar_pedido. Pide tres datos: número de pedido o cotización (por ejemplo S03539), nombre de la cuenta y correo. Con el número y UNO de los otros dos correctos basta. Si no los tiene a la mano, explícale dónde verlos en el PDF que recibió por correo al comprar: arriba, en la tabla de datos, la primera fila a la izquierda dice "Número de Pedido" (o "Número de Cotización") y a su lado el número que empieza con S; en la fila de abajo dice "Nombre", que es el nombre de la cuenta; en "Contacto" aparece el correo. Si la herramienta no valida los datos, dile que no pudiste validarlos (sin decir cuál falló) y que puede intentar con otro dato. Si la herramienta dice que el sistema se bloqueó, explícalo con amabilidad: se bloquea 60 minutos por seguridad y después puede intentar de nuevo, o escribir a contacto.jaguen@gmail.com. Comparte solo lo que la herramienta devuelva; nunca des direcciones ni datos de otras personas.
 11. PROCESO DE COMPRA: si preguntan cómo comprar, explícalo con lo de PROCESO DE COMPRA EN EL SITIO; no inventes pasos ni pantallas."""
 
 REGISTER_INVITE = ("Registrarte toma menos de 5 minutos: https://www.jaguen.com/registrate . Con eso, un asesor te llama en breve "
@@ -93,12 +94,19 @@ TOOL_HANDOFF = _S(
     'pasar_a_persona',
     'Pasa la conversación a una persona del equipo (solo clientes con sesión iniciada) cuando no puedes ayudar.',
     {'motivo': {'type': 'string', 'description': 'Qué necesita el cliente, en una frase'}}, ['motivo'])
+TOOL_PEDIDO = _S(
+    'consultar_pedido',
+    'Consulta el estado de una cotización o pedido. Para visitantes exige el número y al menos uno de nombre de la cuenta o correo, correctos; para clientes con sesión basta el número. Devuelve estado, pago, factura y entrega; nunca direcciones.',
+    {'numero': {'type': 'string', 'description': 'Número del pedido o cotización, p. ej. S03539'},
+     'nombre': {'type': 'string', 'description': 'Nombre de la cuenta (como aparece en el PDF), si lo dio'},
+     'correo': {'type': 'string', 'description': 'Correo del pedido, si lo dio'}},
+    ['numero'])
 TOOLS_BY_SEGMENT = {
-    'sin_filtro': [TOOL_BUSCAR, TOOL_CLASIFICAR],
-    'empresa': [TOOL_BUSCAR, TOOL_LEAD],
-    'pfae': [TOOL_BUSCAR, TOOL_LEAD],
-    'persona': [TOOL_BUSCAR, TOOL_CLASIFICAR],
-    'cliente': [TOOL_BUSCAR, TOOL_LEAD, TOOL_HANDOFF],
+    'sin_filtro': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO],
+    'empresa': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO],
+    'pfae': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO],
+    'persona': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO],
+    'cliente': [TOOL_BUSCAR, TOOL_LEAD, TOOL_HANDOFF, TOOL_PEDIDO],
 }
 
 
@@ -437,6 +445,70 @@ class JaguenAiService(models.AbstractModel):
             rec.activity_schedule('mail.mail_activity_data_todo', summary=summary, note=note,
                                   user_id=(owner or handoff).id)
 
+    # ---------- consulta de pedidos (con candado) ----------
+    _ORDER_RE = re.compile(r'^[A-Za-z]{1,3}\d{3,8}$')
+    _MAX_LOOKUP_FAILS = 3
+
+    @staticmethod
+    def _norm(text):
+        import unicodedata
+        text = unicodedata.normalize('NFD', (text or '').lower())
+        return re.sub(r'[^a-z0-9 ]', ' ', ''.join(c for c in text if unicodedata.category(c) != 'Mn')).split()
+
+    def _tool_consultar_pedido(self, session, args, base_url):
+        numero = (args.get('numero') or '').strip().upper().replace(' ', '')
+        Order = self.env['sale.order'].sudo()
+        deny = {'ok': False, 'nota': 'No pude validar esos datos. Dile que no lograste validarlos (sin decir cuál dato falló) y que el equipo de Jaguen puede ayudarle por contacto.jaguen@gmail.com o al 662 341 0739 en horario laboral.'}
+        now = datetime.utcnow()
+        minutes = self._int_param('ai_lookup_lock_minutes', 60)
+        locked = (session.lookup_locked_until and session.lookup_locked_until > now) or (
+            session.ip_address and self.env['jaguen.chat.session'].sudo().search_count([
+                ('ip_address', '=', session.ip_address), ('lookup_locked_until', '>', now)]))
+        if locked:
+            return {'ok': False, 'bloqueado': True, 'nota': 'El sistema de consultas de pedidos se bloqueó por seguridad tras varios intentos fallidos. El bloqueo dura %s minutos. No intentes más consultas; explícale con amabilidad y dile que puede escribir a contacto.jaguen@gmail.com o llamar al 662 341 0739 en horario laboral.' % minutes}
+        if not self._ORDER_RE.match(numero):
+            return {'ok': False, 'nota': 'Pídele el número exacto del pedido o cotización (por ejemplo S03539).'}
+        order = Order.search([('name', '=', numero)], limit=1)
+        valid = False
+        if order:
+            if session.mode == 'client' and session.partner_id:
+                valid = order.partner_id.commercial_partner_id == session.partner_id.commercial_partner_id
+            else:
+                mail = (args.get('correo') or '').strip().lower()
+                given = set(self._norm(args.get('nombre')))
+                owner = set(self._norm(order.partner_id.name)) | set(self._norm(order.partner_id.commercial_partner_id.name))
+                mails = {(order.partner_id.email or '').strip().lower(), (order.partner_id.commercial_partner_id.email or '').strip().lower()} - {''}
+                mail_ok = bool(mail and mail in mails)
+                name_ok = bool(len(given) >= 2 and given <= owner)
+                valid = mail_ok or name_ok
+        if not valid:
+            fails = (session.lookup_fails or 0) + 1
+            if fails >= self._MAX_LOOKUP_FAILS:
+                session.sudo().write({'lookup_fails': 0, 'lookup_locked_until': now + timedelta(minutes=minutes)})
+                return {'ok': False, 'bloqueado': True, 'nota': 'Se agotaron los 3 intentos: el sistema de consultas se bloqueó por seguridad y el bloqueo dura %s minutos. Explícaselo con amabilidad y dile que puede escribir a contacto.jaguen@gmail.com o llamar al 662 341 0739 en horario laboral.' % minutes}
+            session.sudo().write({'lookup_fails': fails})
+            return deny
+        states = {'draft': 'cotización (aún sin aceptar ni firmar)', 'sent': 'cotización enviada (pendiente de que el cliente la acepte y firme)',
+                  'sale': 'pedido de venta confirmado', 'cancel': 'cancelado'}
+        tx = order.transaction_ids.filtered(lambda t: t.state == 'done')[:1]
+        picks = order.picking_ids.filtered(lambda p: p.state != 'cancel')
+        pick_map = {'done': 'entregado', 'assigned': 'listo para entrega', 'confirmed': 'en preparación', 'waiting': 'en preparación', 'draft': 'en preparación'}
+        if not picks:
+            delivery = 'sin entrega generada todavía'
+        elif all(p.state == 'done' for p in picks):
+            delivery = 'entregado'
+        else:
+            delivery = pick_map.get(picks.filtered(lambda p: p.state != 'done')[:1].state, 'en preparación')
+        invs = order.invoice_ids.filtered(lambda i: i.state == 'posted' and i.move_type == 'out_invoice')
+        return {
+            'ok': True, 'pedido': order.name, 'estado': states.get(order.state, order.state),
+            'fecha': str(order.date_order.date()) if order.date_order else '',
+            'total': '%.2f %s' % (order.amount_total, order.currency_id.name),
+            'pago': ('pagado en línea con %s' % tx.provider_id.sudo().name) if tx else 'sin pago en línea registrado',
+            'factura': ('facturado (%s)' % ', '.join(invs.mapped('name'))) if invs else 'sin factura emitida',
+            'entrega': delivery,
+            'nota': 'Comparte solo estos datos, en lenguaje sencillo. Si falta algo o pregunta por detalles, remítelo al equipo.'}
+
     def _tool_pasar_a_persona(self, session, args, base_url):
         if session.mode != 'client':
             return {'ok': False, 'nota': 'Solo para clientes con sesión. Usa crear_lead.'}
@@ -457,7 +529,7 @@ class JaguenAiService(models.AbstractModel):
 
     def _run_tool(self, session, name, args, base_url):
         handler = getattr(self, '_tool_' + name, None)
-        if not handler or name not in ('buscar_productos', 'crear_lead', 'pasar_a_persona', 'clasificar_visitante'):
+        if not handler or name not in ('buscar_productos', 'crear_lead', 'pasar_a_persona', 'clasificar_visitante', 'consultar_pedido'):
             return {'error': 'herramienta desconocida'}
         try:
             return handler(session, args or {}, base_url)
