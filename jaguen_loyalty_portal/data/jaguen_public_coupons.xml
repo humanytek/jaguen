@@ -2,7 +2,7 @@
 <odoo noupdate="1">
 
     <!-- ===================================================================== -->
-    <!-- Cupón Registro: $200 (ya con IVA). En Odoo: $172.50 + IVA = $200.10, para no pelearse con -->
+    <!-- Cupón Registro: $200 (ya con IVA). En Odoo se captura el monto CON IVA ($200.10 = $172.50 + IVA), para no pelearse con -->
     <!-- un tercer decimal. En pantalla y correos SIEMPRE se dice "$200". -->
     <!-- Publico: se ve y se aplica solo en la tienda (no se esconde como los 4 programas JAGUEN). -->
     <!-- ===================================================================== -->
@@ -12,7 +12,6 @@
         <field name="applies_on">current</field>
         <field name="trigger">auto</field>
         <field name="portal_visible" eval="False"/>
-        <field name="date_from" eval="'2026-10-13'"/>
     </record>
     <record id="rule_cupon_registro" model="loyalty.rule">
         <field name="program_id" ref="program_cupon_registro"/>
@@ -27,12 +26,12 @@
         <field name="reward_type">discount</field>
         <field name="discount_applicability">order</field>
         <field name="discount_mode">per_order</field>
-        <field name="discount">172.50</field>
+        <field name="discount">200.10</field>
         <field name="required_points">1</field>
     </record>
 
     <!-- ===================================================================== -->
-    <!-- Cupón Favoritos: $500 (ya con IVA). En Odoo: $431 + IVA = $499.96. Sin vencimiento. -->
+    <!-- Cupón Favoritos: $500 (ya con IVA). En Odoo se captura CON IVA: $499.96 (= $431 + IVA). Sin vencimiento. -->
     <!-- ===================================================================== -->
     <record id="program_cupon_favoritos" model="loyalty.program">
         <field name="name">Cupón por Favoritos (40 productos guardados)</field>
@@ -40,7 +39,6 @@
         <field name="applies_on">current</field>
         <field name="trigger">auto</field>
         <field name="portal_visible" eval="False"/>
-        <field name="date_from" eval="'2026-10-13'"/>
     </record>
     <record id="rule_cupon_favoritos" model="loyalty.rule">
         <field name="program_id" ref="program_cupon_favoritos"/>
@@ -54,7 +52,7 @@
         <field name="reward_type">discount</field>
         <field name="discount_applicability">order</field>
         <field name="discount_mode">per_order</field>
-        <field name="discount">431</field>
+        <field name="discount">499.96</field>
         <field name="required_points">1</field>
     </record>
 
