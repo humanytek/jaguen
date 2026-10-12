@@ -56,7 +56,7 @@ class ResPartner(models.Model):
             'res_model': 'product.wishlist',
             'view_mode': 'list',
             'domain': self._jaguen_wishlist_domain(),
-            'context': {'search_default_g_product': 0},
+            'context': {'default_partner_id': self.id},
         }
 
     jaguen_tyc_date = fields.Datetime(

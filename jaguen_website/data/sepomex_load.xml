@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Carga (una sola vez) el catalogo SEPOMEX para autocompletar el Registrate; si el archivo no cambia, no hace nada -->
+    <function model="jaguen.sepomex" name="_load_file"/>
+</odoo>

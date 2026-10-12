@@ -4,11 +4,11 @@
         <field name="name">jaguen.product.wishlist.list</field>
         <field name="model">product.wishlist</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0">
+            <list editable="bottom" create="1" edit="1" delete="1">
                 <field name="create_date" string="Guardado el"/>
-                <field name="partner_id" string="Cliente"/>
-                <field name="product_id" string="Producto"/>
-                <field name="price" string="Precio"/>
+                <field name="partner_id" string="Cliente (usuario)" options="{'no_create': True}"/>
+                <field name="product_id" string="Producto" options="{'no_create': True}"/>
+                <field name="price" string="Precio" optional="show"/>
                 <field name="active" column_invisible="1"/>
             </list>
         </field>

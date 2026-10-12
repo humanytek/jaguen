@@ -45,7 +45,7 @@ class PortalDocuments(http.Controller):
         if ext not in MAGIC or not any(data.startswith(m) for m in MAGIC[ext]):
             return request.redirect('/my/documentos?error=Solo+se+aceptan+PDF%2C+JPG+o+PNG')
         if len(data) > MAX_MB * 1024 * 1024:
-            return request.redirect('/my/documentos?error=El+archivo+pesa+m%C3%A1s+de+%s+MB' % MAX_MB)
+            return request.redirect('/my/documentos?error=El+archivo+pesa+m%%C3%%A1s+de+%s+MB' % MAX_MB)
         Att = request.env['ir.attachment'].sudo()
         today = datetime.combine(fields.Date.context_today(Att), time.min)
         if Att.search_count([('res_model', '=', 'res.partner'), ('res_id', '=', partner.id),
