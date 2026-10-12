@@ -23,7 +23,7 @@ class PaymentPortalJaguen(PaymentPortal):
         is_paypal = bool(provider) and provider.code == 'paypal'
         if is_paypal and card_type not in ('credit', 'debit'):
             raise ValidationError(_(
-                "Selecciona si pagarás con tarjeta de crédito o con tarjeta de débito."))
+                "Debes elegir el tipo de Tarjeta que usarás"))
         result = super().shop_payment_transaction(order_id, access_token, **kwargs)
         self._jaguen_register_tyc(order_id)
         if is_paypal:

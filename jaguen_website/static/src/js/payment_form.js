@@ -67,6 +67,13 @@ PaymentForm.include({
         params['jaguen_tyc'] = document.getElementById('jaguen_tyc')?.checked ? '1' : '';
         const select = document.getElementById('jaguen_card_type');
         if (select && this.paymentContext.providerCode === 'paypal') {
+            // El boton de PayPal muestra error.message tal cual: se valida aqui con un texto claro.
+            if (!document.getElementById('jaguen_tyc')?.checked) {
+                throw new Error('Debes aceptar los términos y condiciones para poder pagar.');
+            }
+            if (!select.value) {
+                throw new Error('Debes elegir el tipo de Tarjeta que usarás');
+            }
             params['jaguen_card_type'] = select.value;
         }
         return params;
