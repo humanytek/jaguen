@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- "Tienes estos cupones": para que el cliente no tenga que buscar en su correo. Cada chip -->
+    <!-- reenvia el mismo formulario que ya usa el sitio para aplicar un cupon (/shop/pricelist). -->
+    <template id="cart_jaguen_available_coupons" inherit_id="website_sale.cart_lines">
+        <xpath expr="//div[@id='cart_products']" position="before">
+            <t t-set="jaguen_coupons" t-value="website_sale_order and website_sale_order._jaguen_available_public_coupons()"/>
+            <div t-if="jaguen_coupons" class="alert alert-success d-flex flex-wrap align-items-center gap-2 mb-3" role="alert">
+                <span class="fw-bold">🎟️ Tienes estos cupones:</span>
+                <form t-foreach="jaguen_coupons" t-as="jaguen_card" action="/shop/pricelist" method="post" class="d-inline m-0">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="promo" t-att-value="jaguen_card.code"/>
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                        $<t t-esc="jaguen_card.program_id._jaguen_public_amount()"/>
+                        · <t t-esc="jaguen_card.code"/> · Aplicar
+                    </button>
+                </form>
+            </div>
+        </xpath>
+    </template>
+</odoo>
