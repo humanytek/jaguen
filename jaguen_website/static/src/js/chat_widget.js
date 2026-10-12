@@ -32,7 +32,7 @@
 
     // ---------- agente (nombre + foto) ----------
     var BASE_IMG = '/jaguen_website/static/src/img/';
-    var PHOTOS = {ale: 'agent_ale.jpg', monica: 'agent_monica.jpg', andrea: 'agent_andrea.jpg'};
+    var PHOTOS = {ale: 'agent_ale.jpg', monica: 'agent_monica.jpg', andrea: 'agent_andrea.jpg', ivan: 'agent_ivan.jpg'};
     function slug(n) { return (n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); }
     function avatar(cls, name) {
         var a = el('span', cls), f = PHOTOS[slug(name)];
@@ -275,10 +275,10 @@
 
     function buildCard(list) {
         // Las tres juntas; quien atiende se asigna hasta que el visitante inicia la conversacion.
-        var names = (list && list.length) ? list.filter(function (n) { return PHOTOS[slug(n)]; }) : ['Ale', 'Mónica', 'Andrea'];
-        if (!names.length) { names = ['Ale', 'Mónica', 'Andrea']; }
+        var names = (list && list.length) ? list.filter(function (n) { return PHOTOS[slug(n)]; }) : ['Andrea', 'Mónica', 'Iván', 'Ale'];
+        if (!names.length) { names = ['Andrea', 'Mónica', 'Iván', 'Ale']; }
         var group = el('span', 'jgc-group');
-        names.slice(0, 3).forEach(function (n) { group.appendChild(avatar('jgc-avatar', n)); });
+        names.slice(0, 4).forEach(function (n) { group.appendChild(avatar('jgc-avatar', n)); });
         btn.appendChild(group);
         var tx = el('span', 'jgc-btn-tx');
         tx.appendChild(el('span', 'jgc-btn-name', '¿Te ayudamos?'));

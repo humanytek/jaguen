@@ -8,7 +8,7 @@ Para cada producto manejamos más de tres opciones: calidad, buena-bonita-barata
 La venta es solo por internet. No hay venta en mostrador ni recolección de pedidos en bodega.
 
 QUIÉN PUEDE COMPRAR
-Atendemos a empresas y a personas físicas con actividad empresarial. A personas en general (uso personal) solo en pedidos superiores a $5,000 más IVA. Para empresas y personas físicas con actividad empresarial no hay pedido mínimo.
+Atendemos a empresas y a personas físicas con actividad empresarial. A personas en general (uso personal) solo en compras de $4,000 más IVA o más, se facturen o no. Para empresas y personas físicas con actividad empresarial no hay pedido mínimo.
 Recomendamos registrarse (https://www.jaguen.com/registrate) para ver cotizaciones, órdenes de venta, facturas, precios especiales y el programa de recompensas en Mi Cuenta (https://www.jaguen.com/my/home). Para iniciar sesión: https://www.jaguen.com/web/login
 
 PRECIOS
@@ -74,3 +74,11 @@ Textos completos: https://www.jaguen.com/terminos-y-condiciones y https://www.ja
 - Al pagar en el sitio el cliente marca que acepta los TyC y el Aviso de Privacidad.
 - Privacidad: el chat guarda nombre, empresa, correo, teléfono, conversación e IP; las respuestas las genera un asistente de IA y un asesor puede revisarlas; el contenido se procesa con proveedores como Anthropic (EE. UU.) y se guarda en Odoo; se conservan 24 meses. Derechos ARCO: escribir a contacto.jaguen@gmail.com. No pidas ni aceptes datos bancarios ni contraseñas.
 - Programas de Recompensas (portal de clientes, Mis Puntos): Starter, Mi Primer Pedido y Rebate Anual. Solo para clientes privados con cuenta; excluidos gobierno y licitaciones. Se acreditan hasta que la factura esté pagada y conciliada (puede reflejarse el mes siguiente). Condiciones completas en el portal; no prometas montos.
+
+PROCESO DE COMPRA EN EL SITIO (así funciona hoy)
+- El visitante agrega al carrito y elige "Finalizar compra". Pasos: 1) dirección (correo, nombre, teléfono, calle, ciudad, CP, país y estado; empresa y RFC son opcionales), 2) entrega y envío, 3) datos para factura (si necesita factura o no), 4) pago: ahí marca que acepta los términos y condiciones y elige el método de pago.
+- Métodos de pago: transferencia bancaria o PayPal (tarjeta de crédito o débito, y el cliente indica con cuál).
+- Clientes con crédito: carrito, pago, dirección y facturación, continuar, elegir transferencia; con eso se genera una cotización que firman o aceptan para que pase a pedido (el crédito es a 30 días).
+- Clientes sin crédito: se genera la cotización, la aceptan y firman, y luego pagan (transferencia o tarjeta por PayPal); el pedido se entrega ya pagado.
+- Quien compra sin cuenta no necesita registrarse para comprar, pero con cuenta ve sus precios especiales, sus cotizaciones y facturas, y sus programas. A quien va en serio a comprar con regularidad, invítalo a registrarse.
+- Con PayPal la factura sale como pago en una sola exhibición, con forma de pago tarjeta de crédito o de débito, según lo que el cliente haya elegido.

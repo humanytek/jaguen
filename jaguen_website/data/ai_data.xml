@@ -23,7 +23,7 @@
     <record id="param_ai_daily_user_client" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_user_client</field><field name="value">120</field></record>
     <record id="param_ai_daily_global" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_global</field><field name="value">600</field></record>
     <record id="param_ai_hours" model="ir.config_parameter"><field name="key">jaguen_website.ai_hours</field><field name="value">08:30-19:00</field></record>
-    <record id="param_ai_names" model="ir.config_parameter"><field name="key">jaguen_website.ai_names</field><field name="value">Ale,Mónica,Andrea</field></record>
+    <record id="param_ai_names" model="ir.config_parameter"><field name="key">jaguen_website.ai_names</field><field name="value">Andrea,Mónica,Iván,Ale</field></record>
     <record id="param_ai_model_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_model_company</field><field name="value">claude-sonnet-5-5</field></record>
     <record id="param_ai_max_tokens_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_tokens_company</field><field name="value">600</field></record>
     <record id="param_ai_max_turns_company" model="ir.config_parameter"><field name="key">jaguen_website.ai_max_turns_company</field><field name="value">14</field></record>
