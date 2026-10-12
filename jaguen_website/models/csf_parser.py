@@ -40,9 +40,9 @@ _FIN = r'(?=\s*(?:' + '|'.join(_lab(e) for e in _ETIQUETAS) + r')\s*:|\n|$)'
 def campo(t, *labels):
     """Valor que sigue a la etiqueta (hasta la siguiente etiqueta o el fin de la linea); '' si viene vacio."""
     for lab in labels:
-        m = re.search(_lab(lab) + r'\s*:[ \t]*(.*?)' + _FIN, t)
-        if m and m.group(1).strip():
-            return re.sub(r'\s{2,}.*$', '', m.group(1).strip()).strip()
+        for m in re.finditer(_lab(lab) + r'\s*:[ \t]*(.*?)' + _FIN, t):
+            if m.group(1).strip():
+                return re.sub(r'\s{2,}.*$', '', m.group(1).strip()).strip()
     return ''
 
 
@@ -234,14 +234,32 @@ def detalle(text, tipo, rfc_form=None):
 
 
 def pdf_text(data):
-    """Texto de las primeras paginas de un PDF ('' si es imagen o no se puede leer)."""
-    try:
+    """Texto de las primeras paginas de un PDF ('' si es imagen o no se puede leer). Prueba varios extractores y junta
+    sus textos (el lector toma el primer valor que encuentre): segun la libreria instalada, unas conservan los espacios
+    entre palabras y otras no (pdftotext y pypdf >= 5.9 son las buenas)."""
+    import shutil
+    import subprocess
+    import tempfile
+    textos = []
+    exe = shutil.which('pdftotext')
+    if exe:
         try:
-            from pypdf import PdfReader
+            with tempfile.NamedTemporaryFile(suffix='.pdf') as tmp:
+                tmp.write(data)
+                tmp.flush()
+                for args in (['-layout', '-l', '4'], ['-l', '4']):
+                    out = subprocess.run([exe] + args + [tmp.name, '-'], capture_output=True, timeout=20)
+                    textos.append(out.stdout.decode('utf-8', 'ignore'))
+        except Exception:
+            _logger.warning('CSF: fallo pdftotext', exc_info=True)
+    for modulo in ('pypdf', 'PyPDF2'):
+        try:
+            mod = __import__(modulo)
+            reader = (getattr(mod, 'PdfReader', None) or mod.PdfFileReader)(io.BytesIO(data))
+            pages = list(reader.pages) if hasattr(reader, 'pages') else [reader.getPage(i) for i in range(reader.getNumPages())]
+            textos.append('\n'.join((pg.extract_text() if hasattr(pg, 'extract_text') else pg.extractText()) or '' for pg in pages[:4]))
         except ImportError:
-            from PyPDF2 import PdfReader
-        reader = PdfReader(io.BytesIO(data))
-        return '\n'.join((pg.extract_text() or '') for pg in list(reader.pages)[:4])
-    except Exception:
-        _logger.exception('CSF: no se pudo leer el PDF')
-        return ''
+            continue
+        except Exception:
+            _logger.warning('CSF: no se pudo leer el PDF con %s', modulo, exc_info=True)
+    return '\n'.join(t for t in textos if t and t.strip())

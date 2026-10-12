@@ -64,8 +64,9 @@
         input.required = false;
         if (pendingColonia && input.name === 'l10n_mx_edi_colony') {
             // colonia que traia la CSF: se elige la que coincida del catalogo; si no, se escribe tal cual
-            var want = normTxt(pendingColonia), hit = null;
-            Array.prototype.forEach.call(sel.options, function (o) { if (!hit && o.value && o.value[0] !== '_' && normTxt(o.value) === want) { hit = o; } });
+            var nsp = function (t) { return normTxt(t).replace(/ /g, ''); };
+            var want = nsp(pendingColonia), hit = null;
+            Array.prototype.forEach.call(sel.options, function (o) { if (!hit && o.value && o.value[0] !== '_' && nsp(o.value) === want) { hit = o; } });
             if (hit) { sel.value = hit.value; input.value = hit.value; } else {
                 sel.value = '__escribir__'; input.value = pendingColonia; input.style.display = '';
             }
@@ -91,7 +92,6 @@
             if (el.value && el.dataset.jgAuto !== '1') { return; }
             el.value = val; el.dataset.jgAuto = '1';
             el.dispatchEvent(new Event('input', {bubbles: true}));
-            el.dispatchEvent(new Event('change', {bubbles: true}));
         }
         put('name', d.nombre); put('x_studio_nombre_comercial', d.nombre_comercial); put('vat', d.rfc);
         put('street_name', d.calle); put('street_number', d.num_ext); put('street_number2', d.num_int);
@@ -236,6 +236,10 @@
             box.textContent = '';
             var f = input.files && input.files[0];
             if (!f) { return; }
+            var vatNow = q('vat') ? q('vat').value : '';
+            var key = f.name + '|' + f.size + '|' + f.lastModified + '|' + vatNow;
+            if (input.dataset.jgBusy === key || input.dataset.jgDone === key) { return; }
+            input.dataset.jgBusy = key; input.dataset.jgLastVat = vatNow;
             if (csfLevel >= 1 && tipo === 'csf' && /^image\//.test(f.type)) {
                 box.className = 'small mt-1 text-muted';
                 box.textContent = 'Recibimos tu foto; un asesor la revisará y te pedirá la constancia en PDF si hace falta.';
@@ -252,6 +256,7 @@
             fetch('/jaguen/csf/check', {method: 'POST', body: fd})
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
+                    input.dataset.jgDone = key; input.dataset.jgBusy = '';
                     input.dataset.jgState = d.estado;
                     if (tipo === 'csf' && d.datos && d.datos.rfc) { autofill(d.datos); }
                     var blocking = ['old', 'future', 'notcsf', 'notpdf', 'rfcdiff'].indexOf(d.estado) >= 0;
@@ -270,12 +275,16 @@
                         linkify(box, csfLevel >= 1 ? '' : (d.mensaje || ''));
                     }
                 })
-                .catch(function () { box.textContent = ''; });
+                .catch(function () { box.textContent = ''; input.dataset.jgBusy = ''; });
         }
         input.addEventListener('change', run);
         reruns.push(function () { if (input.files && input.files[0]) { run(); } });
         var vatEl = q('vat');
-        if (vatEl) { vatEl.addEventListener('change', function () { if (input.files && input.files[0]) { run(); } }); }
+        if (vatEl) {
+            vatEl.addEventListener('change', function (ev) {
+                if (ev.isTrusted && input.files && input.files[0] && vatEl.value !== input.dataset.jgLastVat) { run(); }
+            });
+        }
     }
 
     // Compra personal: se esconden y dejan de ser obligatorios RFC, regimen, CSF, opinion y contacto comprador.

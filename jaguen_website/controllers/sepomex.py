@@ -34,7 +34,7 @@ class JaguenCsfController(http.Controller):
             return request.make_response(json.dumps({'estado': 'notpdf', 'mensaje': 'Sube un PDF de máximo 5 MB.'}), headers)
         Usage = request.env['jaguen.chat.usage'].sudo()
         key = 'csfchk:%s' % (request.httprequest.remote_addr or 'sin-ip')
-        if Usage._count(key) >= 60:
+        if Usage._count(key) >= 300:
             return request.make_response(json.dumps({'estado': 'unreadable', 'mensaje': ''}), headers)
         Usage._bump(key, messages=1)
         tipo = 'opinion' if kw.get('tipo') == 'opinion' else 'csf'
