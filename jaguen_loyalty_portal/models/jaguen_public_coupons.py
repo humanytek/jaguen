@@ -65,6 +65,8 @@ class ResPartnerJaguenCoupons(models.Model):
             self._jaguen_grant_welcome_coupon()
         except Exception:  # noqa: BLE001 - un fallo aqui no debe tumbar el registro
             _logger.exception('Cupón Registro: no se pudo otorgar a %s', self.id)
+            self.sudo().with_context(mail_notrack=True).message_post(
+                body='No se pudo generar el Cupón Registro de este cliente. Revisar a mano.', subtype_xmlid='mail.mt_note')
 
     def _jaguen_grant_welcome_coupon(self):
         """Cupon Registro: uno por cliente de por vida, se manda por correo al terminar el alta web."""
@@ -84,9 +86,26 @@ class ResPartnerJaguenCoupons(models.Model):
             'code': _jaguen_new_code('BIENVENIDO'),
             'expiration_date': fields.Date.context_today(self) + relativedelta(days=REGISTRO_DIAS_VIGENCIA),
         })
-        template = self.env.ref('jaguen_loyalty_portal.mail_template_cupon_bienvenida', raise_if_not_found=False)
-        if template and self.email:
-            template.sudo().with_context(jaguen_card=card).send_mail(self.id, force_send=True, email_values={'email_to': self.email})
+        self._jaguen_send_coupon_mail(self, 'jaguen_loyalty_portal.mail_template_cupon_bienvenida', card)
+
+    @api.model
+    def _jaguen_send_coupon_mail(self, partner, template_xmlid, card):
+        """Manda el correo del cupon al partner indicado. Si falla (plantilla, render, correo sin
+        servidor, etc.) NUNCA tumba el flujo que lo llama: deja una nota interna con el codigo para
+        que se pueda dar a mano, y registra el error en el log."""
+        if not partner.email:
+            return
+        template = self.env.ref(template_xmlid, raise_if_not_found=False)
+        if not template:
+            return
+        try:
+            template.sudo().with_context(jaguen_card_id=card.id).send_mail(
+                partner.id, force_send=True, email_values={'email_to': partner.email})
+        except Exception:  # noqa: BLE001
+            _logger.exception('Cupón: no se pudo mandar el correo (plantilla %s) a %s', template_xmlid, partner.id)
+            partner.sudo().with_context(mail_notrack=True).message_post(
+                body='No se pudo mandar el correo del cupón %s (%s). Dáselo a mano.' % (card.code, partner.email),
+                subtype_xmlid='mail.mt_note')
 
     @api.model
     def _jaguen_cron_recordar_cupon_registro(self):
@@ -101,11 +120,8 @@ class ResPartnerJaguenCoupons(models.Model):
             ('program_id', '=', program.id), ('expiration_date', '=', avisar),
             ('use_count', '=', 0), ('jaguen_reminder_sent', '=', False),
         ])
-        template = self.env.ref('jaguen_loyalty_portal.mail_template_cupon_por_vencer', raise_if_not_found=False)
         for card in cards:
-            partner = card.partner_id
-            if template and partner.email:
-                template.sudo().with_context(jaguen_card=card).send_mail(partner.id, force_send=True, email_values={'email_to': partner.email})
+            self._jaguen_send_coupon_mail(card.partner_id, 'jaguen_loyalty_portal.mail_template_cupon_por_vencer', card)
             card.jaguen_reminder_sent = True
 
 
@@ -147,9 +163,7 @@ class ProductWishlistJaguenCoupons(models.Model):
             'code': _jaguen_new_code('FAVORITOS'),
             'x_jaguen_frozen_products': [(6, 0, products.ids)],
         })
-        template = self.env.ref('jaguen_loyalty_portal.mail_template_cupon_favoritos', raise_if_not_found=False)
-        if template and commercial_partner.email:
-            template.sudo().with_context(jaguen_card=card).send_mail(commercial_partner.id, force_send=True, email_values={'email_to': commercial_partner.email})
+        self.env['res.partner']._jaguen_send_coupon_mail(commercial_partner, 'jaguen_loyalty_portal.mail_template_cupon_favoritos', card)
 
 
 class SaleOrderJaguenCoupons(models.Model):
