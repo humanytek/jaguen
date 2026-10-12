@@ -7,6 +7,8 @@ import pytz
 from odoo import fields, http
 from odoo.http import request
 
+from ..models.ai_service import clean_company
+
 _logger = logging.getLogger(__name__)
 
 MAX_TEXT = 600
@@ -86,6 +88,7 @@ class JaguenChatController(http.Controller):
         if not request.env.user._is_public():
             return {'error': 'logged'}
         nombre, empresa, correo = (nombre or '').strip()[:80], (empresa or '').strip()[:80], (correo or '').strip()[:80]
+        empresa = clean_company(empresa)[:80]   # sin SA de CV, S de RL, etc.
         telefono, personal = (telefono or '').strip()[:30], bool(personal)
         errors = {}
         if len(nombre) < 2:
@@ -102,7 +105,10 @@ class JaguenChatController(http.Controller):
         key = 'form:%s' % (request.httprequest.remote_addr or 'sin-ip')
         if Usage._count(key) >= service._int_param('ai_daily_forms_ip', 10):
             return {'error': 'limit'}
+        if Usage._count('forms:global') >= service._int_param('ai_daily_forms_global', 80):
+            return {'error': 'limit'}
         Usage._bump(key, messages=1)
+        Usage._bump('forms:global', messages=1)
         session = request.env['jaguen.chat.session'].sudo().create({
             'name': 'Visitante web: %s' % (empresa or nombre),
             'token': request.env['jaguen.chat.session']._new_token(),
@@ -174,6 +180,9 @@ class JaguenChatController(http.Controller):
             msgs += bot(reply)
         else:
             msgs += bot(FALLBACK)
+        if session.mode != 'client' and session.segment in ('empresa', 'pfae') and not session.lead_id:
+            service._create_prospect_lead(session)   # formulario lleno + empezó a platicar = oportunidad en la etapa Web
+        service._sync_lead_notes(session)   # la platica queda en las notas internas
         if session.segment == 'no_atendible':
             session.sudo().write({'state': 'closed'})  # se despidio: no se sigue gastando en esta conversacion
         out['messages'] = msgs
