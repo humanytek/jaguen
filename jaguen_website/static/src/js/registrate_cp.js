@@ -67,7 +67,9 @@
             var nsp = function (t) { return normTxt(t).replace(/ /g, ''); };
             var want = nsp(pendingColonia), hit = null;
             Array.prototype.forEach.call(sel.options, function (o) { if (!hit && o.value && o.value[0] !== '_' && nsp(o.value) === want) { hit = o; } });
-            if (hit) { sel.value = hit.value; input.value = hit.value; } else {
+            if (want.indexOf('OTRANOESPECIFICADA') === 0) {   // el SAT escribe asi cuando no hay colonia
+                sel.value = '__otra__'; input.value = OTRA; input.style.display = 'none';
+            } else if (hit) { sel.value = hit.value; input.value = hit.value; } else {
                 sel.value = '__escribir__'; input.value = pendingColonia; input.style.display = '';
             }
             pendingColonia = '';
