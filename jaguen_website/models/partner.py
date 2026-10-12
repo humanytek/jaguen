@@ -42,19 +42,19 @@ class ResPartner(models.Model):
         help='Última vez que el cliente marcó la casilla de términos y condiciones al pagar en el sitio.')
 
     # Campos de paso del formulario "Regístrate": se usan al crear el registro y no se guardan.
-    jaguen_contact_name = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_contact_email = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_contact_mobile = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_contact_function = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_same = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_street = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_colony = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_zip = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_city = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_state = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_receiver = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_phone = fields.Char(copy=False, website_form_blacklisted=False)
-    jaguen_ship_email = fields.Char(copy=False, website_form_blacklisted=False)
+    jaguen_contact_name = fields.Char(copy=False)
+    jaguen_contact_email = fields.Char(copy=False)
+    jaguen_contact_mobile = fields.Char(copy=False)
+    jaguen_contact_function = fields.Char(copy=False)
+    jaguen_ship_same = fields.Char(copy=False)
+    jaguen_ship_street = fields.Char(copy=False)
+    jaguen_ship_colony = fields.Char(copy=False)
+    jaguen_ship_zip = fields.Char(copy=False)
+    jaguen_ship_city = fields.Char(copy=False)
+    jaguen_ship_state = fields.Char(copy=False)
+    jaguen_ship_receiver = fields.Char(copy=False)
+    jaguen_ship_phone = fields.Char(copy=False)
+    jaguen_ship_email = fields.Char(copy=False)
 
     _JAGUEN_STEP_FIELDS = ('jaguen_contact_name', 'jaguen_contact_email', 'jaguen_contact_mobile', 'jaguen_contact_function',
                            'jaguen_ship_same', 'jaguen_ship_street', 'jaguen_ship_colony', 'jaguen_ship_zip',
