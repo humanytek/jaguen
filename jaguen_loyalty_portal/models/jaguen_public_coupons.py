@@ -185,6 +185,27 @@ class SaleOrderJaguenCoupons(models.Model):
                     del result[coupon]
         return result
 
+    def _update_programs_and_rewards(self):
+        """Los 2 cupones publicos no esperan a que el cliente escriba el codigo: en cuanto el
+        carrito ya los puede reclamar (cumple el minimo, o trae 20 de los 40 favoritos), se ponen
+        solos. (Odoo ya los MUESTRA como reclamables via _get_claimable_rewards; aqui falta nada
+        mas reclamarlos de una vez cuando trigger='auto'.)"""
+        super()._update_programs_and_rewards()
+        if not self.website_id:
+            return
+        programs = (self.env.ref(PROGRAM_REGISTRO_XMLID, raise_if_not_found=False)
+                    | self.env.ref(PROGRAM_FAVORITOS_XMLID, raise_if_not_found=False))
+        if not programs:
+            return
+        already = self.order_line.filtered('reward_id').mapped('coupon_id')
+        claimable = self._get_claimable_rewards()
+        for coupon, rewards in claimable.items():
+            if coupon.program_id in programs and coupon not in already and rewards:
+                try:
+                    self._apply_program_reward(rewards[0], coupon)
+                except Exception:  # noqa: BLE001 - si no se pudo aplicar solo, el cliente lo aplica con el boton
+                    _logger.exception('Cupón: no se pudo auto-aplicar %s en el pedido %s', coupon.code, self.id)
+
     def _jaguen_available_public_coupons(self):
         """Cupones vigentes y sin usar del cliente (de los 2 programas publicos), para mostrarlos
         en el carrito sin que tenga que buscar en su correo."""

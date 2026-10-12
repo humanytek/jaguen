@@ -73,7 +73,7 @@
                 <p>Gracias por registrarte en Jaguen. Como bienvenida, tienes un cupón de <b>$200</b> para tu próxima compra.</p>
                 <div style="background:#f1f8fb;border:1px dashed #11819e;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
                     <div style="font-size:12px;color:#555">Tu código</div>
-                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="object.env['loyalty.card'].browse(ctx.get('jaguen_card_id')).code"/></div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_registro').id)],limit=1,order='id desc').code or '')"/></div>
                     <div style="font-size:12px;color:#555;margin-top:6px">Compra mínima $4,000 · Válido 30 días</div>
                 </div>
                 <p>Lo aplicas solo al entrar a tu carrito: también lo verás listado ahí, no hace falta que lo copies ni lo guardes.</p>
@@ -97,7 +97,7 @@
                 <p>Ya guardaste 40 productos en tus favoritos. Como agradecimiento, tienes un cupón de <b>$500</b>.</p>
                 <div style="background:#f1f8fb;border:1px dashed #11819e;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
                     <div style="font-size:12px;color:#555">Tu código</div>
-                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="object.env['loyalty.card'].browse(ctx.get('jaguen_card_id')).code"/></div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_favoritos').id)],limit=1,order='id desc').code or '')"/></div>
                     <div style="font-size:12px;color:#555;margin-top:6px">Se aplica en una compra que incluya al menos 20 de esos 40 productos guardados</div>
                 </div>
                 <p>Lo aplicas solo al entrar a tu carrito: también lo verás listado ahí, no hace falta que lo copies ni lo guardes.</p>
@@ -121,7 +121,7 @@
                 <p>Tu cupón de bienvenida de <b>$200</b> todavía no lo usas, y en 5 días vence.</p>
                 <div style="background:#fff5ec;border:1px dashed #f47c20;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
                     <div style="font-size:12px;color:#555">Tu código</div>
-                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#f47c20"><t t-out="object.env['loyalty.card'].browse(ctx.get('jaguen_card_id')).code"/></div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#f47c20"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_registro').id)],limit=1,order='id desc').code or '')"/></div>
                     <div style="font-size:12px;color:#555;margin-top:6px">Compra mínima $4,000</div>
                 </div>
                 <p>Entra a tu carrito y lo verás listado ahí para aplicarlo.</p>
