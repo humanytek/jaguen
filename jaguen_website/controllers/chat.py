@@ -130,7 +130,7 @@ class JaguenChatController(http.Controller):
         return {'messages': session._widget_messages(int(after_id or 0)), 'state': session.state}
 
     @http.route('/jaguen/chat/send', type='json', auth='public', website=True)
-    def send(self, token=None, text=''):
+    def send(self, token=None, text='', ctx=''):
         session = self._session(token)
         text = (text or '').strip()[:MAX_TEXT]
         if not session or not text:
@@ -165,7 +165,7 @@ class JaguenChatController(http.Controller):
             out['messages'] = bot(LIMIT_DAILY)
             return out
         try:
-            reply, t_in, t_out = service.reply(session, self._base_url())
+            reply, t_in, t_out = service.reply(session, self._base_url(), form_ctx=(ctx or '')[:900] if isinstance(ctx, str) else '')
         except Exception:  # noqa: BLE001
             _logger.exception('Falló la respuesta del asistente web')
             out['messages'] = bot(FALLBACK)

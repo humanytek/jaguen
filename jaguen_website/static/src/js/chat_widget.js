@@ -288,7 +288,9 @@
         busy = true; input.value = ''; send.disabled = true;
         bubble('user', text);
         var typing = bubble('sys', 'Escribiendo...');
-        rpc('/jaguen/chat/send', {token: token, text: text}).then(function (r) {
+        var formCtx = '';
+        try { formCtx = (typeof window.jaguenChatContext === 'function' && window.jaguenChatContext()) || ''; } catch (e) { formCtx = ''; }
+        rpc('/jaguen/chat/send', {token: token, text: text, ctx: formCtx}).then(function (r) {
             typing.remove();
             if (r.user_message_id && r.user_message_id > lastId) { lastId = r.user_message_id; }
             addMessages(r.messages);

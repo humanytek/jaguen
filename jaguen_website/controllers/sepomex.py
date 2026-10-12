@@ -41,7 +41,10 @@ class JaguenCsfController(http.Controller):
         texto = csf_parser.pdf_text(data)
         rfc = (kw.get('rfc') or '').strip() or None
         estado, mensaje = csf_parser.revisar_archivo(texto, fields.Date.context_today(Usage), tipo, rfc)
-        return request.make_response(json.dumps({'estado': estado, 'mensaje': mensaje, 'detalle': csf_parser.detalle(texto, tipo, rfc)}), headers)
+        out = {'estado': estado, 'mensaje': mensaje, 'detalle': csf_parser.detalle(texto, tipo, rfc)}
+        if tipo == 'csf' and estado not in ('notcsf', 'notpdf', 'unreadable'):
+            out['datos'] = csf_parser.datos_formulario(texto)  # para llenar el formulario (el cliente solo revisa)
+        return request.make_response(json.dumps(out), headers)
 
 
 class JaguenDocsController(http.Controller):

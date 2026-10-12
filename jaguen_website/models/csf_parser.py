@@ -74,6 +74,45 @@ def parse(text):
     return out
 
 
+def _campo(t, *labels):
+    for lab in labels:
+        m = re.search(re.escape(lab) + r':[ \t]*(.*)', t)
+        if m:
+            v = re.split(r'\s{3,}', m.group(1).strip())[0].strip()
+            # algunas lineas traen dos etiquetas pegadas: "HERMOSILLO Nombre del Municipio ...: HERMOSILLO"
+            v = re.split(r'\s+(?:Nombre del?|N[u\u00fa]mero|C[o\u00f3]digo|Entre Calle|Y Calle|Tipo de|Fecha|Estatus|Correo|Tel)[^:\n]{0,70}:', v)[0].strip()
+            if v and not re.match(r'^(Nombre|N[uú]mero|C[oó]digo|Entre|Y Calle|Tipo|Fecha|Estatus|Correo|Tel)\b.*:', v):
+                return v
+    return ''
+
+
+def datos_formulario(text):
+    """Datos de la CSF listos para llenar el Registrate (el cliente solo los revisa). {} si no se pudo leer."""
+    csf = parse(text)
+    if not csf or not csf.get('rfc'):
+        return {}
+    t = text.replace('\r', '')
+    reg = ''
+    for line in csf.get('regimenes') or []:
+        for code, key in REGIMEN.items():
+            if key in norm(line).lower():
+                reg = code
+                break
+        if reg:
+            break
+    out = {
+        'rfc': csf['rfc'], 'nombre': csf.get('nombre', ''), 'cp': csf.get('cp', ''),
+        'nombre_comercial': _campo(t, 'Nombre Comercial'),
+        'calle': _campo(t, 'Nombre de Vialidad'), 'num_ext': _campo(t, 'N\u00famero Exterior', 'Numero Exterior'),
+        'num_int': _campo(t, 'N\u00famero Interior', 'Numero Interior'),
+        'colonia': _campo(t, 'Nombre de la Colonia'), 'localidad': _campo(t, 'Nombre de la Localidad'),
+        'municipio': _campo(t, 'Nombre del Municipio o Demarcaci\u00f3n Territorial', 'Nombre del Municipio o Demarcacion Territorial'),
+        'estado': _campo(t, 'Nombre de la Entidad Federativa'), 'regimen': reg,
+        'es_persona_fisica': 'Nombre (s)' in t,
+    }
+    return out
+
+
 def compare(csf, nombre, rfc, cp, regimen_code):
     """Lista de diferencias legibles entre la CSF y lo capturado. Solo avisa cuando esta seguro."""
     diffs = []

@@ -7,7 +7,11 @@
     function q(name) { return document.querySelector('[name="' + name + '"]'); }
 
     function setSelect(el, id) {
-        if (!el || !id) { return; }
+        if (!el) { return; }
+        if (!id) {  // no hay equivalente para este CP: se limpia lo que quedo del CP anterior
+            if (el.value) { el.value = ''; el.dispatchEvent(new Event('change', {bubbles: true})); }
+            return;
+        }
         var opt = el.querySelector('option[value="' + id + '"]');
         if (opt) { el.value = String(id); el.dispatchEvent(new Event('change', {bubbles: true})); }
     }
@@ -41,6 +45,8 @@
         return sel;
     }
 
+    var pendingColonia = '';
+
     function fillColonias(input, colonias) {
         var sel = coloniaWidget(input);
         if (input.dataset.jgReq === undefined) { input.dataset.jgReq = input.required ? '1' : '0'; }
@@ -56,6 +62,51 @@
         input.value = '';
         input.style.display = 'none';
         input.required = false;
+        if (pendingColonia && input.name === 'l10n_mx_edi_colony') {
+            // colonia que traia la CSF: se elige la que coincida del catalogo; si no, se escribe tal cual
+            var want = normTxt(pendingColonia), hit = null;
+            Array.prototype.forEach.call(sel.options, function (o) { if (!hit && o.value && o.value[0] !== '_' && normTxt(o.value) === want) { hit = o; } });
+            if (hit) { sel.value = hit.value; input.value = hit.value; } else {
+                sel.value = '__escribir__'; input.value = pendingColonia; input.style.display = '';
+            }
+            pendingColonia = '';
+        }
+    }
+
+    function normTxt(t) { return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+    // Si el cliente toca un campo autollenado, ya es suyo: otra constancia no lo vuelve a pisar.
+    document.addEventListener('input', function (ev) {
+        if (ev.isTrusted && ev.target && ev.target.dataset) { delete ev.target.dataset.jgAuto; }
+    }, true);
+    document.addEventListener('change', function (ev) {
+        if (ev.isTrusted && ev.target && ev.target.dataset) { delete ev.target.dataset.jgAuto; }
+    }, true);
+
+    // Autollenado con los datos de la CSF: solo se llenan campos vacios o llenados antes por el autollenado.
+    function autofill(d) {
+        function put(name, val) {
+            var el = q(name);
+            if (!el || !val) { return; }
+            if (el.value && el.dataset.jgAuto !== '1') { return; }
+            el.value = val; el.dataset.jgAuto = '1';
+            el.dispatchEvent(new Event('input', {bubbles: true}));
+            el.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+        put('name', d.nombre); put('x_studio_nombre_comercial', d.nombre_comercial); put('vat', d.rfc);
+        put('street_name', d.calle); put('street_number', d.num_ext); put('street_number2', d.num_int);
+        if (d.regimen) {
+            var r = document.querySelector('input[name="l10n_mx_edi_fiscal_regime"][value="' + d.regimen + '"]');
+            if (r && !document.querySelector('input[name="l10n_mx_edi_fiscal_regime"]:checked')) { r.checked = true; r.dispatchEvent(new Event('change', {bubbles: true})); }
+        }
+        if (d.cp) {
+            pendingColonia = d.colonia || '';
+            var z = q('zip');
+            if (z && (!z.value || z.dataset.jgAuto === '1')) {
+                z.dataset.jgAuto = '1'; z.value = d.cp;
+                z.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+        }
     }
 
     function noCatalog(input) {
@@ -202,6 +253,7 @@
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     input.dataset.jgState = d.estado;
+                    if (tipo === 'csf' && d.datos && d.datos.rfc) { autofill(d.datos); }
                     var blocking = ['old', 'future', 'notcsf', 'notpdf', 'rfcdiff'].indexOf(d.estado) >= 0;
                     // Con el envio desbloqueado por Ale solo el RFC distinto sigue bloqueando.
                     if (blocking && csfLevel >= 1 && d.estado !== 'rfcdiff') { blocking = false; }
@@ -212,7 +264,7 @@
                         showAle(tipo === 'csf' ? 'constancia' : 'opinión de cumplimiento', d);
                     } else if (d.estado === 'ok') {
                         box.className = 'small mt-1 text-success';
-                        box.textContent = '✓ ' + okText;
+                        box.textContent = '✓ ' + okText + (tipo === 'csf' && d.datos && d.datos.rfc ? ' Llenamos tus datos con ella: por favor revísalos.' : '');
                     } else {
                         box.className = 'small mt-1 text-muted';
                         linkify(box, csfLevel >= 1 ? '' : (d.mensaje || ''));
@@ -256,6 +308,39 @@
         chk.addEventListener('change', apply2);
         apply2();
     }
+
+    // Estado del formulario para Ale (solo nombres de campos; nunca lo que el cliente escribio).
+    window.jaguenChatContext = function () {
+        var root = q('name') && q('name').closest('form');
+        if (!root) { return ''; }
+        var pend = [], errs = [], done = 0, seen = {};
+        root.querySelectorAll('.s_website_form_field').forEach(function (blk) {
+            if (!(blk.offsetWidth || blk.offsetHeight)) { return; }
+            var labEl = blk.querySelector('.s_website_form_label_content');
+            var label = labEl ? labEl.textContent.trim() : '';
+            var inputs = blk.querySelectorAll('input:not([type=hidden]):not(.jg-skip), select, textarea');
+            if (!label || !inputs.length || seen[label]) { return; }
+            var req = !!blk.querySelector('[required]');
+            if (!req) { return; }
+            var filled = false, bad = '';
+            var first = inputs[0];
+            if (first.type === 'radio') { filled = !!blk.querySelector('input[type=radio]:checked'); }
+            else if (first.type === 'file') { filled = !!(first.files && first.files.length); bad = first.validationMessage || ''; }
+            else if (first.type === 'checkbox') { filled = first.checked; }
+            else {
+                var colSel = blk.querySelector('.jg-colonia-sel');
+                var val = colSel && colSel.offsetHeight ? colSel.value : first.value;
+                filled = !!(val && val.trim());
+                if (first.disabled) { return; }
+                bad = filled ? (first.validationMessage || '') : '';
+            }
+            seen[label] = 1;
+            if (!filled) { pend.push(label); } else if (bad) { errs.push(label + ' (' + bad.slice(0, 90) + ')'); } else { done += 1; }
+        });
+        var out = 'Obligatorios pendientes: ' + (pend.length ? pend.join(', ') : 'ninguno') + '.';
+        if (errs.length) { out += ' Con error: ' + errs.join('; ') + '.'; }
+        return out + ' Ya completos: ' + done + '.';
+    };
 
     function init() {
         bindPersonal();
