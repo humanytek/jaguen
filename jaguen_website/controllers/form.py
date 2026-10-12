@@ -36,6 +36,9 @@ class WebsiteFormJaguen(WebsiteForm):
 
     def _handle_website_form(self, model_name, **kwargs):
         if model_name == 'res.partner':
+            dup = self._jaguen_duplicate_message(kwargs)
+            if dup:
+                return json.dumps({'error': dup})
             errors = self._jaguen_check_registration(kwargs)
             if errors:
                 return json.dumps({'error_fields': list(errors)})
@@ -61,6 +64,39 @@ class WebsiteFormJaguen(WebsiteForm):
             if key.startswith(field + '['):
                 return files[key]
         return None
+
+    def _jaguen_duplicate_message(self, kw):
+        """Evita duplicados: doble clic en Enviar o un cliente que ya existe (mismo RFC) registrandose otra vez.
+        No deja nota interna ni avisa a nadie (es silencioso para nosotros, solo le contesta al que esta en la
+        pagina). Tope de 2 "ya existe" por IP al dia para que no se use para adivinar que RFC son clientes nuestros;
+        pasado el tope, un mensaje neutro que ni confirma ni niega."""
+        from datetime import timedelta
+        from odoo import fields
+        Partner = request.env['res.partner'].sudo()
+        Usage = request.env['jaguen.chat.usage'].sudo()
+        personal = str(kw.get('jaguen_personal') or '').lower() in ('1', 'true', 'on', 'yes', 'si', 'sí')
+        login_msg = 'Este RFC ya está registrado en Jaguen. Intenta recuperar tu contraseña aquí: /web/reset_password'
+        neutral_msg = 'No se pudo completar tu registro en este momento. Si ya tienes cuenta, entra a Mi cuenta o escríbenos a contacto.jaguen@gmail.com.'
+        rfc = re.sub(r'[\s-]', '', (kw.get('vat') or '').upper())
+        if rfc.startswith('MX') and len(rfc) > 13:
+            rfc = rfc[2:]
+        email = (kw.get('email') or '').strip()
+        recent = fields.Datetime.now() - timedelta(minutes=15)
+        if not personal and rfc and rfc not in ('XAXX010101000', 'XEXX010101000'):
+            found = Partner.search([('parent_id', '=', False), ('vat', 'in', [rfc, 'MX' + rfc])], limit=1)
+            if found:
+                if found.create_date and found.create_date > recent and email and (found.email or '').lower() == email.lower():
+                    return 'Ya recibimos tu registro. En horario laboral un asesor se comunica contigo.'
+                ip_key = 'rfcdup:%s' % (request.httprequest.remote_addr or 'sin-ip')
+                if Usage._count(ip_key) >= 2:
+                    return neutral_msg
+                Usage._bump(ip_key, messages=1)
+                return login_msg
+        elif personal and email:
+            found = Partner.search([('parent_id', '=', False), ('email', '=ilike', email), ('create_date', '>', recent)], limit=1)
+            if found:
+                return 'Ya recibimos tu registro. En horario laboral un asesor se comunica contigo.'
+        return ''
 
     def _jaguen_unlocked_session(self):
         """Sesion de chat (cookie jg_chat) a la que Ale le habilito el envio de documentos, o vacio."""
@@ -99,6 +135,12 @@ class WebsiteFormJaguen(WebsiteForm):
                 # La CSF siempre es obligatoria; con el desbloqueo de Ale solo la opinion deja de serlo.
                 if level < 1 or field.startswith('Constancia'):
                     errors[field] = 'required'
+                continue
+            f.seek(0, 2)
+            size = f.tell()
+            f.seek(0)
+            if size > 5 * 1024 * 1024:
+                errors[field] = 'invalid'
                 continue
             head = f.read(5)
             f.seek(0)
