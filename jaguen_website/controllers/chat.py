@@ -44,7 +44,8 @@ class JaguenChatController(http.Controller):
 
     @http.route('/jaguen/chat/status', type='json', auth='public', website=True)
     def status(self):
-        return {'enabled': request.env['jaguen.ai.service'].sudo()._enabled()}
+        service = request.env['jaguen.ai.service'].sudo()
+        return {'enabled': service._enabled(), 'agents': service._ai_names()}
 
     @http.route('/jaguen/chat/start', type='json', auth='public', website=True)
     def start(self, token=None):
@@ -75,7 +76,7 @@ class JaguenChatController(http.Controller):
                 'name': session.agent_name, 'messages': [], 'state': 'ai', 'enabled': service._enabled()}
 
     @http.route('/jaguen/chat/start_form', type='json', auth='public', website=True)
-    def start_form(self, nombre='', empresa='', correo='', telefono='', personal=False, hp=''):
+    def start_form(self, nombre='', empresa='', correo='', telefono='', personal=False, hp='', agente=''):
         """Formulario previo al chat: valida, crea la conversacion, el lead y el saludo."""
         service = request.env['jaguen.ai.service'].sudo()
         if not service._enabled():
@@ -108,7 +109,7 @@ class JaguenChatController(http.Controller):
             'mode': 'visitor', 'ip_address': request.httprequest.remote_addr or '',
             'contact_name': nombre, 'contact_email': correo, 'contact_phone': telefono,
             'company_name': '' if personal else empresa, 'personal_purchase': personal,
-            'agent_name': service._pick_name(),
+            'agent_name': agente if agente in service._ai_names() else service._pick_name(),
         })
         service._start_from_form(session)
         session.write({'ai_model': service._model_for(session)})

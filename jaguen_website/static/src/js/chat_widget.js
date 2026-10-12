@@ -2,8 +2,8 @@
 (function () {
     'use strict';
     var path = location.pathname;
-    // No estorba en backend, pago ni checkout.
-    if (/^\/(web|odoo|payment|website\/|shop\/(payment|checkout|confirmation|address|l10n_mx))/.test(path)) { return; }
+    // Solo se oculta en el backend: en el sitio publico (incluido el checkout) siempre esta disponible.
+    if (/^\/(web|odoo|website\/)/.test(path)) { return; }
     if (document.getElementById('jaguen_chat_root')) { return; }
 
     var STORE = 'jaguen_chat_token';
@@ -30,13 +30,24 @@
         return e;
     }
 
+    // ---------- agente (nombre + foto) ----------
+    var BASE_IMG = '/jaguen_website/static/src/img/';
+    var PHOTOS = {ale: 'agent_ale.jpg', monica: 'agent_monica.jpg', andrea: 'agent_andrea.jpg'};
+    function slug(n) { return (n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); }
+    function avatar(cls, name) {
+        var a = el('span', cls), f = PHOTOS[slug(name)];
+        if (f) { var im = el('img'); im.src = BASE_IMG + f; im.alt = name; im.width = 64; im.height = 64; a.appendChild(im); }
+        else { a.textContent = (name || 'J').charAt(0); }
+        return a;
+    }
     // ---------- estructura ----------
     var root = el('div'); root.id = 'jaguen_chat_root';
-    var btn = el('button', 'jgc-btn', '¿Te ayudamos?'); btn.type = 'button';
+    var btn = el('button', 'jgc-btn'); btn.type = 'button';
     btn.setAttribute('aria-label', 'Abrir el chat de Jaguen');
     var panel = el('div', 'jgc-panel jgc-hidden');
     var head = el('div', 'jgc-head');
-    var title = el('span', 'jgc-title', 'Jaguen'); head.appendChild(title);
+    var headAv = el('span', 'jgc-hav'); var title = el('span', 'jgc-title', 'Jaguen');
+    var headWho = el('span', 'jgc-who'); headWho.appendChild(headAv); headWho.appendChild(title); head.appendChild(headWho);
     var close = el('button', 'jgc-close', '×'); close.type = 'button'; close.setAttribute('aria-label', 'Cerrar');
     head.appendChild(close);
 
@@ -81,8 +92,9 @@
     // vista 2: conectando
     var connectView = el('div', 'jgc-view jgc-connect jgc-hidden');
     connectView.appendChild(el('div', 'jgc-spinner'));
-    connectView.appendChild(el('div', 'jgc-connect-t', 'Conectándote con quien te atenderá…'));
-    connectView.appendChild(el('div', 'jgc-connect-s', 'Tiempo de espera: menos de 20 segundos'));
+    var connectAv = el('div', 'jgc-connect-av'); connectView.appendChild(connectAv);
+    var connectT = el('div', 'jgc-connect-t', 'Conectándote con quien te atenderá…'); connectView.appendChild(connectT);
+    connectView.appendChild(el('div', 'jgc-connect-s', 'Tiempo de espera: menos de 60 segundos'));
 
     // vista 3: conversacion
     var chatView = el('div', 'jgc-view jgc-chatview jgc-hidden');
@@ -158,7 +170,10 @@
     function stopPolling() { if (timer) { clearInterval(timer); timer = null; } }
 
     function enterChat(name, msgs) {
-        if (name) { title.textContent = name + ' · Jaguen'; }
+        if (name) {
+            title.textContent = name + ' · Jaguen';
+            headAv.textContent = ''; headAv.appendChild(avatar('jgc-avatar jgc-avatar-sm', name));
+        }
         showView('chat');
         addMessages(msgs);
         if (state === 'human') { startPolling(); }
@@ -214,9 +229,12 @@
                 return;
             }
             token = r.token; lsSet(token); state = r.state; started = true;
-            // Pantalla de conexion: entre 6 y 10 segundos antes de que entre quien atiende.
-            connecting = true; showView('connect');
-            var wait = 6000 + Math.floor(Math.random() * 4000);
+            // Pantalla de conexion: 8 segundos fijos antes de que entre quien atiende.
+            connecting = true;
+            connectT.textContent = 'Conectándote con ' + (r.name || 'quien te atenderá') + '…';
+            connectAv.textContent = ''; connectAv.appendChild(avatar('jgc-avatar jgc-avatar-lg', r.name));
+            showView('connect');
+            var wait = 8000;
             connectDone = setTimeout(function () { connecting = false; enterChat(r.name, r.messages); }, wait);
         }).catch(function () {
             formMsg.textContent = 'No se pudo enviar el formulario. Intenta de nuevo.';
@@ -255,18 +273,32 @@
         }).then(function () { busy = false; send.disabled = false; input.focus(); });
     });
 
-    function mount() { document.body.appendChild(root); }
-    function mountWhenReady() { if (document.body) { mount(); } else { document.addEventListener('DOMContentLoaded', mount); } }
+    function buildCard(list) {
+        // Las tres juntas; quien atiende se asigna hasta que el visitante inicia la conversacion.
+        var names = (list && list.length) ? list.filter(function (n) { return PHOTOS[slug(n)]; }) : ['Ale', 'Mónica', 'Andrea'];
+        if (!names.length) { names = ['Ale', 'Mónica', 'Andrea']; }
+        var group = el('span', 'jgc-group');
+        names.slice(0, 3).forEach(function (n) { group.appendChild(avatar('jgc-avatar', n)); });
+        btn.appendChild(group);
+        var tx = el('span', 'jgc-btn-tx');
+        tx.appendChild(el('span', 'jgc-btn-name', '¿Te ayudamos?'));
+        tx.appendChild(el('span', 'jgc-btn-sub', 'Asistente virtual de Jaguen'));
+        tx.appendChild(el('span', 'jgc-btn-cta', 'Escríbenos aquí'));
+        btn.appendChild(tx);
+        btn.setAttribute('aria-label', 'Abrir el chat de Jaguen');
+    }
+    function mount(list) { buildCard(list); document.body.appendChild(root); }
+    function mountWhenReady(list) { if (document.body) { mount(list); } else { document.addEventListener('DOMContentLoaded', function () { mount(list); }); } }
 
     // Solo se muestra si el asistente esta activo (hay llave configurada). El estado se recuerda 10 minutos.
     var cached = null;
     try { cached = JSON.parse(sessionStorage.getItem('jaguen_chat_ok') || 'null'); } catch (e) { cached = null; }
     if (cached && Date.now() - cached.t < 600000) {
-        if (cached.v) { mountWhenReady(); }
+        if (cached.v) { mountWhenReady(cached.a); }
     } else {
         rpc('/jaguen/chat/status', {}).then(function (r) {
-            try { sessionStorage.setItem('jaguen_chat_ok', JSON.stringify({v: !!r.enabled, t: Date.now()})); } catch (e) { /* ok */ }
-            if (r.enabled) { mountWhenReady(); }
+            try { sessionStorage.setItem('jaguen_chat_ok', JSON.stringify({v: !!r.enabled, a: r.agents || [], t: Date.now()})); } catch (e) { /* ok */ }
+            if (r.enabled) { mountWhenReady(r.agents || []); }
         }).catch(function () { /* sin chat si falla */ });
     }
 })();
