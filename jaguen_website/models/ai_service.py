@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 
-from odoo import models
+from odoo import fields, models
 from odoo.tools import file_open, html2plaintext, plaintext2html
 
 _logger = logging.getLogger(__name__)

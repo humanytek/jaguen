@@ -106,6 +106,9 @@ class ResPartner(models.Model):
             steps.append({k: (vals.pop(k, None) or '').strip() for k in self._JAGUEN_STEP_FIELDS})
         records = super().create(vals_list)
         for rec, step in zip(records, steps):
+            if rec.jaguen_personal and not rec.parent_id:
+                # Compra personal: es una persona (no empresa) y su titulo se asigna por el nombre.
+                rec.sudo().write({'company_type': 'person', 'title': rec._jaguen_title(rec.name).id or False})
             if not rec.parent_id and (step['jaguen_contact_name'] or step['jaguen_ship_receiver'] or step['jaguen_ship_street']):
                 rec._jaguen_create_children(step)
         return records
