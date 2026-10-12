@@ -517,16 +517,20 @@ class JaguenLoyaltyPortal(CustomerPortal):
         monto = reward.discount if reward and reward.reward_type == 'discount' else 0.0
         linea = self._jaguen_group_item_label(program)
         sudo_partner = partner.sudo()
-        vendedor = sudo_partner.user_id or request.env['res.users'].sudo().search(
-            [('login', '=', 'ventas.jaguen@hotmail.com')], limit=1) or request.env.ref('base.user_admin')
-        sudo_partner.activity_schedule(
-            'mail.mail_activity_data_todo',
-            summary='Vale de gasolina solicitado: %s ($%s)' % (linea, '{:,.0f}'.format(monto)),
-            note='%s pidio su vale de gasolina de $%s de la linea %s (solicitado el %s). '
-                 'Entregale su codigo QR para la gasolinera.' % (
-                     partner.name, '{:,.2f}'.format(monto), linea, fields.Datetime.to_string(now)),
-            user_id=vendedor.id,
-        )
+        # La actividad le llega al vendedor del cliente Y a Javier (ventas.jaguen). Si es la misma
+        # persona, solo se crea una (el recordset no repite usuarios).
+        Users = request.env['res.users'].sudo()
+        javier = Users.search([('login', '=', 'ventas.jaguen@hotmail.com')], limit=1) or request.env.ref('base.user_admin')
+        destinatarios = (sudo_partner.user_id | javier).filtered(lambda u: u.active)
+        for user in destinatarios:
+            sudo_partner.activity_schedule(
+                'mail.mail_activity_data_todo',
+                summary='Vale de gasolina solicitado: %s ($%s)' % (linea, '{:,.0f}'.format(monto)),
+                note='%s pidio su vale de gasolina de $%s de la linea %s (solicitado el %s). '
+                     'Entregale su codigo QR para la gasolinera (maximo 24 horas).' % (
+                         partner.name, '{:,.2f}'.format(monto), linea, fields.Datetime.to_string(now)),
+                user_id=user.id,
+            )
         return request.redirect(back + '?vale=ok')
 
     @http.route(['/my/loyalty/gift_image/<int:product_id>'], type='http', auth='user')
