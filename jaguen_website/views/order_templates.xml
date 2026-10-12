@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pagina "Gracias por su orden": resumen del pedido, pago y que sigue. Solo agrega, no quita nada. -->
+    <template id="confirmation_summary" inherit_id="website_sale.confirmation" name="JAGUEN - Resumen en la confirmacion">
+        <xpath expr="//t[@t-call='website_sale.payment_confirmation_status']" position="after">
+            <t t-set="jtx" t-value="order.sudo().get_portal_last_transaction()"/>
+            <div t-if="jtx.state in ['pending', 'done']" class="card mt-3" id="jaguen_order_summary">
+                <div class="card-header fw-bold">
+                    <t t-if="jtx.state == 'done'">Resumen de tu pedido pagado</t>
+                    <t t-else="">Resumen de tu pedido</t>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-3">
+                        <thead>
+                            <tr><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Importe</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="order.order_line" t-as="line">
+                                <td><span t-field="line.name"/></td>
+                                <td class="text-end"><span t-esc="'%g' % line.product_uom_qty"/></td>
+                                <td class="text-end"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div><b>Pedido:</b> <span t-field="order.name"/></div>
+                            <div><b>Fecha:</b> <span t-field="order.date_order" t-options="{'widget': 'datetime'}"/></div>
+                            <div><b>Forma de pago:</b>
+                                <span t-esc="jtx.provider_id.sudo().name"/>
+                                <t t-if="order.l10n_mx_edi_payment_method_id and jtx.provider_code == 'paypal'">
+                                    (<span t-esc="order.l10n_mx_edi_payment_method_id.name"/>)
+                                </t>
+                            </div>
+                            <div t-if="jtx.state == 'done' and jtx.provider_reference"><b>Referencia del pago:</b> <span t-esc="jtx.provider_reference"/></div>
+                            <div t-if="jtx.state == 'done'"><b>Importe pagado:</b>
+                                <span t-field="jtx.amount" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div><b>Subtotal:</b> <span t-field="order.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/></div>
+                            <div><b>IVA:</b> <span t-field="order.amount_tax" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/></div>
+                            <div><b>Total:</b> <span t-field="order.amount_total" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/></div>
+                        </div>
+                    </div>
+                    <h6 class="mt-2">¿Qué sigue?</h6>
+                    <ul class="mb-3">
+                        <li t-if="jtx.state == 'done'">Tu pago ya fue recibido. Preparamos tu pedido para entrega.</li>
+                        <li t-else="">En cuanto se confirme tu pago preparamos tu pedido para entrega.</li>
+                        <li>Entrega a domicilio en Hermosillo de 1 a 3 días hábiles en la mayoría de los productos. Para otras zonas depende de la paquetería.</li>
+                        <li>Te enviamos el comprobante de tu pedido al correo <b t-esc="order.partner_id.email"/>.</li>
+                        <li>Si pediste factura, te la enviamos a ese mismo correo. Para corregir datos fiscales escríbenos dentro del mes del pago.</li>
+                    </ul>
+                    <div class="text-muted small">
+                        ¿Dudas? Llámanos al 662 341 0739 o escribe a contacto.jaguen@gmail.com, de lunes a viernes de 8:30 a 19:00 (hora de Hermosillo).
+                        Devoluciones, cancelaciones y garantías: consulta nuestros
+                        <a href="/terminos-y-condiciones" target="_blank">términos y condiciones</a>.
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- PDF del pedido: "Numero de Pedido" cuando ya esta confirmado y recuadro de pago cuando ya se pago. -->
+    <template id="report_saleorder_payment" inherit_id="sale.report_saleorder_document" name="JAGUEN - Pago en el PDF del pedido">
+        <xpath expr="//div[@id='informations']//tr[1]/td[1]" position="replace">
+            <td width="19%" style="font-weight:bold;">
+                <t t-if="doc.state in ('sale', 'done')">Número de Pedido</t>
+                <t t-else="">Número de Cotización</t>
+            </td>
+        </xpath>
+        <xpath expr="//div[@name='so_total_summary']" position="after">
+            <t t-set="jtx" t-value="doc.sudo().transaction_ids.filtered(lambda t: t.state == 'done')[:1]"/>
+            <div t-if="jtx" class="mt-3" style="border:1px solid #1b7f3a; border-radius:4px; padding:8px 12px; font-size:8pt;">
+                <div style="font-weight:bold; color:#1b7f3a; font-size:10pt;">PAGO RECIBIDO</div>
+                <table width="100%" cellspacing="0" cellpadding="2" style="margin-top:4px;">
+                    <tr>
+                        <td width="22%" style="font-weight:bold;">Forma de pago</td>
+                        <td width="28%">
+                            <span t-esc="jtx.provider_id.sudo().name"/>
+                            <t t-if="doc.l10n_mx_edi_payment_method_id and jtx.provider_code == 'paypal'"> (<span t-esc="doc.l10n_mx_edi_payment_method_id.name"/>)</t>
+                        </td>
+                        <td width="22%" style="font-weight:bold;">Fecha del pago</td>
+                        <td width="28%"><span t-field="jtx.last_state_change" t-options="{'widget': 'datetime'}"/></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">Referencia</td>
+                        <td><span t-esc="jtx.provider_reference or jtx.reference"/></td>
+                        <td style="font-weight:bold;">Importe pagado</td>
+                        <td><span t-field="jtx.amount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">Saldo pendiente</td>
+                        <td><span t-esc="max(doc.amount_total - jtx.amount, 0)" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                        <td t-if="doc.jaguen_tyc_date" style="font-weight:bold;">T&amp;C aceptados</td>
+                        <td t-if="doc.jaguen_tyc_date"><span t-field="doc.jaguen_tyc_date" t-options="{'widget': 'datetime'}"/></td>
+                    </tr>
+                </table>
+            </div>
+        </xpath>
+    </template>
+</odoo>
