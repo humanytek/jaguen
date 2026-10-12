@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime
 
 from odoo import http
 from odoo.http import request
@@ -34,9 +35,13 @@ class JaguenCsfController(http.Controller):
             return request.make_response(json.dumps({'estado': 'notpdf', 'mensaje': 'Sube un PDF de máximo 5 MB.'}), headers)
         Usage = request.env['jaguen.chat.usage'].sudo()
         key = 'csfchk:%s' % (request.httprequest.remote_addr or 'sin-ip')
-        if Usage._count(key) >= 300:
+        # tope por IP al dia (nadie necesita mas de un par de intentos) y un tope total por hora (para que no se
+        # pueda rodear el tope por IP con muchas direcciones distintas: cada revision abre un lector de PDF, es trabajo real)
+        hour_key = 'csfchk:global:%s' % datetime.now().strftime('%Y%m%d%H')
+        if Usage._count(key) >= 3 or Usage._count(hour_key) >= 30:
             return request.make_response(json.dumps({'estado': 'unreadable', 'mensaje': ''}), headers)
         Usage._bump(key, messages=1)
+        Usage._bump(hour_key, messages=1)
         tipo = 'opinion' if kw.get('tipo') == 'opinion' else 'csf'
         texto = csf_parser.pdf_text(data)
         rfc = (kw.get('rfc') or '').strip() or None

@@ -252,14 +252,25 @@ def pdf_text(data):
                     textos.append(out.stdout.decode('utf-8', 'ignore'))
         except Exception:
             _logger.warning('CSF: fallo pdftotext', exc_info=True)
+    def _leer_con(modulo):
+        mod = __import__(modulo)
+        reader = (getattr(mod, 'PdfReader', None) or mod.PdfFileReader)(io.BytesIO(data))
+        pages = list(reader.pages) if hasattr(reader, 'pages') else [reader.getPage(i) for i in range(reader.getNumPages())]
+        return '\n'.join((pg.extract_text() if hasattr(pg, 'extract_text') else pg.extractText()) or '' for pg in pages[:4])
+
+    import concurrent.futures
     for modulo in ('pypdf', 'PyPDF2'):
         try:
-            mod = __import__(modulo)
-            reader = (getattr(mod, 'PdfReader', None) or mod.PdfFileReader)(io.BytesIO(data))
-            pages = list(reader.pages) if hasattr(reader, 'pages') else [reader.getPage(i) for i in range(reader.getNumPages())]
-            textos.append('\n'.join((pg.extract_text() if hasattr(pg, 'extract_text') else pg.extractText()) or '' for pg in pages[:4]))
+            __import__(modulo)  # si no esta instalada, ImportError aqui (sin gastar un hilo)
         except ImportError:
             continue
+        try:
+            # con tiempo limite: un PDF armado para colgar al lector (muchos objetos, referencias circulares) no debe
+            # trabar el proceso; si se pasa de 8s se abandona esa lectura y se sigue con lo que ya se tenga.
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                textos.append(ex.submit(_leer_con, modulo).result(timeout=8))
+        except concurrent.futures.TimeoutError:
+            _logger.warning('CSF: %s tardo demasiado leyendo el PDF, se abandono', modulo)
         except Exception:
             _logger.warning('CSF: no se pudo leer el PDF con %s', modulo, exc_info=True)
     return '\n'.join(t for t in textos if t and t.strip())
