@@ -42,21 +42,30 @@ class JaguenChatSessionDigest(models.Model):
         base = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
         counts = {}
         for s in sessions:
-            counts[s.segment or False] = counts.get(s.segment or False, 0) + 1
+            key = 'cliente' if s.mode == 'client' else (s.segment or False)
+            counts[key] = counts.get(key, 0) + 1
         hot = sessions.filtered('hot')
         humans = sessions.filtered(lambda s: s.state == 'human')
         matches = sessions.filtered('match_info')
         cost = sessions._digest_cost()
         rows = Markup('')
         for s in sessions:
-            who = ' · '.join(x for x in [s.contact_name, s.company_name, s.contact_phone, s.contact_email] if x) or s.name
+            if s.mode == 'client' and s.partner_id:
+                partner = s.partner_id
+                company = partner.commercial_partner_id.name
+                who = 'Cliente: %s' % company
+                if partner.name and partner.name != company:
+                    who += ' · %s' % partner.name
+                who = ' · '.join(x for x in [who, partner.phone or partner.mobile, partner.email] if x)
+            else:
+                who = ' · '.join(x for x in [s.contact_name, s.company_name, s.contact_phone, s.contact_email] if x) or s.name
             flags = ' '.join(f for f in [' 🔥 caliente' if s.hot else '', ' ⚠️ coincide con CRM' if s.match_info else '',
                                          ' 🙋 pasó a persona' if s.state == 'human' else ''] if f)
             link = '%s/odoo/action-%s/%s' % (base, 'jaguen_website.action_jaguen_chat_session', s.id)
             rows += Markup('<tr><td style="padding:4px 8px;border-bottom:1px solid #e5e7eb">%s</td>'
                            '<td style="padding:4px 8px;border-bottom:1px solid #e5e7eb">%s<br/><span style="color:#6b7280">%s · %s · atendió %s · %s turnos</span>%s</td></tr>') % (
                 s.create_date.replace(tzinfo=pytz.utc).astimezone(tz).strftime('%H:%M'), who,
-                _SEG.get(s.segment, s.segment), 'Sonnet' if 'sonnet' in (s.ai_model or '') else 'Haiku',
+                _SEG.get('cliente' if s.mode == 'client' else s.segment, s.segment), 'Sonnet' if 'sonnet' in (s.ai_model or '') else 'Haiku',
                 s.agent_name or '-', s.turn_count or 0, Markup(' <b>%s</b>') % flags if flags else '')
         summary = Markup(
             '<p><b>%s conversaciones</b> hoy: %s.</p>'
