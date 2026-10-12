@@ -142,6 +142,18 @@ class TestPaymentGate(TransactionCase):
         self._invoice_and_pay(after)
         self.assertAlmostEqual(self.card.points, 1000 * self.rate, places=2)
 
+    def test_42_voided_points_do_not_get_subtracted_by_credit_note(self):
+        """Acepta al confirmar, desacepta antes de pagar (puntos anulados),
+        luego una nota de credito: no debe restar puntos que nunca se acreditaron."""
+        order = self._order()
+        self._confirm(order)
+        self.partner.x_acepta_incentivos_personales = False
+        invoice = self._invoice_and_pay(order)
+        self.assertAlmostEqual(self.card.points, 0.0, places=2)
+        self.partner.x_acepta_incentivos_personales = True
+        self._credit_note(invoice)
+        self.assertAlmostEqual(self.card.points, 0.0, places=2)
+
     # -- Bug #1 ------------------------------------------------------------
     def test_10_cancel_confirmed_order_no_negative(self):
         order = self._order()
@@ -277,3 +289,85 @@ class TestJaguenOrderRules(TransactionCase):
         self.env['sale.order.coupon.points'].create({
             'order_id': order.id, 'coupon_id': card.id, 'points': 50000})
         self.assertEqual(order._get_real_points_for_coupon(card), 0.0)
+
+
+@tagged('post_install', '-at_install', 'jaguen_loyalty')
+class TestMontoHighestTier(TransactionCase):
+    """Mi Primer Pedido de $X: un pedido otorga solo el vale mas alto disponible."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = cls.env['res.partner'].create({
+            'name': 'EMPRESA TIERS SA', 'is_company': True,
+            'x_acepta_incentivos_personales': True})
+        cls.person = cls.env['res.partner'].create({
+            'name': 'Persona Tiers', 'parent_id': cls.company.id, 'type': 'contact'})
+        cls.product = cls.env['product.product'].create({
+            'name': 'Producto tiers (test)', 'type': 'service', 'list_price': 1000.0,
+            'taxes_id': [Command.clear()]})
+
+    def _confirm_order(self, amount):
+        order = self.env['sale.order'].create({
+            'partner_id': self.person.id,
+            'order_line': [Command.create({
+                'product_id': self.product.id, 'product_uom_qty': 1, 'price_unit': amount})],
+        })
+        order.action_confirm()
+        return order
+
+    def _earned(self):
+        cards = self.env['loyalty.card'].with_context(active_test=False).search([
+            ('partner_id', 'child_of', self.company.id),
+            ('program_id.x_jaguen_loyalty_group', '=', 'pedido_monto'),
+            ('active', '=', True)])
+        return sorted(c.program_id.rule_ids[:1].minimum_amount for c in cards)
+
+    def test_first_order_only_highest(self):
+        self._confirm_order(60000)
+        self.assertEqual(self._earned(), [50000])
+
+    def test_second_order_next_highest(self):
+        self._confirm_order(60000)
+        self._confirm_order(60000)
+        self.assertEqual(self._earned(), [45000, 50000])
+
+    def test_mid_amount(self):
+        self._confirm_order(22500)
+        self.assertEqual(self._earned(), [20000])
+        self._confirm_order(22500)
+        self.assertEqual(self._earned(), [15000, 20000])
+
+
+@tagged('post_install', '-at_install', 'jaguen_loyalty')
+class TestGiftChoiceRewards(TransactionCase):
+    """Starter y Mi Primer Pedido de $X: cada tramo se canjea escogiendo 1 de 2 productos."""
+
+    def test_rewards_are_two_product_choice(self):
+        Reward = self.env['loyalty.reward']
+        rewards = Reward.search([('program_id.x_jaguen_loyalty_group', 'in', ['onboarding', 'pedido_monto'])])
+        self.assertEqual(len(rewards), 20)
+        for reward in rewards:
+            self.assertEqual(reward.reward_type, 'product', reward.program_id.name)
+            self.assertTrue(reward.multi_product, reward.program_id.name)
+            self.assertEqual(len(reward.reward_product_ids), 2, reward.program_id.name)
+
+    def test_gift_products_are_not_sellable(self):
+        gifts = self.env['product.product'].search([('name', 'like', 'Regalo %')])
+        self.assertGreaterEqual(len(gifts), 40)
+        self.assertFalse(gifts.filtered('sale_ok'))
+
+    def test_claim_gives_exactly_one_gift(self):
+        """Con 30,000 puntos, canjear el premio de 10,000 da 1 regalo y cuesta 10,000."""
+        program = self.env.ref('jaguen_loyalty_portal.program_onboarding')
+        reward = self.env.ref('jaguen_loyalty_portal.reward_onboarding_10000')
+        partner = self.env['res.partner'].create({'name': 'Cliente canje', 'x_acepta_incentivos_personales': True})
+        card = self.env['loyalty.card'].create({'program_id': program.id, 'partner_id': partner.id, 'points': 30000})
+        order = self.env['sale.order'].create({
+            'partner_id': partner.id,
+            'order_line': [Command.create({
+                'product_id': self.env['product.product'].create({'name': 'P canje', 'type': 'service', 'list_price': 100}).id,
+                'product_uom_qty': 1})]})
+        vals = order._get_reward_values_product(reward, card)
+        self.assertEqual(vals[0]['product_uom_qty'], 1)
+        self.assertEqual(vals[0]['points_cost'], 10000)

@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import re
 from datetime import datetime
 
@@ -16,12 +17,12 @@ API_VERSION = '2023-06-01'
 
 # Instrucciones cortas y estrictas. Lo que cambia por conversacion va en un bloque aparte
 # (despues del punto de cache) para no invalidar el cache.
-SYSTEM_PROMPT = """Eres {nombre}, quien atiende el chat de JAGUEN (distribuidor B2B de insumos para empresas, Hermosillo, Sonora). Hablas de "tú", en español.
+SYSTEM_PROMPT = """Eres quien atiende el chat de Jaguen (distribuidor B2B de insumos para empresas, Hermosillo, Sonora). Hablas de "tú", en español.
 
-ESTILO: escribe como una persona amable y atenta, natural, sin sonar a formulario ni a robot. Frases cortas (máximo 4). UNA sola pregunta por mensaje. Responde primero lo que te pregunten y después pregunta. Sin Markdown (nada de asteriscos ni almohadillas); ligas completas en texto plano. El chat ya abrió con tu saludo: no te vuelvas a presentar ni saludes de nuevo. No menciones por tu cuenta que eres una IA, un bot o un asistente virtual. Pero si alguien pregunta con sinceridad si habla con una persona o con una IA, dile la verdad: eres {nombre}, el asistente virtual de JAGUEN. Nunca lo niegues.
+ESTILO: escribe el nombre de la empresa siempre como "Jaguen" (nunca "JAGUEN" en mayúsculas ni nada en mayúsculas sostenidas). Escribe como una persona amable y atenta, natural, sin sonar a formulario ni a robot. Frases cortas (máximo 4). UNA sola pregunta por mensaje. Responde primero lo que te pregunten y después pregunta. Sin Markdown (nada de asteriscos ni almohadillas); ligas completas en texto plano. El chat ya abrió con tu saludo: no te vuelvas a presentar ni saludes de nuevo. No menciones por tu cuenta que eres una IA, un bot o un asistente virtual. Pero si alguien pregunta con sinceridad si habla con una persona o con una IA, dile la verdad: eres asistente virtual de Jaguen (por ejemplo, "Soy [tu nombre], asistente virtual de Jaguen"). Nunca lo niegues. NOMBRES: el nombre del visitante úsalo solo al enterarte de él ("Mucho gusto, [Nombre]") y al despedirte o cerrar la conversación; en los demás mensajes NO lo repitas. Tu propio nombre no lo repitas tampoco.
 
 REGLAS (obligatorias):
-1. Solo hablas de JAGUEN: sus productos, envíos, pagos, crédito, facturación, registro y programa de recompensas. Todo lo demás (tareas, código, política, opiniones, otros negocios, internet): "Solo puedo ayudarte con temas de JAGUEN", y regresa al tema.
+1. Solo hablas de Jaguen: sus productos, envíos, pagos, crédito, facturación, registro y programa de recompensas. Todo lo demás (tareas, código, política, opiniones, otros negocios, internet): "Solo puedo ayudarte con temas de Jaguen", y regresa al tema.
 2. Usa SOLO la información de abajo y tus herramientas. Si no sabes, dilo; nunca inventes datos, políticas ni cifras.
 3. Productos: usa buscar_productos cuando pidan uno; máximo 3, con nombre y liga. Si no hay resultados, dilo y ofrece cotizarlo sobre pedido.
 4. PRECIOS: nunca des cifras de precio de productos. Da la liga del producto y recuerda que, iniciando sesión, el cliente ve sus precios especiales en cada producto; si es empresa sin cuenta, invítalo a registrarse.
@@ -40,16 +41,18 @@ MODE_PROMPTS = {
 3. COMPRADOR: con la empresa, pregunta: "¿Tú te encargas de las compras en [Empresa]?".
 4. En cuanto sepas la empresa y si es quien compra, llama a clasificar_visitante (con nombre, empresa y es_comprador).
    - Persona física con actividad empresarial: segmento "pfae".
-   - Si dice que no tiene empresa o que es para su casa o uso personal: explica con amabilidad que JAGUEN atiende principalmente a empresas y que a personas las atiende en pedidos de más de $5,000 más IVA; pregunta si su compra superaría ese monto y llama a clasificar_visitante con segmento "persona" y monto_mayor_5000 verdadero o falso. Si no lo supera, despídete cordialmente en una frase.
-Si en cualquier momento dice que ya es cliente de JAGUEN, pídele que inicie sesión en https://www.jaguen.com/web/login para darle el mejor servicio y que vuelva a abrir el chat; si no puede, continúa con el guion.
+   - Si dice que no tiene empresa o que es para su casa o uso personal: explica con amabilidad que Jaguen atiende principalmente a empresas y que a personas las atiende en pedidos de más de $5,000 más IVA; pregunta si su compra superaría ese monto y llama a clasificar_visitante con segmento "persona" y monto_mayor_5000 verdadero o falso. Si no lo supera, despídete cordialmente en una frase.
+Si en cualquier momento dice que ya es cliente de Jaguen, pídele que inicie sesión en https://www.jaguen.com/web/login para darle el mejor servicio y que vuelva a abrir el chat; si no puede, continúa con el guion.
 Nunca hagas más de una pregunta por mensaje.""",
     'empresa': """SEGMENTO: {segmento}. Empresa: {empresa}. {comprador}
-Con naturalidad (curiosidad genuina, no interrogatorio), UNA pregunta por mensaje y después de responder lo que pregunten, busca en este orden:
-A. Mínimo indispensable: nombre del comprador, correo y teléfono (si quien escribe no es el comprador, también nombre y contacto del comprador). Si se niega, no insistas más de dos veces.
-B. Su necesidad: productos o líneas, volumen mensual aproximado, ciudad de entrega y si necesitan crédito a 30 días.
+{datos}
+Con naturalidad (curiosidad genuina, no interrogatorio), UNA pregunta por mensaje y después de responder lo que pregunten:
+A. Si aún no sabes si quien escribe es quien compra, pregúntalo una vez: "¿Tú te encargas de las compras en [Empresa]?". Si no es el comprador, pide nombre y contacto del comprador. No pidas datos que ya tienes.
+B. Entiende su necesidad: productos o líneas, volumen mensual aproximado, ciudad de entrega y si necesitan crédito a 30 días.
 C. Invítalos a registrarse con estas ideas: "%s"
-Cada vez que obtengas datos nuevos llama a crear_lead (actualiza el mismo registro). Incluye volumen_mensual_mxn, pide_credito y pide_cotizacion cuando los sepas.""" % REGISTER_INVITE,
-    'persona': """SEGMENTO: persona de uso personal con compra mayor a $5,000 más IVA. Sé cordial y breve: entiende qué necesita y consigue nombre, correo y teléfono; regístralos con crear_lead (tipo_cliente persona). Invítala a registrarse con estas ideas: "%s" """ % REGISTER_INVITE,
+Cada vez que obtengas datos nuevos llama a crear_lead (actualiza el mismo registro). Incluye volumen_mensual_mxn, pide_credito, pide_cotizacion y es_comprador cuando los sepas. Al cerrar la plática, despídete por su nombre.""" % REGISTER_INVITE,
+    'persona': """SEGMENTO: persona de compra personal (sin empresa). {datos}
+Ya le dijiste en tu saludo que las compras de personas que no son empresa son a partir de $5,000 más IVA; no lo repitas salvo que pregunte. Deja que decida si se queda o se va: pregúntale qué necesita comprar. Si confirma que su compra pasará de $5,000 más IVA, llama a clasificar_visitante (segmento "persona", monto_mayor_5000 verdadero) y atiéndelo con cordialidad (ya tienes sus datos; usa crear_lead con tipo_cliente persona). Si dice que no llega a ese monto o decide irse, despídete cordialmente por su nombre en una frase y llama a clasificar_visitante (segmento "persona", monto_mayor_5000 falso). Invítalo a registrarse solo si sigue: "%s" """ % REGISTER_INVITE,
     'cliente': """CLIENTE CON SESIÓN INICIADA: {cliente}. Dale el máximo servicio: productos, envíos, pagos, crédito, facturación y su programa de recompensas (Mi Cuenta > Mis Puntos). Si no puedes ayudarle, usa pasar_a_persona.""",
 }
 
@@ -60,7 +63,7 @@ _STR = {'type': 'string'}
 
 TOOL_BUSCAR = _S(
     'buscar_productos',
-    'Busca productos publicados en el catálogo de JAGUEN por nombre, marca, modelo o código (acepta palabras incompletas). Devuelve nombre, código, liga y descripción. No devuelve precios ni existencias.',
+    'Busca productos publicados en el catálogo de Jaguen por nombre, marca, modelo o código (acepta palabras incompletas). Devuelve nombre, código, liga y descripción. No devuelve precios ni existencias.',
     {'consulta': {'type': 'string', 'description': 'Texto a buscar, p. ej. "clip estándar acco"'}}, ['consulta'])
 TOOL_CLASIFICAR = _S(
     'clasificar_visitante',
@@ -71,11 +74,12 @@ TOOL_CLASIFICAR = _S(
     ['segmento'])
 TOOL_LEAD = _S(
     'crear_lead',
-    'Registra o actualiza el contacto comercial de esta conversación para que el equipo de JAGUEN lo atienda. Úsalo cada vez que obtengas datos nuevos o cuando pida cotizar algo que no encuentras.',
+    'Registra o actualiza el contacto comercial de esta conversación para que el equipo de Jaguen lo atienda. Úsalo cada vez que obtengas datos nuevos o cuando pida cotizar algo que no encuentras.',
     {'nombre': _STR, 'empresa': _STR, 'correo': _STR, 'telefono': _STR,
      'resumen': {'type': 'string', 'description': 'Qué necesita, en una frase'},
      'tipo_cliente': {'type': 'string', 'enum': ['empresa', 'persona', 'desconocido']},
-     'volumen_mensual_mxn': _NUM, 'pide_credito': _BOOL, 'pide_cotizacion': _BOOL},
+     'volumen_mensual_mxn': _NUM, 'pide_credito': _BOOL, 'pide_cotizacion': _BOOL,
+     'es_comprador': _BOOL, 'contacto_comprador': {'type': 'string', 'description': 'Nombre, correo y teléfono de quien compra, si quien escribe no es el comprador'}},
     ['resumen', 'tipo_cliente'])
 TOOL_HANDOFF = _S(
     'pasar_a_persona',
@@ -85,7 +89,7 @@ TOOLS_BY_SEGMENT = {
     'sin_filtro': [TOOL_BUSCAR, TOOL_CLASIFICAR],
     'empresa': [TOOL_BUSCAR, TOOL_LEAD],
     'pfae': [TOOL_BUSCAR, TOOL_LEAD],
-    'persona': [TOOL_BUSCAR, TOOL_LEAD],
+    'persona': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_LEAD],
     'cliente': [TOOL_BUSCAR, TOOL_LEAD, TOOL_HANDOFF],
 }
 
@@ -105,8 +109,17 @@ class JaguenAiService(models.AbstractModel):
         except (TypeError, ValueError):
             return default
 
-    def _ai_name(self):
-        return (self._param('ai_name', 'Ale') or 'Ale').strip()[:30]
+    def _ai_names(self):
+        raw = self._param('ai_names', 'Ale,Mónica,Andrea') or self._param('ai_name', 'Ale')
+        names = [n.strip()[:30] for n in raw.split(',') if n.strip()]
+        return names or ['Ale']
+
+    def _pick_name(self):
+        """Uno de los nombres al azar; se queda fijo durante toda la conversacion."""
+        return random.choice(self._ai_names())
+
+    def _prechat(self):
+        return self._param('ai_prechat_form', '1') in ('1', 'True', 'true')
 
     def _enabled(self):
         return self._param('ai_enabled', '1') in ('1', 'True', 'true') and bool(self._param('anthropic_api_key'))
@@ -147,7 +160,8 @@ class JaguenAiService(models.AbstractModel):
     def _within_hours(self):
         tz = pytz.timezone('America/Hermosillo')
         now = datetime.now(pytz.utc).astimezone(tz)
-        if now.weekday() > 4:
+        days = [int(d) for d in self._param('ai_weekdays', '0,1,2,3,4').split(',') if d.strip().isdigit()]
+        if now.weekday() not in days:
             return False
         start, end = self._param('ai_hours', '08:30-19:00').split('-')
         hm = now.strftime('%H:%M')
@@ -274,19 +288,44 @@ class JaguenAiService(models.AbstractModel):
         return {'ok': True, 'nota': 'Clasificado como persona con compra mayor a $5,000 más IVA. Consigue nombre, correo y teléfono.'}
 
     def _create_prospect_lead(self, session):
-        """Lead de una empresa al terminar el filtro (se completa despues con la conversacion)."""
+        """Lead de una empresa al terminar el filtro o al enviar el formulario."""
         if session.lead_id or session.segment not in ('empresa', 'pfae'):
             return
         handoff = self._handoff_user()
-        buyer = 'es quien compra' if session.is_buyer == 'yes' else 'apoya a quien compra'
+        buyer = {'yes': 'es quien compra', 'no': 'apoya a quien compra'}.get(session.is_buyer, 'aún no se sabe si es quien compra')
         lead = self.env['crm.lead'].sudo().create({
-            'name': 'Chat web: %s' % (session.company_name or 'empresa'),
+            'name': 'Chat web: %s' % (session.company_name or session.contact_name or 'empresa'),
             'partner_name': session.company_name or '',
+            'contact_name': session.contact_name or '',
+            'email_from': session.contact_email or '',
+            'phone': session.contact_phone or '',
             'user_id': handoff.id,
             'description': 'Entró por el chat web. Segmento: %s. Quien escribe %s.' % (
                 dict(session._fields['segment'].selection).get(session.segment), buyer),
         })
         session.sudo().write({'lead_id': lead.id})
+
+    def _time_greeting(self):
+        hour = datetime.now(pytz.utc).astimezone(pytz.timezone('America/Hermosillo')).hour
+        return 'Buenos días' if hour < 12 else ('Buenas tardes' if hour < 19 else 'Buenas noches')
+
+    def _form_greeting(self, session):
+        first = (session.contact_name or '').split()[0].title() if (session.contact_name or '').split() else ''
+        text = '%s%s. Te atiende %s de Jaguen. ¿En qué te puedo ayudar?' % (
+            self._time_greeting(), (', ' + first) if first else '', session.agent_name or self._ai_names()[0])
+        if session.personal_purchase:
+            text += ' Nomás te comento: las compras de personas que no son empresa son a partir de $5,000 más IVA.'
+        return text
+
+    def _start_from_form(self, session):
+        """Al enviar el formulario: segmento, lead, alerta de coincidencias y saludo."""
+        if session.personal_purchase:
+            session.sudo().write({'segment': 'persona'})
+        else:
+            session.sudo().write({'segment': 'empresa'})
+            self._create_prospect_lead(session)
+        self._alert_existing(session, email=session.contact_email or '', phone=session.contact_phone or '')
+        session._post_bot(self._form_greeting(session))
 
     def _tool_crear_lead(self, session, args, base_url):
         tipo = args.get('tipo_cliente') or 'desconocido'
@@ -298,7 +337,10 @@ class JaguenAiService(models.AbstractModel):
             tipo = 'empresa'
         vals = self._lead_vals(session, args)
         resumen = args.get('resumen') or ''
-        desc = '%s\n\nConversación:\n%s' % (resumen, self._transcript(session))
+        if args.get('es_comprador') is not None and not session.is_buyer:
+            session.sudo().write({'is_buyer': 'yes' if args.get('es_comprador') else 'no'})
+        comprador = args.get('contacto_comprador') or ''
+        desc = '%s%s\n\nConversación:\n%s' % (resumen, ('\nContacto del comprador: ' + comprador) if comprador else '', self._transcript(session))
         if session.lead_id:
             clean = {k: v for k, v in vals.items() if v}
             clean['description'] = desc
@@ -434,13 +476,23 @@ class JaguenAiService(models.AbstractModel):
         if seg in ('empresa', 'pfae'):
             return MODE_PROMPTS['empresa'].format(
                 segmento='persona física con actividad empresarial' if seg == 'pfae' else 'empresa',
-                empresa=session.company_name or '-',
+                empresa=session.company_name or '-', datos=self._known_data(session),
                 comprador='Quien escribe ES quien compra.' if session.is_buyer == 'yes' else (
                     'Quien escribe APOYA a quien compra: pide nombre y contacto del comprador.'
                     if session.is_buyer == 'no' else 'Aún no sabes si quien escribe es el comprador: pregúntalo.'))
         if seg == 'persona':
-            return MODE_PROMPTS['persona']
+            return MODE_PROMPTS['persona'].format(datos=self._known_data(session))
         return MODE_PROMPTS['sin_filtro']
+
+    def _known_data(self, session):
+        bits = []
+        if session.contact_name:
+            bits.append('nombre: %s' % session.contact_name)
+        if session.contact_email:
+            bits.append('correo: %s' % session.contact_email)
+        if session.contact_phone:
+            bits.append('teléfono: %s' % session.contact_phone)
+        return ('Datos que YA capturó el formulario (no los vuelvas a pedir): %s.' % ', '.join(bits)) if bits else ''
 
     def _payload(self, session, model, max_tokens, messages):
         seg = session._segment()
@@ -448,9 +500,9 @@ class JaguenAiService(models.AbstractModel):
         payload = {
             'model': model, 'max_tokens': max_tokens, 'tools': tools,
             'system': [
-                {'type': 'text', 'text': SYSTEM_PROMPT.replace('{nombre}', self._ai_name()) + '\n\n' + self._knowledge(),
+                {'type': 'text', 'text': SYSTEM_PROMPT + '\n\n' + self._knowledge(),
                  'cache_control': {'type': 'ephemeral'}},
-                {'type': 'text', 'text': self._mode_text(session)},
+                {'type': 'text', 'text': 'Te llamas %s. ' % (session.agent_name or self._ai_names()[0]) + self._mode_text(session)},
             ],
             'messages': messages,
         }
@@ -466,13 +518,17 @@ class JaguenAiService(models.AbstractModel):
         model = self._model_for(session)
         limits = self._limits(session)
         messages = session._history()
-        tokens_in = tokens_out = 0
+        tokens_in = tokens_out = cache_read = cache_write = 0
+        if session.ai_model != model:
+            session.sudo().write({'ai_model': model})
         for _i in range(5):
             data = self._http(self._payload(session, model, limits['max_tokens'], messages))
             usage = data.get('usage') or {}
             tokens_in += (usage.get('input_tokens') or 0) + (usage.get('cache_creation_input_tokens') or 0) \
                 + (usage.get('cache_read_input_tokens') or 0)
             tokens_out += usage.get('output_tokens') or 0
+            cache_read += usage.get('cache_read_input_tokens') or 0
+            cache_write += usage.get('cache_creation_input_tokens') or 0
             if data.get('stop_reason') == 'tool_use':
                 messages.append({'role': 'assistant', 'content': data['content']})
                 results = []
@@ -484,7 +540,14 @@ class JaguenAiService(models.AbstractModel):
                 messages.append({'role': 'user', 'content': results})
                 continue
             if data.get('stop_reason') == 'refusal':
+                self._note_cache(session, cache_read, cache_write)
                 return '', tokens_in, tokens_out
             text = ''.join(b.get('text', '') for b in data.get('content', []) if b.get('type') == 'text').strip()
+            self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
+        self._note_cache(session, cache_read, cache_write)
         return '', tokens_in, tokens_out
+
+    def _note_cache(self, session, cache_read, cache_write):
+        session.sudo().write({'tokens_cache_read': session.tokens_cache_read + cache_read,
+                              'tokens_cache_write': session.tokens_cache_write + cache_write})

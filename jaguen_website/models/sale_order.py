@@ -1,8 +1,11 @@
-from odoo import models
+from odoo import fields, models
 
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+
+    jaguen_tyc_date = fields.Datetime(string='T&C aceptados (sitio)', readonly=True, copy=False)
+    jaguen_tyc_ip = fields.Char(string='IP al aceptar T&C', readonly=True, copy=False)
 
     def _prepare_invoice(self):
         """Pedido pagado desde el carrito con PayPal: la factura sale PUE con forma de pago 04 / 28.

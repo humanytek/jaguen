@@ -21,4 +21,23 @@
             </div>
         </xpath>
     </template>
+
+    <!-- Casilla de terminos y condiciones: va ANTES de elegir el metodo de pago. Marcada de inicio si el
+         cliente ya la acepto en un pedido anterior. Se exige en el servidor (controllers/payment.py). -->
+    <template id="payment_tyc" inherit_id="website_sale.payment" name="JAGUEN - Aceptar T&amp;C al pagar">
+        <xpath expr="//div[@id='payment_method']" position="before">
+            <div id="jaguen_tyc_box" class="form-check mt-4">
+                <input type="checkbox" id="jaguen_tyc" name="jaguen_tyc" class="form-check-input"
+                       t-att-checked="'checked' if website_sale_order and website_sale_order.partner_id.jaguen_tyc_date else None"/>
+                <label for="jaguen_tyc" class="form-check-label">
+                    He leído y acepto los
+                    <a href="/terminos-y-condiciones" target="_blank">términos y condiciones</a>
+                    y el <a href="/aviso-de-privacidad" target="_blank">aviso de privacidad</a>.
+                </label>
+                <div id="jaguen_tyc_error" class="text-danger small d-none">
+                    Debes aceptar los términos y condiciones para poder pagar.
+                </div>
+            </div>
+        </xpath>
+    </template>
 </odoo>

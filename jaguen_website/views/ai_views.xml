@@ -10,6 +10,7 @@
                 <field name="mode"/>
                 <field name="segment"/>
                 <field name="company_name"/>
+                <field name="agent_name"/>
                 <field name="ai_model"/>
                 <field name="state"/>
                 <field name="turn_count"/>
@@ -37,17 +38,24 @@
                             <field name="partner_id"/>
                             <field name="lead_id"/>
                             <field name="segment"/>
+                            <field name="contact_name"/>
+                            <field name="contact_email"/>
+                            <field name="contact_phone"/>
                             <field name="company_name"/>
+                            <field name="personal_purchase"/>
                             <field name="is_buyer"/>
                             <field name="person_amount_ok"/>
                             <field name="hot"/>
                             <field name="hot_reasons"/>
                         </group>
                         <group>
+                            <field name="agent_name"/>
                             <field name="ai_model"/>
                             <field name="turn_count"/>
                             <field name="tokens_in"/>
                             <field name="tokens_out"/>
+                            <field name="tokens_cache_read"/>
+                            <field name="tokens_cache_write"/>
                             <field name="ip_address"/>
                             <field name="last_activity"/>
                         </group>

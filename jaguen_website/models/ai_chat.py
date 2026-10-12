@@ -1,7 +1,9 @@
 import secrets
 
+from markupsafe import Markup, escape
+
 from odoo import api, fields, models
-from odoo.tools import html2plaintext, html_escape
+from odoo.tools import html2plaintext
 
 
 class JaguenChatSession(models.Model):
@@ -20,12 +22,15 @@ class JaguenChatSession(models.Model):
         [('visitor', 'Visitante sin sesión'), ('client', 'Cliente con sesión')],
         default='visitor', readonly=True)
     ai_model = fields.Char(string="Modelo", readonly=True)
+    agent_name = fields.Char(string="Atendió", readonly=True)
     state = fields.Selection(
         [('ai', 'Atiende el asistente'), ('human', 'Atiende una persona'), ('closed', 'Cerrada')],
         default='ai', tracking=True)
     turn_count = fields.Integer(string="Mensajes del cliente", readonly=True)
     tokens_in = fields.Integer(string="Tokens de entrada", readonly=True)
     tokens_out = fields.Integer(string="Tokens de salida", readonly=True)
+    tokens_cache_read = fields.Integer(string="Tokens leídos de caché", readonly=True)
+    tokens_cache_write = fields.Integer(string="Tokens escritos en caché", readonly=True)
     lead_id = fields.Many2one('crm.lead', string="Lead", readonly=True)
     last_activity = fields.Datetime(default=fields.Datetime.now, readonly=True)
     # ---- calificacion del visitante (la hace Claude con la herramienta clasificar_visitante) ----
@@ -33,6 +38,10 @@ class JaguenChatSession(models.Model):
         [('empresa', 'Empresa o negocio'), ('pfae', 'Persona física con actividad empresarial'),
          ('persona', 'Persona (uso personal)'), ('no_atendible', 'No atendible')], readonly=True)
     company_name = fields.Char(string="Empresa", readonly=True)
+    contact_name = fields.Char(string="Nombre", readonly=True)
+    contact_email = fields.Char(string="Correo", readonly=True)
+    contact_phone = fields.Char(string="Teléfono", readonly=True)
+    personal_purchase = fields.Boolean(string="Compra personal (sin empresa)", readonly=True)
     is_buyer = fields.Selection([('yes', 'Es quien compra'), ('no', 'Apoya a quien compra')], readonly=True)
     person_amount_ok = fields.Boolean(string="Compra mayor a $5,000 + IVA", readonly=True)
     alerted = fields.Boolean(readonly=True)
@@ -64,7 +73,7 @@ class JaguenChatSession(models.Model):
 
     def _post_as(self, partner, text):
         """Publica un mensaje visible (subtipo comentario) a nombre de `partner`."""
-        body = html_escape(text).replace('\n', '<br/>')
+        body = Markup('<br/>').join(escape(line) for line in text.split('\n'))
         return self.sudo().with_context(mail_create_nosubscribe=True, mail_post_autofollow=False).message_post(
             body=body, message_type='comment', subtype_xmlid='mail.mt_comment', author_id=partner.id)
 
