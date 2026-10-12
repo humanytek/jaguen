@@ -35,4 +35,15 @@
     <record id="param_ai_prechat_form" model="ir.config_parameter"><field name="key">jaguen_website.ai_prechat_form</field><field name="value">1</field></record>
     <record id="param_ai_daily_forms_ip" model="ir.config_parameter"><field name="key">jaguen_website.ai_daily_forms_ip</field><field name="value">10</field></record>
     <record id="param_ai_handoff_login" model="ir.config_parameter"><field name="key">jaguen_website.ai_handoff_login</field><field name="value">ventas.jaguen@hotmail.com</field></record>
+    <record id="param_ai_digest_enabled" model="ir.config_parameter"><field name="key">jaguen_website.ai_digest_enabled</field><field name="value">1</field></record>
+    <record id="cron_ai_daily_digest" model="ir.cron">
+        <field name="name">Asistente web: resumen diario por correo</field>
+        <field name="model_id" ref="model_jaguen_chat_session"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_daily_digest()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall">2026-10-13 02:30:00</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

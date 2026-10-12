@@ -10,10 +10,11 @@ Ajustes del sitio web de JAGUEN
 - Agrega un titulo principal (H1) oculto a /shop para SEO.
 - Pago con PayPal: pregunta obligatoria credito/debito; marca la transaccion del carrito; pago y factura salen con forma 04 / 28 y la factura PUE. No afecta pagos manuales ni facturas PPD.
 - Pago: casilla obligatoria de T&C antes del metodo de pago; se autocompleta si el cliente ya la acepto antes; se guarda fecha e IP.
+- Resumen diario por correo (19:30 Hermosillo) al usuario de relevo.
 - Asistente web con IA (Ale, Mónica y Andrea, con Claude): Haiku filtra al visitante conversando; Sonnet atiende a empresas y clientes con
   sesion; busca productos, crea leads, avisa de prospectos calientes y de coincidencias en CRM/Ventas. Requiere el parametro de sistema jaguen_website.anthropic_api_key.
 """,
-    'version': '18.0.1.8.3',
+    'version': '18.0.1.9.0',
     'category': 'Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',

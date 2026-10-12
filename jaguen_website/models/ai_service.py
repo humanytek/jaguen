@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+import time
 import re
 from datetime import datetime
 
@@ -465,19 +466,32 @@ class JaguenAiService(models.AbstractModel):
             return {'error': 'no se pudo ejecutar la herramienta'}
 
     # ---------- llamada a la API ----------
+    def _post_api(self, payload):
+        """Una llamada a la API; ante error de red o de servidor (429/5xx) reintenta una vez."""
+        headers = {'x-api-key': self._param('anthropic_api_key'), 'anthropic-version': API_VERSION,
+                   'content-type': 'application/json'}
+        resp = None
+        for attempt in (1, 2):
+            try:
+                resp = requests.post(API_URL, json=payload, timeout=45, headers=headers)
+            except requests.RequestException:
+                if attempt == 2:
+                    raise
+                time.sleep(2)
+                continue
+            if resp.status_code in (429, 500, 502, 503, 529) and attempt == 1:
+                time.sleep(2)
+                continue
+            break
+        return resp
+
     def _http(self, payload):
-        resp = requests.post(
-            API_URL, json=payload, timeout=30,
-            headers={'x-api-key': self._param('anthropic_api_key'), 'anthropic-version': API_VERSION,
-                     'content-type': 'application/json'})
+        resp = self._post_api(payload)
         if resp.status_code == 400 and ('thinking' in resp.text or 'output_config' in resp.text):
             payload = dict(payload)
             payload.pop('thinking', None)
             payload.pop('output_config', None)
-            resp = requests.post(
-                API_URL, json=payload, timeout=30,
-                headers={'x-api-key': self._param('anthropic_api_key'), 'anthropic-version': API_VERSION,
-                         'content-type': 'application/json'})
+            resp = self._post_api(payload)
         if resp.status_code != 200:
             _logger.error('API de Claude respondió %s: %s', resp.status_code, resp.text[:300])
             resp.raise_for_status()
