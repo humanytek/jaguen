@@ -186,25 +186,27 @@ class SaleOrderJaguenCoupons(models.Model):
         return result
 
     def _update_programs_and_rewards(self):
-        """Los 2 cupones publicos no esperan a que el cliente escriba el codigo: en cuanto el
-        carrito ya los puede reclamar (cumple el minimo, o trae 20 de los 40 favoritos), se ponen
-        solos. (Odoo ya los MUESTRA como reclamables via _get_claimable_rewards; aqui falta nada
-        mas reclamarlos de una vez cuando trigger='auto'.)"""
+        """Los 2 programas son 'con codigo' (si fueran automaticos Odoo los daria a TODOS los
+        clientes). Aqui se aplica solo el cupon propio de la persona en cuanto el carrito lo
+        permite (minimo de compra, o 20 de los 40 favoritos), sin que escriba el codigo."""
         super()._update_programs_and_rewards()
-        if not self.website_id:
+        if not self.website_id or self.env.context.get('jaguen_autoapply'):
             return
-        programs = (self.env.ref(PROGRAM_REGISTRO_XMLID, raise_if_not_found=False)
-                    | self.env.ref(PROGRAM_FAVORITOS_XMLID, raise_if_not_found=False))
-        if not programs:
-            return
-        already = self.order_line.filtered('reward_id').mapped('coupon_id')
-        claimable = self._get_claimable_rewards()
-        for coupon, rewards in claimable.items():
-            if coupon.program_id in programs and coupon not in already and rewards:
-                try:
-                    self._apply_program_reward(rewards[0], coupon)
-                except Exception:  # noqa: BLE001 - si no se pudo aplicar solo, el cliente lo aplica con el boton
-                    _logger.exception('Cupón: no se pudo auto-aplicar %s en el pedido %s', coupon.code, self.id)
+        applied = self.order_line.filtered('reward_id').mapped('coupon_id')
+        for card in self._jaguen_available_public_coupons():
+            if card in applied:
+                continue
+            try:
+                with self.env.cr.savepoint():
+                    me = self.with_context(jaguen_autoapply=True)
+                    claimable = me._try_apply_code(card.code)
+                    if not isinstance(claimable, dict) or 'error' in claimable:
+                        continue
+                    for coupon, rewards in claimable.items():
+                        if coupon == card and rewards:
+                            me._apply_program_reward(rewards[0], coupon)
+            except Exception:  # noqa: BLE001 - si no se pudo aplicar solo, el cliente lo aplica con el boton
+                _logger.exception('Cupón: no se pudo auto-aplicar %s en el pedido %s', card.code, self.id)
 
     def _jaguen_available_public_coupons(self):
         """Cupones vigentes y sin usar del cliente (de los 2 programas publicos), para mostrarlos

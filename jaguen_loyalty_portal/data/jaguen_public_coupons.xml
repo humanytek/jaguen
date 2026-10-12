@@ -10,7 +10,7 @@
         <field name="name">Cupón de bienvenida (Regístrate)</field>
         <field name="program_type">promotion</field>
         <field name="applies_on">current</field>
-        <field name="trigger">auto</field>
+        <field name="trigger">with_code</field>
         <field name="portal_visible" eval="False"/>
     </record>
     <record id="rule_cupon_registro" model="loyalty.rule">
@@ -37,7 +37,7 @@
         <field name="name">Cupón por Favoritos (40 productos guardados)</field>
         <field name="program_type">promotion</field>
         <field name="applies_on">current</field>
-        <field name="trigger">auto</field>
+        <field name="trigger">with_code</field>
         <field name="portal_visible" eval="False"/>
     </record>
     <record id="rule_cupon_favoritos" model="loyalty.rule">
