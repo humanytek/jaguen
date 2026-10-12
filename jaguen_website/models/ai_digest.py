@@ -71,5 +71,5 @@ class JaguenChatSessionDigest(models.Model):
             today.strftime('%d/%m/%Y'), summary, rows)
         self.env['mail.mail'].sudo().create({
             'subject': 'Resumen del asistente web – %s (%s conversaciones)' % (today.strftime('%d/%m/%Y'), len(sessions)),
-            'body_html': body, 'email_to': to, 'auto_delete': True,
+            'body_html': body, 'email_to': to, 'auto_delete': False,
         }).send()
