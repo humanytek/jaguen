@@ -45,6 +45,7 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    jaguen_personal = fields.Boolean(string='Compra personal', copy=False, help='Se registro como compra personal: no se le piden RFC ni documentos fiscales.')
     jaguen_alta_hold = fields.Boolean(copy=False, help="Registro web en proceso: el aviso de alta se manda cuando termina la revision de la CSF.")
     jaguen_csf_state = fields.Selection(
         [('ok', 'CSF coincide'), ('diff', 'CSF con diferencias'), ('unreadable', 'CSF no se pudo leer')],
@@ -121,9 +122,12 @@ class ResPartner(models.Model):
         direccion de entrega se crean como contactos dentro de la empresa."""
         self.ensure_one()
         Partner = self.sudo().with_context(mail_create_nosubscribe=True, mail_notrack=True, tracking_disable=True)
-        if not self.is_company:
+        if self.jaguen_personal:
+            # Compra personal: la persona es el cliente (sin empresa ni contacto comprador aparte).
+            self.sudo().write({'title': self._jaguen_title(self.name).id or False})
+        elif not self.is_company:
             self.sudo().write({'company_type': 'company'})
-        if step['jaguen_contact_name']:
+        if step['jaguen_contact_name'] and not self.jaguen_personal:
             Partner.create({
                 'parent_id': self.id, 'type': 'contact', 'name': step['jaguen_contact_name'][:80],
                 'title': self._jaguen_title(step['jaguen_contact_name']).id or False,
@@ -131,6 +135,8 @@ class ResPartner(models.Model):
                 'function': step['jaguen_contact_function'][:80] or False,
             })
         # Direccion de entrega: contacto de tipo "entrega" con la persona autorizada para recibir mercancia.
+        if self.jaguen_personal:
+            return  # compra personal: la direccion es la de arriba, sin contacto de entrega aparte
         same = step['jaguen_ship_same'].lower() in ('', 'igual', 'si', 'sí', '1', 'true', 'on', 'yes')
         receiver = step['jaguen_ship_receiver']
         if receiver or (step['jaguen_ship_street'] and not same):
@@ -236,10 +242,13 @@ class ResPartner(models.Model):
         """Termina el alta web: revisa la CSF y ENTONCES manda el aviso de alta (el de la regla "Cliente Nuevo"),
         para que el correo ya traiga el resultado de la revision."""
         self.ensure_one()
-        try:
-            self._jaguen_check_csf(forced=forced)
-        except Exception:
-            _logger.exception('CSF: fallo la revision de %s', self.id)
+        if self.jaguen_personal:
+            self.sudo().write({'jaguen_csf_state': False, 'jaguen_csf_report': 'Compra personal: no se piden RFC ni documentos fiscales.'})
+        else:
+            try:
+                self._jaguen_check_csf(forced=forced)
+            except Exception:
+                _logger.exception('CSF: fallo la revision de %s', self.id)
         self.sudo().write({'jaguen_alta_hold': False})
         rule = self.env['base.automation'].sudo().search(
             [('name', '=', 'Cliente Nuevo'), ('model_id.model', '=', 'res.partner')], limit=1)

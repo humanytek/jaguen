@@ -176,6 +176,22 @@ def revisar_archivo(text, hoy, tipo='csf', rfc=None):
     return 'ok', '%s vigente.' % nombre.capitalize()
 
 
+def detalle(text, tipo, rfc_form=None):
+    """Lo que el sistema leyo del documento, en una frase, para que Ale ayude (ella no ve el archivo)."""
+    if not (text or '').strip():
+        return 'El archivo no tiene texto legible (parece foto o escaneado).'
+    doc = parse(text) if tipo == 'csf' else parse_opinion(text)
+    if not doc:
+        return 'El archivo no parece %s del SAT.' % ('una Constancia de Situación Fiscal' if tipo == 'csf' else 'una Opinión de cumplimiento')
+    bits = []
+    if doc.get('rfc'):
+        bits.append('el RFC del documento es %s%s' % (doc['rfc'], (' y el que escribió en el formulario es %s' % rfc_form.strip().upper()) if rfc_form else ''))
+    f = fecha_emision(text) if tipo == 'csf' else doc.get('fecha')
+    if f:
+        bits.append('la fecha de emisión del documento es %s %d' % (MESES[f[1] - 1], f[0]))
+    return ('Lo que leyó el sistema: ' + '; '.join(bits) + '.') if bits else ''
+
+
 def pdf_text(data):
     """Texto de las primeras paginas de un PDF ('' si es imagen o no se puede leer)."""
     try:

@@ -92,7 +92,7 @@
 
     // CSF: al elegir el archivo se revisa la fecha de emision (mes en curso o mes anterior) y se avisa al momento.
     // ---- CSF / opinion: aviso al elegir el archivo, ayuda de Ale al segundo bloqueo --------------------------------------
-    var csfBlocks = 0, csfLevel = 0, aleBox = null, aleTimer = null, reruns = [];
+    var csfLevel = 0, aleBox = null, aleTimer = null, reruns = [];
     var FILES = [['Constancia Situación Fiscal', 'csf', 'Constancia vigente.'], ['Opinión de cumplimiento', 'opinion', 'Opinión vigente.']];
 
     function linkify(node, text) {
@@ -116,18 +116,15 @@
         FILES.forEach(function (f) {
             var inp = q(f[0]);
             if (!inp) { return; }
-            if (level >= 2 && f[1] === 'opinion') { inp.removeAttribute('required'); }
-            if (level >= 3 && f[1] === 'csf') { inp.setAttribute('accept', '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'); }
+            if (f[1] === 'opinion') { inp.removeAttribute('required'); }
+            if (f[1] === 'csf') { inp.setAttribute('accept', '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'); }
             if (inp.dataset.jgState !== 'rfcdiff') { inp.setCustomValidity(''); }
         });
-        // nivel 1: se vuelve a revisar el archivo ya elegido (ahora sin bloquear fecha/tipo)
+        // se vuelve a revisar el archivo ya elegido (ahora sin bloquear fecha/tipo)
         reruns.forEach(function (fn) { fn(); });
         if (aleBox) {
             aleBox.className = 'alert alert-success small mt-2';
-            aleBox.textContent = level >= 2
-                ? '✓ Ale habilitó el envío. Ya puedes presionar Enviar aunque te falte la opinión de cumplimiento; la constancia sí es necesaria, en PDF. Un asesor te pedirá después los documentos actualizados.'
-                : '✓ Ale ya lo solucionó. Vuelve a intentar subir tu archivo y presiona Enviar.';
-            if (level >= 3) { aleBox.textContent = '✓ Ale habilitó que subas tu constancia como foto. Vuelve a elegir el archivo y presiona Enviar; un asesor la revisará.'; }
+            aleBox.textContent = '✓ Ale ya lo solucionó. Vuelve a elegir tu archivo y presiona Enviar. La constancia sí es necesaria (aunque sea foto o no esté actualizada); la opinión ya no es obligatoria. Un asesor te pedirá después los documentos actualizados.';
         }
     }
 
@@ -145,31 +142,34 @@
         }, 3000);
     }
 
-    function showAle(lastMsg) {
+    var aleAsked = false;
+    function askAle(label, d) {
+        var g = function (n) { var e = q(n); return e ? (e.value || '').trim() : ''; };
+        var pre = {nombre: g('jaguen_contact_name'), empresa: g('name'), correo: g('jaguen_contact_email') || g('email'),
+                   telefono: g('jaguen_contact_mobile') || g('phone')};
+        var msg = 'Estoy registrándome y el sistema no me deja subir mi ' + label + '. Me dice: "' + (d.mensaje || 'que está mal') + '" ' +
+                  (d.detalle || '');
+        if (window.jaguenChat) { window.jaguenChat.openWith(pre, msg); }
+        pollUnlock();
+    }
+
+    function showAle(label, d) {
         var last = q(FILES[1][0]);
-        if (!last || csfLevel >= 3) { return; }
+        if (!last || csfLevel >= 1) { return; }
         if (!aleBox) {
             aleBox = document.createElement('div');
-            aleBox.className = 'alert alert-info small mt-2';
             var holder = last.closest('.s_website_form_field') || last.parentNode;
             holder.appendChild(aleBox);
         }
         aleBox.className = 'alert alert-info small mt-2';
         aleBox.textContent = '';
-        aleBox.appendChild(document.createTextNode('¿Sigue sin dejarte continuar? Ale te puede ayudar para que termines tu registro. '));
+        aleBox.appendChild(document.createTextNode('¿Necesitas ayuda con tus documentos? Ale te ayuda para que termines tu registro. '));
         var b = document.createElement('button');
         b.type = 'button'; b.className = 'btn btn-sm btn-primary';
         b.textContent = 'Hablar con Ale';
-        b.addEventListener('click', function () {
-            var g = function (n) { var e = q(n); return e ? (e.value || '').trim() : ''; };
-            var pre = {nombre: g('jaguen_contact_name'), empresa: g('name'), correo: g('jaguen_contact_email') || g('email'),
-                       telefono: g('jaguen_contact_mobile') || g('phone')};
-            var msg = 'Estoy registrándome y el sistema no me deja subir mis documentos de la constancia / opinión. ' +
-                      'Ya lo intenté y me dice: ' + (lastMsg || 'que está mal') + '. Los archivos son los correctos.';
-            if (window.jaguenChat) { window.jaguenChat.openWith(pre, msg); }
-            pollUnlock();
-        });
+        b.addEventListener('click', function () { askAle(label, d); });
         aleBox.appendChild(b);
+        if (!aleAsked) { aleAsked = true; askAle(label, d); }  // la primera vez entra Ale sola
     }
 
     function bindCsf(name, tipo, okText) {
@@ -185,7 +185,7 @@
             box.textContent = '';
             var f = input.files && input.files[0];
             if (!f) { return; }
-            if (csfLevel >= 3 && tipo === 'csf' && /^image\//.test(f.type)) {
+            if (csfLevel >= 1 && tipo === 'csf' && /^image\//.test(f.type)) {
                 box.className = 'small mt-1 text-muted';
                 box.textContent = 'Recibimos tu foto; un asesor la revisará y te pedirá la constancia en PDF si hace falta.';
                 return;
@@ -204,12 +204,12 @@
                     input.dataset.jgState = d.estado;
                     var blocking = ['old', 'future', 'notcsf', 'notpdf', 'rfcdiff'].indexOf(d.estado) >= 0;
                     // Con el envio desbloqueado por Ale solo el RFC distinto sigue bloqueando.
-                    if (blocking && csfLevel >= 1 && d.estado !== 'rfcdiff' && d.estado !== 'notpdf') { blocking = false; }
+                    if (blocking && csfLevel >= 1 && d.estado !== 'rfcdiff') { blocking = false; }
                     if (blocking) {
                         box.className = 'small mt-1 text-danger fw-bold';
                         linkify(box, d.mensaje);
                         input.setCustomValidity(d.mensaje);
-                        if (d.estado !== 'rfcdiff') { csfBlocks += 1; if (csfBlocks >= 2) { showAle(d.mensaje); } }
+                        showAle(tipo === 'csf' ? 'constancia' : 'opinión de cumplimiento', d);
                     } else if (d.estado === 'ok') {
                         box.className = 'small mt-1 text-success';
                         box.textContent = '✓ ' + okText;
@@ -226,7 +226,39 @@
         if (vatEl) { vatEl.addEventListener('change', function () { if (input.files && input.files[0]) { run(); } }); }
     }
 
+    // Compra personal: se esconden y dejan de ser obligatorios RFC, regimen, CSF, opinion y contacto comprador.
+    function bindPersonal() {
+        var chk = q('jaguen_personal');
+        if (!chk || chk.dataset.jgBound) { return; }
+        chk.dataset.jgBound = '1';
+        function apply() {
+            var hide = chk.checked;
+            document.querySelectorAll('.jg-personal-hide').forEach(function (blk) {
+                blk.classList.toggle('d-none', hide);
+                blk.querySelectorAll('input, select, textarea').forEach(function (inp) {
+                    if (inp.dataset.jgReqP === undefined) { inp.dataset.jgReqP = inp.required ? '1' : '0'; }
+                    inp.required = hide ? false : inp.dataset.jgReqP === '1';
+                    inp.disabled = hide;
+                    if (hide) { inp.setCustomValidity(''); }
+                });
+            });
+        }
+        // El correo de arriba es "Correo para facturas y REP" en empresas; en compra personal es solo el correo de la persona.
+        var emailEl = q('email'), emailBlk = emailEl && emailEl.closest('.s_website_form_field');
+        var lab = emailBlk && emailBlk.querySelector('.s_website_form_label_content');
+        var help = emailBlk && emailBlk.querySelector('.s_website_form_field_description');
+        var labOrig = lab ? lab.textContent : '';
+        function apply2() {
+            apply();
+            if (lab) { lab.textContent = chk.checked ? 'Correo electrónico' : labOrig; }
+            if (help) { help.classList.toggle('d-none', chk.checked); }
+        }
+        chk.addEventListener('change', apply2);
+        apply2();
+    }
+
     function init() {
+        bindPersonal();
         FILES.forEach(function (f) { bindCsf(f[0], f[1], f[2]); });
         // Domicilio fiscal: estado, ciudad y localidad son catalogos del SAT (listas); se eligen solos pero se pueden cambiar.
         bind({zip: 'zip', colonia: 'l10n_mx_edi_colony', apply: function (d) {

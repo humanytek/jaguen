@@ -51,8 +51,9 @@ class PortalDocuments(http.Controller):
         if Att.search_count([('res_model', '=', 'res.partner'), ('res_id', '=', partner.id),
                              ('jaguen_portal_visible', '=', True), ('create_date', '>=', today)]) >= MAX_POR_DIA:
             return request.redirect('/my/documentos?error=Alcanzaste+el+l%C3%ADmite+de+archivos+de+hoy')
-        safe = re.sub(r'[^\w.\- ]', '_', file.filename)[:80]
-        Att.create({'name': '%s - %s' % (tipo, safe), 'description': tipo, 'datas': base64.b64encode(data),
+        label = 'CSF' if tipo.startswith('Constancia') else ('Opinion' if tipo.startswith('Opini') else tipo)
+        client = re.sub(r'[\\/:*?"<>|]', ' ', partner.name or '').strip()[:80]
+        Att.create({'name': '%s - %s.%s' % (label, client or 'cliente', ext), 'description': tipo, 'datas': base64.b64encode(data),
                     'res_model': 'res.partner', 'res_id': partner.id, 'jaguen_portal_visible': True,
                     'mimetype': {'pdf': 'application/pdf', 'png': 'image/png'}.get(ext, 'image/jpeg')})
         if 'rédito' in tipo:

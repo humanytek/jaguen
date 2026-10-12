@@ -38,8 +38,10 @@ class JaguenCsfController(http.Controller):
             return request.make_response(json.dumps({'estado': 'unreadable', 'mensaje': ''}), headers)
         Usage._bump(key, messages=1)
         tipo = 'opinion' if kw.get('tipo') == 'opinion' else 'csf'
-        estado, mensaje = csf_parser.revisar_archivo(csf_parser.pdf_text(data), fields.Date.context_today(Usage), tipo, (kw.get('rfc') or '').strip() or None)
-        return request.make_response(json.dumps({'estado': estado, 'mensaje': mensaje}), headers)
+        texto = csf_parser.pdf_text(data)
+        rfc = (kw.get('rfc') or '').strip() or None
+        estado, mensaje = csf_parser.revisar_archivo(texto, fields.Date.context_today(Usage), tipo, rfc)
+        return request.make_response(json.dumps({'estado': estado, 'mensaje': mensaje, 'detalle': csf_parser.detalle(texto, tipo, rfc)}), headers)
 
 
 class JaguenDocsController(http.Controller):

@@ -13,16 +13,21 @@ class WebsiteFormJaguen(WebsiteForm):
     visibles para el cliente en Mi cuenta > Mis documentos."""
 
     def insert_attachment(self, model, id_record, files):
+        """Los archivos se guardan como "CSF - Cliente.pdf" y "Opinion - Cliente.pdf"."""
+        client = ''
+        if model.sudo().model == 'res.partner':
+            client = re.sub(r'[\\/:*?"<>|]', ' ', request.env['res.partner'].sudo().browse(id_record).name or '').strip()[:80]
         for f in files:
             field = (getattr(f, 'field_name', '') or '').lower()
             if 'constancia' in field or 'csf' in field:
                 label = 'CSF'
             elif 'opini' in field or 'cumplimiento' in field:
-                label = 'Opinión de cumplimiento'
+                label = 'Opinion'
             else:
                 label = ''
-            if label and not (f.filename or '').startswith(label):
-                f.filename = '%s - %s' % (label, f.filename or 'archivo')
+            if label:
+                ext = (f.filename or '').rsplit('.', 1)[-1].lower() if '.' in (f.filename or '') else 'pdf'
+                f.filename = '%s - %s.%s' % (label, client or 'cliente', ext)
         result = super().insert_attachment(model, id_record, files)
         if model.sudo().model == 'res.partner':
             request.env['ir.attachment'].sudo().search(
@@ -46,6 +51,17 @@ class WebsiteFormJaguen(WebsiteForm):
                 _logger.exception('Registrate: no se pudo cerrar el alta')
         return result
 
+    @staticmethod
+    def _jaguen_file(field):
+        """El formulario de Odoo manda los archivos como 'Nombre del campo[0][0]': se busca por el prefijo."""
+        files = request.httprequest.files
+        if field in files:
+            return files[field]
+        for key in files:
+            if key.startswith(field + '['):
+                return files[key]
+        return None
+
     def _jaguen_unlocked_session(self):
         """Sesion de chat (cookie jg_chat) a la que Ale le habilito el envio de documentos, o vacio."""
         token = request.httprequest.cookies.get('jg_chat')
@@ -60,15 +76,16 @@ class WebsiteFormJaguen(WebsiteForm):
         diario por IP / global para que un bot no llene de empresas ni de avisos a ventas."""
         errors = {}
         mail_re = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        personal = str(kw.get('jaguen_personal') or '').lower() in ('1', 'true', 'on', 'yes', 'si', 'sí')
         if len((kw.get('name') or '').strip()) < 2:
             errors['name'] = 'required'
         if not mail_re.match((kw.get('email') or '').strip()):
             errors['email'] = 'invalid'
-        if not re.match(r'^(MX)?[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$', re.sub(r'[\s-]', '', (kw.get('vat') or '').upper())):
+        if not personal and not re.match(r'^(MX)?[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$', re.sub(r'[\s-]', '', (kw.get('vat') or '').upper())):
             errors['vat'] = 'invalid'
-        if len((kw.get('jaguen_contact_name') or '').strip()) < 2:
+        if not personal and len((kw.get('jaguen_contact_name') or '').strip()) < 2:
             errors['jaguen_contact_name'] = 'required'
-        if not mail_re.match((kw.get('jaguen_contact_email') or '').strip()):
+        if not personal and not mail_re.match((kw.get('jaguen_contact_email') or '').strip()):
             errors['jaguen_contact_email'] = 'invalid'
         for key in ('name', 'jaguen_contact_name', 'jaguen_ship_receiver', 'jaguen_ship_street'):
             if len(kw.get(key) or '') > 150:
@@ -76,19 +93,19 @@ class WebsiteFormJaguen(WebsiteForm):
         unlocked = self._jaguen_unlocked_session()
         level = unlocked.docs_unlock_level if unlocked else 0
         rfcs = {}
-        for field in ('Constancia Situación Fiscal', 'Opinión de cumplimiento'):
-            f = request.httprequest.files.get(field)
+        for field in (() if personal else ('Constancia Situación Fiscal', 'Opinión de cumplimiento')):
+            f = self._jaguen_file(field)
             if not f or not (f.filename or '').strip():
-                # La CSF siempre es obligatoria (en PDF); solo la opinion se puede quitar como obligatoria.
-                if level < 2 or field.startswith('Constancia'):
+                # La CSF siempre es obligatoria; con el desbloqueo de Ale solo la opinion deja de serlo.
+                if level < 1 or field.startswith('Constancia'):
                     errors[field] = 'required'
                 continue
             head = f.read(5)
             f.seek(0)
             is_pdf = (f.filename or '').lower().endswith('.pdf') and head == b'%PDF-'
             is_img = head[:3] == b'\xff\xd8\xff' or head[:4] == b'\x89PNG'
-            if field.startswith('Constancia') and level >= 3 and is_img and (f.filename or '').lower().endswith(('.jpg', '.jpeg', '.png')):
-                continue  # tercer escalon de Ale: la CSF puede ir como foto (queda marcada para revision)
+            if field.startswith('Constancia') and level >= 1 and is_img and (f.filename or '').lower().endswith(('.jpg', '.jpeg', '.png')):
+                continue  # con el desbloqueo de Ale la CSF puede ir como foto (queda marcada para revision)
             if not is_pdf:
                 errors[field] = 'invalid'
                 continue
