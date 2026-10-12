@@ -111,4 +111,4 @@ class PaymentTransaction(models.Model):
                 (' (%s)' % method) if method else '', self.provider_reference or self.reference)
             order.sudo().message_post(
                 body=body, subject='Pago recibido: %s' % order.name, message_type='comment',
-                subtype_xmlid='mail.mt_comment', partner_ids=partners.ids)
+                subtype_xmlid='mail.mt_note', partner_ids=partners.ids)  # nota interna: el cliente no la recibe
