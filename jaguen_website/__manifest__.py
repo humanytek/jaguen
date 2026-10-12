@@ -11,11 +11,12 @@ Ajustes del sitio web de JAGUEN
 - Pago con PayPal: pregunta obligatoria credito/debito; marca la transaccion del carrito; pago y factura salen con forma 04 / 28 y la factura PUE. No afecta pagos manuales ni facturas PPD.
 - Aviso interno (bandeja y correo) al vendedor del pedido y a contabilidad cuando un cliente paga en linea.
 - Pago: casilla obligatoria de T&C antes del metodo de pago; se autocompleta si el cliente ya la acepto antes; se guarda fecha e IP.
+- Consulta de pedidos con candado (número + nombre o correo; 3 intentos y bloqueo de 60 minutos).
 - Resumen diario por correo (19:30 Hermosillo) al usuario de relevo.
 - Asistente web con IA (Ale, Mónica y Andrea, con Claude): Haiku filtra al visitante conversando; Sonnet atiende a empresas y clientes con
   sesion; busca productos, crea leads, avisa de prospectos calientes y de coincidencias en CRM/Ventas. Requiere el parametro de sistema jaguen_website.anthropic_api_key.
 """,
-    'version': '18.0.1.10.3',
+    'version': '18.0.1.11.1',
     'category': 'Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
