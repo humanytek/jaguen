@@ -67,6 +67,7 @@ REGLAS (obligatorias):
 14. REGISTRO: ERES VENDEDORA/VENDEDOR (regla fija, tu objetivo con empresas y personas físicas con actividad empresarial): empuja a que se registren en https://www.jaguen.com/registrate. Explica el porqué como lo haría un buen vendedor: los precios que ve ahora en la página son precios al público, porque aún no ha iniciado sesión (es visitante); con solo registrarse tiene una LISTA DE PRECIOS ESPECIAL (un descuento sobre los precios de la tienda; nunca des porcentajes ni cifras), le contacta un VENDEDOR con atención personalizada y accede a los PROGRAMAS DE RECOMPENSAS (Rewards). Le conviene registrarse; toma menos de 5 minutos y es gratis. Tú no cotizas ni tomas solicitudes de cotización: si dice que quiere cotización, que es comprador de una empresa, que compra mucho, que quiere crédito o que quiere un precio, 1) si quiere un precio rápido, dale la liga del producto en la tienda (precio de lista); 2) para precios especiales, cotización o crédito, el camino es registrarse; ya registrado y dado de alta, los asesores de ventas se comunican con él en horario laboral y con ellos pide cotizaciones y ve su cuenta. Haz esta invitación al menos una vez en cada conversación con una empresa o persona física con actividad empresarial, con el porqué de arriba, y de nuevo cuando pregunte por precios, cotización, volumen o crédito. Con calidez, sin presionar ni repetirlo en cada mensaje. Con compras personales no es necesario: pueden comprar directo en el sitio.
 13. NOMBRE DE EMPRESA: en Odoo el nombre de una empresa nunca lleva la razón social legal. Si te dan "Jaguen SA de CV", "Jaguen S.A. de C.V." o "Jaguen S de RL de CV", la empresa se llama solo "Jaguen" (sin SA, SA de CV, S de RL, SAPI, SAS ni S.C.). Al usar herramientas (empresa) y al hablar con el cliente usa solo el nombre, sin ese sufijo.
 11. PROCESO DE COMPRA: si preguntan cómo comprar, explícalo con lo de PROCESO DE COMPRA EN EL SITIO; no inventes pasos ni pantallas.
+17. DOCUMENTOS EN REGISTRATE (la meta es NO perder al cliente que ya llenó todo). Los dos documentos son PDF descargados del SAT, con fecha de emisión de este mes o del anterior, y del MISMO RFC que escribió en el formulario. Si le sale como malo o no puede subirlo: la PRIMERA vez ayúdale en un solo mensaje con esas 3 condiciones y la liga: Constancia de situación fiscal https://www.sat.gob.mx/portal/public/tramites/constancia-de-situacion-fiscal ; Opinión de cumplimiento https://www.sat.gob.mx/portal/public/tramites/opinion-del-cumplimiento . Solo si dice que no funciona la liga o no la encuentra, da la ruta: en www.sat.gob.mx > Trámites y servicios > Más trámites y servicios > Constancias, devoluciones > "Constancia de situación fiscal" (para la opinión: "Opinión del cumplimiento"). Si dice que lo bloquea por la fecha o el tipo de documento pero no lo tiene actualizado o a la mano, o insiste en que todo está bien: usa desbloquear_documentos en ese mismo turno (nivel 1) y dile "sin problema, ya lo solucioné, vuelve a intentarlo". Si vuelve a decir que no lo deja, o que no tiene el archivo: usa desbloquear_documentos otra vez (nivel 2: ya no es obligatoria la OPINIÓN) y dile que ya puede presionar Enviar aunque no tenga la opinión (o la tenga vencida); que luego un asesor le pedirá los documentos actualizados. LA CONSTANCIA siempre debe subirla, aunque no esté actualizada, pero SIEMPRE en PDF descargado del SAT, nunca foto ni captura: si pide saltarse eso, dile algo como "puedo hacer muchas cosas, pero no puedo quitar que la constancia se necesita en PDF y no en foto". Nunca le pidas el archivo por el chat. LA ÚNICA EXCEPCIÓN: si el sistema le dice que el RFC del documento no es el que escribió, NO desbloquees (no hay forma de saltarlo): explícale con amabilidad que la constancia y la opinión deben ser de la misma empresa o persona que se está registrando, y que corrija el RFC en el formulario o suba los documentos correctos.
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
 REGISTER_INVITE = ("Los precios que ves ahora en la página son precios al público, porque aún no has iniciado sesión. Con solo registrarte "
@@ -132,11 +133,17 @@ TOOL_PEDIDO = _S(
      'nombre': {'type': 'string', 'description': 'Nombre de la cuenta (como aparece en el PDF), si lo dio'},
      'correo': {'type': 'string', 'description': 'Correo del pedido, si lo dio'}},
     ['numero'])
+TOOL_DOCS = _S(
+    'desbloquear_documentos',
+    'Quita bloqueos del formulario de Registrate cuando el sistema le objeta la Constancia de Situación Fiscal u Opinión de cumplimiento a alguien que está registrándose. Es en dos escalones: la PRIMERA llamada quita la revisión de fecha y de tipo de documento (para que vuelva a intentar subir el mismo archivo); si después dice que sigue sin dejarlo o que no tiene el archivo, llámala OTRA VEZ y quita lo obligatorio de la OPINIÓN; y si después de eso aun no logra subir la CONSTANCIA en PDF, una TERCERA llamada deja subir la constancia como foto (JPG o PNG). La Constancia siempre es obligatoria. NUNCA sirve ni se usa cuando el problema es que el RFC no coincide.',
+    {'motivo': {'type': 'string', 'description': 'Qué le pasa: p. ej. "la constancia es de hace 3 meses y no tiene la actualizada" o "sigue sin dejarlo"'},
+     'fecha_documento': {'type': 'string', 'description': 'Fecha de emisión que dijo el cliente, si la dio'}},
+    ['motivo'])
 TOOLS_BY_SEGMENT = {
-    'sin_filtro': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO],
-    'empresa': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO],
-    'pfae': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO],
-    'persona': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO],
+    'sin_filtro': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO, TOOL_DOCS],
+    'empresa': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO, TOOL_DOCS],
+    'pfae': [TOOL_BUSCAR, TOOL_LEAD, TOOL_PEDIDO, TOOL_DOCS],
+    'persona': [TOOL_BUSCAR, TOOL_CLASIFICAR, TOOL_PEDIDO, TOOL_DOCS],
     'cliente': [TOOL_BUSCAR, TOOL_LEAD, TOOL_HANDOFF, TOOL_PEDIDO],
 }
 
@@ -640,9 +647,34 @@ class JaguenAiService(models.AbstractModel):
             partner_ids=[handoff.partner_id.id])
         return {'ok': True, 'nota': 'Conversación pasada a una persona del equipo; responderá por este mismo chat.'}
 
+    def _tool_desbloquear_documentos(self, session, args, base_url):
+        """Dos escalones: 1) quita la revision de fecha/tipo; 2) quita lo obligatorio. El RFC distinto nunca se desbloquea.
+        El alta llega marcada para que ventas pida los documentos actualizados."""
+        now = fields.Datetime.now()
+        level = session.docs_unlock_level or 0
+        if level >= 3:
+            return {'ok': False, 'nota': 'Ya está todo desbloqueado: dile que presione Enviar. Si aun así no puede, que escriba a contacto.jaguen@gmail.com y un asesor lo registra.'}
+        if level == 0:
+            Usage = self.env['jaguen.chat.usage'].sudo()
+            ip_key = 'docunlock:%s' % (session.ip_address or 'sin-ip')
+            if Usage._count(ip_key) >= 3 or Usage._count('docunlock:global') >= self._int_param('ai_daily_doc_unlocks', 15):
+                return {'ok': False, 'nota': 'Por hoy no puedo habilitarlo. Pídele que escriba a contacto.jaguen@gmail.com con sus documentos y un asesor lo registra.'}
+            Usage._bump(ip_key, messages=1)
+            Usage._bump('docunlock:global', messages=1)
+        note = ((session.docs_unlock_note or '') + ' / ' if session.docs_unlock_note else '') + (args.get('motivo') or '')[:200]
+        if args.get('fecha_documento'):
+            note += ' | fecha que dice el cliente: %s' % args['fecha_documento'][:40]
+        session.sudo().write({'docs_unlocked_until': now + timedelta(hours=2), 'docs_unlock_level': level + 1,
+                              'docs_unlock_note': note[:400] or 'sin detalle'})
+        if level == 0:
+            return {'ok': True, 'nota': 'Listo (nivel 1): ya no le revisa fecha ni tipo de documento. Dile "sin problema, ya lo solucioné, vuelve a intentarlo" y que suba otra vez el mismo archivo. Si dice que sigue sin dejarlo, llama otra vez esta herramienta.'}
+        if level == 1:
+            return {'ok': True, 'nota': 'Listo (nivel 2): ya no es obligatoria la OPINIÓN. Dile que ya puede presionar Enviar aunque no la tenga o esté vencida, y que luego un asesor le pedirá los documentos actualizados. La CONSTANCIA sigue siendo obligatoria y debe ser PDF descargado del SAT (no foto). Si aun así no logra subir la constancia en PDF, llama otra vez esta herramienta.'}
+        return {'ok': True, 'nota': 'Listo (nivel 3): ahora la CONSTANCIA también se puede subir como foto (JPG o PNG, máximo 5 MB). Dile que vuelva a elegir su archivo y presione Enviar; un asesor la revisará y le pedirá la actualizada en PDF si hace falta.'}
+
     def _run_tool(self, session, name, args, base_url):
         handler = getattr(self, '_tool_' + name, None)
-        if not handler or name not in ('buscar_productos', 'crear_lead', 'pasar_a_persona', 'clasificar_visitante', 'consultar_pedido'):
+        if not handler or name not in ('buscar_productos', 'crear_lead', 'pasar_a_persona', 'clasificar_visitante', 'consultar_pedido', 'desbloquear_documentos'):
             return {'error': 'herramienta desconocida'}
         try:
             return handler(session, args or {}, base_url)

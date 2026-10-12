@@ -178,6 +178,7 @@
         addMessages(msgs);
         if (state === 'human') { startPolling(); }
         setTimeout(function () { input.focus(); }, 50);
+        setTimeout(function () { if (typeof flushPending === 'function') { flushPending(); } }, 300);
     }
 
     function start() {
@@ -251,6 +252,31 @@
     function closePanel() {
         opened = false; stopPolling();
         panel.classList.add('jgc-hidden'); btn.classList.remove('jgc-hidden');
+    }
+
+    // API para abrir el chat desde otra pagina (Registrate): precarga el formulario y manda un primer mensaje.
+    var pendingMsg = null;
+    window.jaguenChat = {
+        openWith: function (pre, msg) {
+            pendingMsg = msg || null;
+            openPanel();
+            if (token && started) { flushPending(); return; }
+            setTimeout(function () {
+                if (pre && !token) {
+                    fName.value = pre.nombre || fName.value; fCompany.value = pre.empresa || fCompany.value;
+                    fEmail.value = pre.correo || fEmail.value; fPhone.value = pre.telefono || fPhone.value;
+                    if (fName.value && fEmail.value && fPhone.value.replace(/\D/g, '').length >= 10) {
+                        form0.dispatchEvent(new Event('submit', {cancelable: true}));
+                    }
+                }
+            }, 400);
+        }
+    };
+    function flushPending() {
+        if (!pendingMsg || !token || connecting) { return; }
+        var m = pendingMsg; pendingMsg = null;
+        input.value = m;
+        form.dispatchEvent(new Event('submit', {cancelable: true}));
     }
 
     btn.addEventListener('click', openPanel);

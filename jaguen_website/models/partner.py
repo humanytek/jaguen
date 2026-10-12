@@ -1,7 +1,12 @@
 import re
 import unicodedata
 
+import base64
+import io
+import logging
+
 from odoo import api, fields, models
+from odoo.http import request
 from odoo.exceptions import AccessError
 
 # Nombres femeninos que NO terminan en "a" y masculinos que SI terminan en "a" (el resto se decide por la terminacion).
@@ -34,9 +39,17 @@ def guess_gender(name):
     return 'm'
 
 
+_logger = logging.getLogger(__name__)
+
+
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    jaguen_alta_hold = fields.Boolean(copy=False, help="Registro web en proceso: el aviso de alta se manda cuando termina la revision de la CSF.")
+    jaguen_csf_state = fields.Selection(
+        [('ok', 'CSF coincide'), ('diff', 'CSF con diferencias'), ('unreadable', 'CSF no se pudo leer')],
+        string='Revision de CSF y opinion', copy=False)
+    jaguen_csf_report = fields.Text(string='Detalle de la revision de CSF', copy=False)
     jaguen_wishlist_count = fields.Integer(string="Favoritos", compute="_compute_jaguen_wishlist_count")
 
     def _jaguen_wishlist_domain(self):
@@ -85,7 +98,10 @@ class ResPartner(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         steps = []
+        web = bool(request) and (request.httprequest.path or '').startswith('/website/form/res.partner')
         for vals in vals_list:
+            if web and not vals.get('parent_id'):
+                vals['jaguen_alta_hold'] = True
             steps.append({k: (vals.pop(k, None) or '').strip() for k in self._JAGUEN_STEP_FIELDS})
         records = super().create(vals_list)
         for rec, step in zip(records, steps):
@@ -156,6 +172,83 @@ class ResPartner(models.Model):
             user.sudo().with_context(mail_notrack=True, no_reset_password=True).write({'partner_id': contact_s.id})
             moved |= user
         return moved
+
+    # ---- Revision de la CSF al registrarse -------------------------------------------------------------------
+    def _jaguen_csf_text(self, data):
+        from . import csf_parser
+        return csf_parser.pdf_text(data)
+
+    def _jaguen_activity_user(self):
+        javier = self.env['res.users'].sudo().search([('login', '=', 'ventas.jaguen@hotmail.com')], limit=1)
+        return (self.user_id if self.user_id and self.user_id.active else javier) or self.env.ref('base.user_admin')
+
+    def _jaguen_check_csf(self, forced=None):
+        """Compara la CSF y la opinion de cumplimiento subidas con lo capturado. Deja el resultado en la ficha y, si hay
+        diferencias o no se pudo leer algo, una sola actividad "Revisar CSF / opinion". No le avisa nada al cliente."""
+        from . import csf_parser
+        self.ensure_one()
+        Att = self.env['ir.attachment'].sudo()
+        lines, unread = [], []
+        if forced is not None:
+            lines.append('El cliente pidio ayuda a Ale y se le desbloqueo el envio (motivo: %s). Pidele la CSF y la opinion actualizadas.' % (forced or 'sin detalle'))
+        att = Att.search([('res_model', '=', 'res.partner'), ('res_id', '=', self.id), ('name', '=like', 'CSF - %')],
+                         order='id desc', limit=1)
+        csf = csf_parser.parse(self._jaguen_csf_text(base64.b64decode(att.datas))) if att and att.datas else {}
+        if not att:
+            lines.append('CSF: no se recibio.')
+        elif not csf.get('rfc'):
+            unread.append('CSF: parece una foto o un PDF escaneado, no se pudo leer. Revisala a mano.')
+        else:
+            lines += ['CSF - ' + d for d in csf_parser.compare(csf, self.name, self.vat, self.zip, self.l10n_mx_edi_fiscal_regime)]
+            est, msg = csf_parser.revisar_archivo(self._jaguen_csf_text(base64.b64decode(att.datas)), fields.Date.context_today(self), 'csf')
+            if est in ('old', 'future'):
+                lines.append('CSF - ' + msg.split(' Desc')[0])
+        att = Att.search([('res_model', '=', 'res.partner'), ('res_id', '=', self.id), ('name', '=like', 'Opini%')],
+                         order='id desc', limit=1)
+        if not att or not att.datas:
+            lines.append('Opinion de cumplimiento: no se recibio.')
+        else:
+            op = csf_parser.parse_opinion(self._jaguen_csf_text(base64.b64decode(att.datas)))
+            if not op:
+                unread.append('Opinion de cumplimiento: no se pudo leer (escaneada o no parece la opinion). Revisala a mano.')
+            else:
+                est, msg = csf_parser.revisar_archivo(self._jaguen_csf_text(base64.b64decode(att.datas)), fields.Date.context_today(self), 'opinion')
+                if est in ('old', 'future'):
+                    lines.append('Opinion de cumplimiento - ' + msg.split(' Desc')[0])
+                if op.get('sentido') == 'NEGATIVO':
+                    lines.append('Opinion de cumplimiento: sentido NEGATIVO.')
+                rfc = (self.vat or '').upper().replace('MX', '', 1) if (self.vat or '').upper().startswith('MX') else (self.vat or '').upper()
+                if op.get('rfc') and rfc and op['rfc'] != rfc.replace(' ', ''):
+                    lines.append('Opinion de cumplimiento - RFC: el cliente escribio %s y la opinion dice %s' % (self.vat, op['rfc']))
+        state = 'diff' if lines else ('unreadable' if unread else 'ok')
+        lines += unread
+        report = '\n'.join(lines) if lines else 'La CSF coincide con lo capturado (RFC, nombre, codigo postal y regimen) y la opinion de cumplimiento es positiva.'
+        self.sudo().write({'jaguen_csf_state': state, 'jaguen_csf_report': report})
+        if state != 'ok':
+            summary = 'Revisar CSF / opinión'
+            if not self.activity_ids.filtered(lambda a: a.summary == summary):
+                self.sudo().with_context(mail_activity_quick_update=True).activity_schedule(
+                    'mail.mail_activity_data_todo', summary=summary, user_id=self._jaguen_activity_user().id,
+                    note=report.replace('\n', '<br/>'))
+        return state
+
+    def _jaguen_finish_registration(self, forced=None):
+        """Termina el alta web: revisa la CSF y ENTONCES manda el aviso de alta (el de la regla "Cliente Nuevo"),
+        para que el correo ya traiga el resultado de la revision."""
+        self.ensure_one()
+        try:
+            self._jaguen_check_csf(forced=forced)
+        except Exception:
+            _logger.exception('CSF: fallo la revision de %s', self.id)
+        self.sudo().write({'jaguen_alta_hold': False})
+        rule = self.env['base.automation'].sudo().search(
+            [('name', '=', 'Cliente Nuevo'), ('model_id.model', '=', 'res.partner')], limit=1)
+        for action in rule.action_server_ids:
+            try:
+                action.sudo().with_context(active_model='res.partner', active_id=self.id, active_ids=self.ids).run()
+            except Exception:
+                _logger.exception('Alta: fallo la accion %s para %s', action.id, self.id)
+
 
 
 class ResUsers(models.Model):
