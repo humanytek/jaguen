@@ -30,6 +30,16 @@ PaymentForm.include({
         return result;
     },
 
+    /**
+     * Odoo vuelve a habilitar el boton al elegir un metodo: se respeta la casilla de T&C.
+     * @override
+     */
+    _enableButton() {
+        const result = this._super(...arguments);
+        this._jaguenSyncTyc();
+        return result;
+    },
+
     _jaguenSyncTyc() {
         const ok = !!document.getElementById('jaguen_tyc')?.checked;
         document.getElementById('jaguen_tyc_error')?.classList.toggle('d-none', ok);
