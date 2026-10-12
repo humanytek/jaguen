@@ -226,4 +226,4 @@ class SaleOrderJaguenCoupons(models.Model):
             ('use_count', '=', 0),
             '|', ('expiration_date', '=', False), ('expiration_date', '>=', hoy),
         ]
-        return self.env['loyalty.card'].sudo().search(domain)
+        return self.env['loyalty.card'].sudo().search(domain) - self.order_line.mapped('coupon_id').sudo()

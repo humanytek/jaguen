@@ -26,6 +26,7 @@
         <field name="reward_type">discount</field>
         <field name="discount_applicability">order</field>
         <field name="discount_mode">per_order</field>
+        <field name="description">Cupón de bienvenida $200</field>
         <field name="discount">200.10</field>
         <field name="required_points">1</field>
     </record>
@@ -52,6 +53,7 @@
         <field name="reward_type">discount</field>
         <field name="discount_applicability">order</field>
         <field name="discount_mode">per_order</field>
+        <field name="description">Cupón Favoritos $500</field>
         <field name="discount">499.96</field>
         <field name="required_points">1</field>
     </record>
