@@ -37,6 +37,28 @@ def guess_gender(name):
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    jaguen_wishlist_count = fields.Integer(string="Favoritos", compute="_compute_jaguen_wishlist_count")
+
+    def _jaguen_wishlist_domain(self):
+        self.ensure_one()
+        return [('partner_id', 'child_of', self.id)]
+
+    def _compute_jaguen_wishlist_count(self):
+        Wish = self.env['product.wishlist'].sudo()
+        for p in self:
+            p.jaguen_wishlist_count = Wish.search_count(p._jaguen_wishlist_domain()) if p.id else 0
+
+    def action_jaguen_wishlist(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Favoritos de %s' % self.display_name,
+            'res_model': 'product.wishlist',
+            'view_mode': 'list',
+            'domain': self._jaguen_wishlist_domain(),
+            'context': {'search_default_g_product': 0},
+        }
+
     jaguen_tyc_date = fields.Datetime(
         string='Aceptó T&C en el pago', readonly=True, copy=False,
         help='Última vez que el cliente marcó la casilla de términos y condiciones al pagar en el sitio.')
