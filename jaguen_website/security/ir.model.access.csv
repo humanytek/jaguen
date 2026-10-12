@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_jaguen_chat_session_user,jaguen.chat.session user,model_jaguen_chat_session,base.group_user,1,1,0,0
+access_jaguen_chat_session_admin,jaguen.chat.session admin,model_jaguen_chat_session,base.group_system,1,1,1,1
+access_jaguen_chat_usage_admin,jaguen.chat.usage admin,model_jaguen_chat_usage,base.group_system,1,1,1,1

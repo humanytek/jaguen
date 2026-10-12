@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-from odoo import models
+from odoo import fields, models
 
 # Un correo valido, sin comas, espacios ni signos de separacion.
 _EMAIL_RE = re.compile(r"[^\s,;<>\"'()]+@[^\s,;<>\"'()]+\.[^\s,;<>\"'()]+")
@@ -45,3 +45,24 @@ class PaymentTransaction(models.Model):
                 else:
                     display.pop('business_email')
         return payload
+
+    # Marca: solo la pone el carrito web (no los links de pago del portal ni los pagos manuales).
+    jaguen_cart_card_type = fields.Selection(
+        [('credit', 'Crédito'), ('debit', 'Débito')],
+        string="Tarjeta declarada en el carrito", copy=False)
+
+    def _jaguen_card_method(self):
+        """Forma de pago del CFDI para la tarjeta declarada: 04 (credito) o 28 (debito)."""
+        self.ensure_one()
+        code = {'credit': '04', 'debit': '28'}.get(self.jaguen_cart_card_type)
+        Method = self.env['l10n_mx_edi.payment.method'].sudo()
+        return Method.search([('code', '=', code)], limit=1) if code else Method
+
+    def _create_payment(self, **extra_create_values):
+        """Pago nacido en el carrito con PayPal: forma de pago 04 / 28 segun lo que declaro el cliente."""
+        payment = super()._create_payment(**extra_create_values)
+        if self.provider_code == 'paypal' and self.jaguen_cart_card_type:
+            method = self._jaguen_card_method()
+            if method:
+                payment.l10n_mx_edi_payment_method_id = method
+        return payment

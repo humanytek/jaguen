@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pregunta obligatoria en el pago con PayPal: define la forma de pago del CFDI (04 / 28).
+         Va ANTES del contenedor del boton de PayPal (el contenedor tiene name="o_payment_submit_button"
+         y un clic dentro de el dispararia el pago). Se muestra por JS solo si la opcion es PayPal. -->
+    <template id="payment_card_type" inherit_id="payment_paypal.payment_submit_button_inherit"
+              name="JAGUEN - Pregunta credito/debito (PayPal)">
+        <xpath expr="//div[@id='o_paypal_button_container']" position="before">
+            <div id="jaguen_card_type_box" class="d-none mb-3">
+                <label for="jaguen_card_type" class="form-label fw-bold">
+                    ¿Con qué tarjeta pagarás en PayPal?
+                </label>
+                <select id="jaguen_card_type" name="jaguen_card_type" class="form-select">
+                    <option value="">Selecciona una opción...</option>
+                    <option value="credit">Tarjeta de crédito</option>
+                    <option value="debit">Tarjeta de débito</option>
+                </select>
+                <div class="form-text">
+                    Este dato se usa en tu factura y en tu complemento de pago. Elige la opción correcta.
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Casilla de terminos y condiciones: va ANTES de elegir el metodo de pago. Marcada de inicio si el
+         cliente ya la acepto en un pedido anterior. Se exige en el servidor (controllers/payment.py). -->
+    <template id="payment_tyc" inherit_id="website_sale.payment" name="JAGUEN - Aceptar T&amp;C al pagar">
+        <xpath expr="//div[@id='payment_method']" position="before">
+            <div id="jaguen_tyc_box" class="form-check mt-4">
+                <input type="checkbox" id="jaguen_tyc" name="jaguen_tyc" class="form-check-input"
+                       t-att-checked="'checked' if website_sale_order and website_sale_order.partner_id.jaguen_tyc_date else None"/>
+                <label for="jaguen_tyc" class="form-check-label">
+                    He leído y acepto los
+                    <a href="/terminos-y-condiciones" target="_blank">términos y condiciones</a>
+                    y el <a href="/aviso-de-privacidad" target="_blank">aviso de privacidad</a>.
+                </label>
+                <div id="jaguen_tyc_error" class="text-danger small d-none">
+                    Debes aceptar los términos y condiciones para poder pagar.
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

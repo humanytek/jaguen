@@ -207,7 +207,7 @@
 
                 <p>
                     Bienvenido a los Programas de Recompensas de Jaguen S.A. de C.V. ("Jaguen"),
-                    con RFC JAG120815RT0 y domicilio fiscal en Calle Riada #6, Hermosillo,
+                    con RFC JAG120815RT0 y domicilio fiscal en Calle Riada #6, Colonia Fracc La Cañada, Hermosillo,
                     Sonora, C.P. 83147. Los presentes Términos y Condiciones
                     ("Los TyC de Rewards") complementan a los Términos y Condiciones generales de
                     www.jaguen.com y regulan específicamente la participación del Cliente en los
@@ -290,7 +290,9 @@
                     Jaguen observa su promedio de compra mensual para fijar una meta anual de
                     compra. Al cierre de cada año, si el Cliente alcanza dicha meta, se le otorga
                     una nota de crédito a la cuenta de su empresa y una tarjeta de regalo — ambas
-                    calculadas como un porcentaje del volumen comprado en el periodo evaluado. El
+                    calculadas como un porcentaje del volumen comprado en el periodo evaluado. La
+                    nota de crédito es saldo a favor para compras posteriores en Jaguen, no es
+                    canjeable por dinero en efectivo y no genera intereses ni rendimientos. El
                     comportamiento de
                     pago de la cuenta durante el año incrementa, reduce o elimina este beneficio,
                     conforme a la política vigente de Jaguen: hasta 3 facturas vencidas a 30–59
@@ -298,6 +300,16 @@
                     rango en adelante, el beneficio se reduce a la mitad; una sola factura vencida
                     a 60 días o más deja al Cliente en 0% de beneficio ese año. Los porcentajes y
                     condiciones vigentes se muestran en "El Portal".
+                </p>
+
+                <p>
+                    <b>2.3 Cancelaciones, devoluciones y reembolsos.</b> Las compras que sean
+                    canceladas, devueltas o reembolsadas, total o parcialmente, conforme a los
+                    Términos y Condiciones generales de www.jaguen.com, no generan puntos ni avance
+                    en "Los Programas". Si los puntos o el avance ya habían sido acreditados,
+                    Jaguen los descontará de la cuenta del Cliente en la proporción
+                    correspondiente, y podrá ajustar los beneficios pendientes de entrega que
+                    dependían de ese avance.
                 </p>
 
                 <h5 class="mt-4">3. Aceptación</h5>
@@ -388,11 +400,11 @@
                 <h5 class="mt-4">9. Domicilio y Datos de Contacto</h5>
                 <p>
                     Para efectos de "Los TyC de Rewards", se señala como domicilio fiscal de
-                    Jaguen el ubicado en Calle Riada #6, Hermosillo, Sonora, C.P. 83147, así
+                    Jaguen el ubicado en Calle Riada #6, Colonia Fracc La Cañada, Hermosillo, Sonora, C.P. 83147, así
                     como el correo electrónico de contacto contacto.jaguen@gmail.com.
                 </p>
 
-                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.46)</p>
+                <p class="text-muted mt-4">Última actualización: octubre 2026 (versión 18.0.20.0.47)</p>
             </div>
         </t>
     </template>
