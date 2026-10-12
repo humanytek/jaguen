@@ -13,21 +13,24 @@ Ajustes del sitio web de JAGUEN
 - Pago: casilla obligatoria de T&C antes del metodo de pago; se autocompleta si el cliente ya la acepto antes; se guarda fecha e IP.
 - Leads del chat en la etapa Web del pipeline, con actividad para Javier y la plática en las notas internas.
 - Consulta de pedidos con candado (número + nombre o correo; 3 intentos y bloqueo de 60 minutos).
+- Registro: empresa con correo de facturación + contacto comprador (título Sr./Srta. automático) + dirección de entrega; Mi cuenta > Mis documentos (con actividad al vendedor por documentos de crédito); botón para pasar el usuario de la empresa al contacto.
 - Resumen diario por correo (19:30 Hermosillo) al usuario de relevo.
 - Asistente web con IA (Ale, Mónica y Andrea, con Claude): Haiku filtra al visitante conversando; Sonnet atiende a empresas y clientes con
   sesion; busca productos, crea leads, avisa de prospectos calientes y de coincidencias en CRM/Ventas. Requiere el parametro de sistema jaguen_website.anthropic_api_key.
 """,
-    'version': '18.0.1.12.2',
+    'version': '18.0.1.13.1',
     'category': 'Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
-    'depends': ['payment_paypal', 'website', 'website_sale', 'l10n_mx_edi_website_sale', 'crm', 'mail'],
+    'depends': ['payment_paypal', 'website', 'website_sale', 'l10n_mx_edi_website_sale', 'crm', 'mail', 'portal'],
     'data': [
         'security/ir.model.access.csv',
         'data/ai_data.xml',
+        'data/partner_data.xml',
         'views/shop_templates.xml',
         'views/payment_templates.xml',
         'views/order_templates.xml',
+        'views/portal_templates.xml',
         'views/ai_views.xml',
     ],
     'assets': {
