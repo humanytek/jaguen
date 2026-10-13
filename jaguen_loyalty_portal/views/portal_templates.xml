@@ -312,6 +312,28 @@
                     dependían de ese avance.
                 </p>
 
+                <p>
+                    <b>2.4 Cupones de descuento.</b> Además de "Los Programas", Jaguen otorga a sus
+                    clientes dos cupones de descuento ("Los Cupones"), que no requieren aceptar las
+                    casillas de incentivos:
+                </p>
+                <ul>
+                    <li><b>Cupón de bienvenida:</b> $200 de descuento, uno por cliente (empresa) y por única vez, que se genera al concluir su registro en www.jaguen.com. Vence a los 30 días naturales de su registro. Aplica en compras de al menos $4,000 más IVA.</li>
+                    <li><b>Cupón por Favoritos:</b> $500 de descuento, uno por cliente (empresa) y por única vez, que se genera cuando la empresa llega a 40 productos guardados en Favoritos (se suman los favoritos de todos los usuarios de la empresa). No vence. Aplica en compras de al menos $10,000 más IVA que incluyan al menos 20 de los 40 productos guardados al generarse el cupón.</li>
+                </ul>
+                <p>Condiciones de "Los Cupones":</p>
+                <ul>
+                    <li>Solo aplican a pedidos en los que <b>todos</b> los productos lleven IVA tasa 16%. Si el pedido incluye algún producto con IVA 0%, el cupón no se aplica hasta que ese producto se retire. Los montos mínimos se consideran antes de IVA.</li>
+                    <li>El descuento se calcula con IVA incluido, por lo que puede mostrarse con centavos de diferencia (por ejemplo $200.10 y $499.96).</li>
+                    <li>Son personales e intransferibles, y no se canjean por dinero.</li>
+                    <li>El cupón se consume al confirmarse el pedido. Si el pedido se cancela, el cupón se restablece. Si el cliente devuelve el pedido ya entregado, el cupón no se restituye.</li>
+                </ul>
+                <p>
+                    <b>2.5 Precio de los Regalos Promocionales.</b> Los Regalos Promocionales se agregan al
+                    pedido con un precio simbólico de $0.01 más IVA, se entregan junto con una compra, y
+                    no se pueden adquirir por separado ni canjear por dinero.
+                </p>
+
                 <h5 class="mt-4">3. Aceptación</h5>
                 <p>
                     El Cliente manifiesta su aceptación a "Los TyC de Rewards" mediante las
@@ -428,7 +450,7 @@
                         <div class="modal-body text-center">
                             <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
                             <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
-                            <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
+                            <p class="text-muted small mb-0">Se agregará a tu carrito con un precio simbólico de $0.01 + IVA. Se entrega junto con tu próximo pedido.</p>
                         </div>
                         <div class="modal-footer">
                             <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
