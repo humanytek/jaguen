@@ -428,7 +428,7 @@
                         <div class="modal-body text-center">
                             <img t-att-src="gift['image_url']" t-att-alt="gift['name']" style="height: 160px; object-fit: contain;"/>
                             <p class="fw-bold mt-2 mb-1" t-esc="gift['name']"/>
-                            <p class="text-muted small mb-0">Se agregará a tu carrito con precio $0.00. Se entrega junto con tu próximo pedido.</p>
+                            <p class="text-muted small mb-0">Se agregará a tu carrito con un precio simbólico de $0.01 + IVA. Se entrega junto con tu próximo pedido.</p>
                         </div>
                         <div class="modal-footer">
                             <form action="/my/loyalty/regalo/escoger" method="post" class="d-flex gap-2 w-100 justify-content-end">
