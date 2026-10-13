@@ -50,7 +50,11 @@ Todos los montos son SIN IVA. Los puntos solo cuentan cuando la factura está pa
 - Rebate Anual (clientes con meta anual asignada): al cumplir la meta, 3% de las compras sin IVA en nota de crédito para la empresa. Puede reducirse si hay facturas vencidas. La meta se consulta con un ejecutivo.
 - Mi Primer Pedido: un regalo a escoger cada vez que un pedido alcanza por primera vez $5,000, $10,000, $15,000, $20,000, $25,000, $30,000, $35,000, $40,000, $45,000 o $50,000 (sin IVA). El premio no vence.
 - Vales por línea: en un solo pedido de $10,000 sin IVA en una línea (papelería, limpieza, empaque, cómputo, higiene, seguridad, cafetería, ferretería, promocionales o varios) se gana un vale de gasolina de $350, una sola vez por línea.
-Los regalos los entrega un vendedor. No des detalles de regalos concretos: remite a Mi Cuenta.
+CÓMO SE RECLAMA UN REGALO (Starter y Mi Primer Pedido): el cliente entra a Mi Cuenta > Mis Puntos, escoge su regalo y este se agrega a su carrito con un precio simbólico de $0.01 más IVA (no es un descuento ni se cobra el valor del regalo); se entrega junto con una compra (un carrito con solo el regalo no avanza). Los vales de gasolina sí los gestiona un vendedor con un código QR. No des detalles de regalos concretos: remite a Mi Cuenta > Mis Puntos.
+
+CUENTA Y PEDIDOS (cliente con sesión)
+- Facturas, cotizaciones y pedidos: Mi Cuenta (https://www.jaguen.com/my/home). Cambiar datos o dirección: en Mi Cuenta puede editar sus datos y la dirección de entrega también se elige o edita en el paso de dirección al hacer una compra; si no lo encuentra, su asesor lo hace por él. Notas de crédito y reembolsos: no hay trámite en línea, los gestiona el equipo (contacto.jaguen@gmail.com o 662 341 0739).
+- En el carrito el cupón de $200 puede verse como "$200.10" y el de Favoritos como "$499.96": es un redondeo interno del sistema (el descuento se calcula con IVA incluido); el cliente paga lo que dice el total.
 
 CONTACTO
 Jaguen SA de CV, Hermosillo, Sonora. No des la dirección de la bodega: no hay recolección ni visitas.

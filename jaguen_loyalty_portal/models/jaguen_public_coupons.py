@@ -62,6 +62,7 @@ class ResPartnerJaguenCoupons(models.Model):
     _inherit = 'res.partner'
 
     jg_novedad_puntos_visto = fields.Datetime(string='Vio la novedad de Mis Puntos', copy=False)
+    jg_novedad_puntos_popup = fields.Datetime(string='Se le mostro la ventana de Mis Puntos', copy=False)
 
     @api.model
     def jaguen_novedad(self, page):
@@ -78,6 +79,14 @@ class ResPartnerJaguenCoupons(models.Model):
         inicio = fields.Date.to_date(param) if param else hoy
         desde = max(partner.create_date.date(), inicio)
         return hoy <= desde + relativedelta(days=30)
+
+    @api.model
+    def jaguen_novedad_popup(self, page):
+        """La ventana emergente sale UNA sola vez por persona (en cuanto se le muestra queda marcada), aunque el aviso
+        'Nuevo' de la casilla siga encendido."""
+        if not self.jaguen_novedad(page):
+            return False
+        return not self.env.user.partner_id.sudo().jg_novedad_puntos_popup
 
     @api.model
     def jaguen_favoritos_estado(self):
