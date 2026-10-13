@@ -1,37 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Aviso en el carrito cuando una compra personal no llega al minimo -->
-    <template id="cart_personal_minimo" inherit_id="website_sale.cart" name="Jaguen: minimo compra personal">
-        <xpath expr="//t[@t-call='website_sale.cart_lines']" position="before">
-            <div t-if="website_sale_order and website_sale_order.x_jaguen_personal_min_gap" class="alert alert-warning" role="alert">
+    <!-- Aviso de pedido minimo: va dentro de cart_lines (la parte del carrito que se vuelve a pintar al cambiar cantidades) para que se actualice solo -->
+    <template id="cart_personal_minimo" inherit_id="website_sale.cart_lines" name="Jaguen: minimo compra personal">
+        <xpath expr="//div[@id='cart_products']" position="before">
+            <div t-if="website_sale_order and website_sale_order.x_jaguen_personal_min_gap" class="alert alert-warning js_cart_lines" role="alert">
                 <t t-if="website_sale_order.x_jaguen_min_reason == 'guest'">
-                    <strong>Compra sin registro:</strong>
-                    el pedido mínimo es de
-                    <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
-                    más IVA (antes de IVA y sin contar el envío).
-                    Te faltan
-                    <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong>
-                    más IVA para continuar.
-                    Si ya tienes cuenta, <a href="/web/login?redirect=/shop/cart">inicia sesión</a>;
-                    si eres empresa o persona física con actividad empresarial, <a href="/registrate">regístrate gratis</a> (menos de 5 minutos) y compras sin pedido mínimo.
+                    <strong>Compra Sin Sesión:</strong>
+                    El Pedido Mínimo es de <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> más IVA.
+                    Te faltan <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong> más IVA para continuar.
+                    Si ya tienes cuenta, <a href="/web/login?redirect=/shop/cart">Inicia Sesión</a>;
+                    si eres Empresa o Persona Física con Actividad Empresarial, <a href="/registrate">regístrate gratis</a> (menos de 5 minutos) y tu Pedido Mínimo es de <span t-out="website_sale_order.x_jaguen_cart_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> más IVA
                 </t>
                 <t t-elif="website_sale_order.x_jaguen_min_reason == 'personal'">
-                    <strong>Compra personal:</strong>
-                    el pedido mínimo es de
-                    <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
-                    más IVA (antes de IVA y sin contar el envío).
-                    Te faltan
-                    <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong>
-                    más IVA para poder continuar con tu compra.
+                    <strong>Compra Personal:</strong>
+                    El Pedido Mínimo es de <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> más IVA.
+                    Te faltan <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong> más IVA para poder continuar con tu compra.
                 </t>
                 <t t-else="">
-                    <strong>Pedido mínimo:</strong>
-                    el pedido mínimo es de
-                    <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
-                    más IVA (antes de IVA y sin contar el envío).
-                    Te faltan
-                    <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong>
-                    más IVA para poder continuar con tu compra.
+                    <strong>Pedido Mínimo:</strong>
+                    El Pedido Mínimo es de <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> más IVA.
+                    Te faltan <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong> más IVA para poder continuar con tu compra.
                 </t>
             </div>
         </xpath>

@@ -11,6 +11,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     x_jaguen_personal_min = fields.Float(compute='_compute_jaguen_personal_min')
+    x_jaguen_cart_min = fields.Float(compute='_compute_jaguen_personal_min')
     x_jaguen_personal_min_gap = fields.Float(compute='_compute_jaguen_personal_min')
     x_jaguen_min_reason = fields.Char(compute='_compute_jaguen_personal_min')
 
@@ -54,5 +55,6 @@ class SaleOrder(models.Model):
                     lambda l: not l.display_type and not l.is_delivery and not l.is_reward_line)
                 gap = max(0.0, minimum - sum(lines.mapped('price_subtotal')))
             order.x_jaguen_personal_min = minimum
+            order.x_jaguen_cart_min = cart_min
             order.x_jaguen_personal_min_gap = round(gap, 2)
             order.x_jaguen_min_reason = reason if gap > 0 else False

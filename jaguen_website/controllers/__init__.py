@@ -7,3 +7,4 @@ from . import sepomex
 from . import wishlist
 from . import shop_rotation
 from . import website_sale_personal
+from . import portal_cart

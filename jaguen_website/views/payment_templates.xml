@@ -12,8 +12,8 @@
                 </label>
                 <select id="jaguen_card_type" name="jaguen_card_type" class="form-select">
                     <option value="">Selecciona una opción...</option>
-                    <option value="credit">Tarjeta de crédito</option>
-                    <option value="debit">Tarjeta de débito</option>
+                    <option value="credit">Tarjeta de Crédito</option>
+                    <option value="debit">Tarjeta de Débito</option>
                 </select>
                 <div class="form-text">
                     Este dato se usa en tu factura y en tu complemento de pago. Elige la opción correcta.
