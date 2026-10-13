@@ -71,7 +71,7 @@ REGLAS (obligatorias):
 18. ESTADO DEL FORMULARIO: si en tus datos viene el ESTADO ACTUAL DEL FORMULARIO DE REGISTRATE, úsalo para decirle al cliente, en una lista corta y en el orden en que aparecen, qué campos obligatorios siguen pendientes y cuáles tienen error, con el nombre tal cual lo ve en pantalla (usa solo lo que viene ahí, no inventes campos). Si no falta nada, dile que ya puede presionar Enviar. Anímalo a seguir y ofrécele ayuda con lo que no entienda. Nunca le pidas sus datos por el chat para llenarlos tú.
 17. DOCUMENTOS EN REGISTRATE (la meta es NO perder al cliente que ya llenó todo por un documento). Pide la Constancia de situación fiscal y la Opinión de cumplimiento en PDF del SAT, de este mes o del anterior, del MISMO RFC que escribió. Si el sistema le objeta un documento, el primer mensaje trae "lo que leyó el sistema": explícaselo claro y breve (qué dice el documento contra lo que él escribió) y ofrece la liga: Constancia https://www.sat.gob.mx/portal/public/tramites/constancia-de-situacion-fiscal ; Opinión https://www.sat.gob.mx/portal/public/tramites/opinion-del-cumplimiento . Si dice que no encuentra o no abre la liga, da la ruta: www.sat.gob.mx > Trámites y servicios > Más trámites y servicios > Constancias, devoluciones > "Constancia de situación fiscal" (para la opinión: "Opinión del cumplimiento"). Pregúntale si puede conseguirlo ahorita mismo. Solo si responde que no puede (sin acceso, no lo tiene, no está la persona, etc.) usa desbloquear_documentos en ese mismo turno y dile "sin problema, ya lo solucioné": vuelve a elegir su archivo y presiona Enviar; la Opinión ya no es obligatoria, la Constancia sí hay que subirla pero se acepta aunque esté desactualizada o en foto; un asesor le pedirá luego los documentos actualizados. Nunca le pidas el archivo por el chat. LA ÚNICA EXCEPCIÓN: si el RFC del documento no es el que escribió, NO desbloquees: ayúdale a ver el error diciéndole los dos RFC ("escribiste X y el documento dice Y"), que revise cuál está mal (el que escribió o el documento) y lo corrija o suba el documento correcto.
 19. PREGUNTAS: NUNCA cierres dos mensajes seguidos con la misma pregunta, ni repitas una pregunta que ya hiciste aunque el cliente no la haya contestado (si no contestó, déjalo: contesta lo que pida y sigue). Si el cliente está molesto, groserillo, bromea o se sale de tema, NO le hagas preguntas de venta (compras, ciudad, volumen): atiende lo suyo con calma y, si hace falta, ofrece pasarlo con una persona. Respuestas breves: máximo 3 frases cortas; no repitas la invitación a registrarse si ya la hiciste en esta conversación (solo cuando pregunte por precios, cotización, volumen o crédito).
-21. HERRAMIENTAS: lo que escribas antes de usar una herramienta le llega al cliente junto con lo que escribas después, así que NO repitas lo ya dicho. Después de usar una herramienta, completa la respuesta a lo que preguntó el cliente (no te limites a confirmar que registraste algo) y, si ya lo habías contestado antes de la herramienta, solo agrega lo que falte en una frase.
+21. HERRAMIENTAS: ANTES de usar una herramienta no escribas nada y no avises que la vas a usar (nada de "voy a buscar", "voy a anotar", "déjame registrar"). Después de usarla, escribe UNA respuesta completa a lo que preguntó el cliente (no te limites a confirmar que registraste algo). El aviso de que el equipo lo contactará se da UNA sola vez en toda la conversación y solo después de usar crear_lead o pasar_a_persona; en los mensajes siguientes actualiza en silencio, sin decirlo.
 20. NUNCA DIGAS QUE YA HICISTE ALGO (registrar el caso, anotar tus datos, avisar al equipo) si en este mismo turno no usaste la herramienta; si quieres que el equipo lo atienda, primero usa crear_lead o pasar_a_persona y después sí díselo.
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
@@ -742,7 +742,8 @@ class JaguenAiService(models.AbstractModel):
         return MODE_PROMPTS['sin_filtro']
 
     _ASKED = (
-        (r'te encargas de las compras', 'si quien escribe es quien compra'),
+        (r'(te encargas|se encarga|eres quien se encarga|usted se encarga)[^.?!]*compras', 'si quien escribe es quien compra'),
+        (r'(qued[oó]|dej[eé]|dejo) registrad|ya (registr|anot|actualic)|equipo (te|lo|la|le) (atender|contact)', 'que su caso ya quedó registrado y que el equipo lo contactará (ese aviso se da UNA sola vez: no lo repitas ni digas que lo "actualizaste")'),
         (r'\bciudad\b[^.?!]*\?', 'a qué ciudad serían las entregas'),
         (r'cu[aá]nto cr[eé]dito', 'cuánto crédito necesita'),
         (r'volumen[^.?!]*\?', 'su volumen mensual'),
@@ -800,6 +801,29 @@ class JaguenAiService(models.AbstractModel):
 
     _CLAIM = re.compile(r'\b(ya|acabo de|ahora s[ií])\s+(dej[eé]|registr(?:[eé]|ar)|anot(?:[eé]|ar)|apunt(?:[eé]|ar)|avis(?:[eé]|ar)|actualic(?:[eé]|ar)|guard(?:[eé]|ar)|pas(?:[eé]|ar)|mand(?:[eé]|ar)|envi(?:[eé]|ar))|qued[oó]\s+(registrad|anotad|guardad)|ya qued[oó]', re.I)
 
+    _NARRA = re.compile(r'^\W*(voy a|déjame|dejame|déjenme|permíteme|permiteme|un momento|ahorita|ahora (te|lo|la)\b|ya mismo|lo hago ahora|lo busco|busco|reviso|consulto|te dejo (registrad|anotad)|dejo (registrad|anotad)|una corrección|se me adelant|i wrote in|i\'ll (pass|register|check)|let me |i will )', re.I)
+
+    def _clean_reply(self, pre_texts, text, used_action):
+        """Une lo escrito antes y despues de las herramientas SIN los avisos internos ("voy a buscar...", "voy a anotar...") y,
+        si no se uso ninguna herramienta, sin frases que digan que ya se registro/aviso algo."""
+        seen, paras = set(), []
+        for chunk in list(pre_texts) + ([text] if text else []):
+            for para in re.split(r'\n\s*\n', chunk):
+                keep = []
+                for sent in re.split(r'(?<=[.!?])\s+|\n', para):
+                    sent = sent.strip()
+                    if not sent or self._NARRA.search(sent) or (not used_action and self._CLAIM.search(sent)):
+                        continue
+                    key = re.sub(r'\W+', ' ', sent.lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    keep.append(sent)
+                if keep:
+                    paras.append(' '.join(keep))
+        cleaned = '\n\n'.join(paras).strip()
+        return cleaned or (text or '').strip()
+
     def reply(self, session, base_url, form_ctx=''):
         """Devuelve (texto, tokens_entrada, tokens_salida)."""
         model = self._model_for(session)
@@ -808,7 +832,7 @@ class JaguenAiService(models.AbstractModel):
         if not messages:   # sin mensaje del cliente no hay nada que mandar a la API (evita un error 400)
             return '', 0, 0
         tokens_in = tokens_out = cache_read = cache_write = 0
-        used_action = retried = False
+        used_action = False
         pre_texts = []
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
@@ -843,14 +867,7 @@ class JaguenAiService(models.AbstractModel):
             if not text and data.get('stop_reason') == 'max_tokens' and max_tokens < 3 * limits['max_tokens']:
                 max_tokens *= 2   # se acabo el presupuesto antes de escribir: se reintenta con mas espacio
                 continue
-            if text and not used_action and not retried and self._CLAIM.search(text):
-                # Dijo que ya registro/anoto algo sin haber usado ninguna herramienta: se le pide corregirlo (una sola vez)
-                retried = True
-                messages.append({'role': 'assistant', 'content': text})
-                messages.append({'role': 'user', 'content': '(Aviso interno, no del cliente: dijiste que ya registraste, anotaste o avisaste algo pero NO usaste ninguna herramienta en este turno. Reescribe tu respuesta sin afirmarlo, o si quieres que el equipo lo atienda usa primero crear_lead o pasar_a_persona.)'})
-                continue
-            if pre_texts:
-                text = '\n\n'.join(pre_texts + ([text] if text else []))
+            text = self._clean_reply(pre_texts, text, used_action)
             self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
         self._note_cache(session, cache_read, cache_write)
