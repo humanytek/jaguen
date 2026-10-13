@@ -8,7 +8,7 @@
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                 <input type="hidden" name="access_token" t-att-value="sale_order.access_token"/>
                 <button type="submit" class="btn btn-outline-primary"
-                        onclick="return confirm('¿Regresar estos productos a tu carrito para modificarlos? Esta cotización se cancelará y se generará una nueva al terminar tu compra.');">
+                        onclick="return confirm('¿Regresar estos productos a tu carrito?\n\nEsta cotización se cancelará y se generará una nueva al terminar tu compra.');">
                     <i class="fa fa-pencil"/> Modificar
                 </button>
             </form>
