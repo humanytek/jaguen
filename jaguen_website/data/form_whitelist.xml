@@ -2,7 +2,7 @@
 <odoo>
     <!-- Campos de paso del formulario "Regístrate": se permiten en el formulario del sitio (se corre en cada actualización). -->
     <function model="ir.model.fields" name="formbuilder_whitelist"
-              eval="('res.partner', ['jaguen_contact_name', 'jaguen_contact_email', 'jaguen_contact_mobile', 'jaguen_contact_function',
+              eval="('res.partner', ['jaguen_contact_name', 'jaguen_contact_email', 'jaguen_contact_mobile', 'jaguen_contact_function', 'jaguen_contact_birthday',
                                      'jaguen_ship_same', 'jaguen_ship_street', 'jaguen_ship_colony', 'jaguen_ship_zip',
                                      'jaguen_ship_city', 'jaguen_ship_state', 'jaguen_ship_receiver', 'jaguen_ship_phone',
                                      'jaguen_ship_email', 'jaguen_personal'])"/>

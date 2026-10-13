@@ -8,3 +8,4 @@ from . import attachment
 from . import sepomex
 from . import wishlist
 from . import product_rotation
+from . import res_users_columns
