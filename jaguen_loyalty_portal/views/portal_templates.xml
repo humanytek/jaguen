@@ -814,7 +814,7 @@
     <template id="cart_gift_only_warning" inherit_id="website_sale.cart" name="JAGUEN: carrito solo con regalo">
         <xpath expr="//h3[hasclass('mb-4')]" position="after">
             <div t-if="website_sale_order and website_sale_order.sudo().jaguen_is_gift_only()" class="alert alert-warning" role="alert">
-                Tu regalo se entrega junto con una compra: agrega al menos un producto a tu carrito para poder finalizar tu pedido.
+                Tu Regalo se entrega junto con una compra: agrega al menos un producto a tu carrito para poder finalizar tu pedido.
             </div>
         </xpath>
     </template>

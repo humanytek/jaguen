@@ -102,7 +102,7 @@ class SaleOrder(models.Model):
     def _check_cart_is_ready_to_be_paid(self):
         if self.website_id and self._jaguen_gift_only():
             raise ValidationError(_(
-                'Tu regalo se entrega junto con una compra: agrega al menos un '
+                'Tu Regalo se entrega junto con una compra: agrega al menos un '
                 'producto a tu carrito para poder hacer tu pedido.'))
         return super()._check_cart_is_ready_to_be_paid()
 
@@ -110,7 +110,7 @@ class SaleOrder(models.Model):
         for order in self.filtered('website_id'):
             if order._jaguen_gift_only():
                 raise UserError(_(
-                    'Un pedido de la tienda no puede ser solo el regalo: debe incluir al menos un producto con costo.'))
+                    'Un Pedido de la tienda no puede ser solo el regalo: debe incluir al menos un producto con costo.'))
         return super().action_confirm()
 
     # -- 3) Factura siempre a la empresa -----------------------------------
@@ -146,5 +146,5 @@ class SaleOrderLine(models.Model):
         if 'product_uom_qty' in vals:
             for line in self.filtered(lambda l: l.is_reward_line and l.reward_id.program_id.x_jaguen_loyalty_group in ('onboarding', 'pedido_monto')):
                 if vals['product_uom_qty'] != (line.reward_id.reward_product_qty or 1):
-                    raise UserError(_('El regalo de este programa es de una sola pieza por canje; no se puede cambiar su cantidad.'))
+                    raise UserError(_('El Regalo de este programa es de una sola pieza por canje; no se puede cambiar su cantidad.'))
         return super().write(vals)
