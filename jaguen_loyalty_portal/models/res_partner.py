@@ -35,8 +35,8 @@ class ResPartner(models.Model):
         help=(
             "Controla los regalos/vales que se entregan a la persona que "
             "gestiona la cuenta, en representacion de la empresa (JAGUEN "
-            "Starter, Mi Primer Pedido de $X, Mi Primer Pedido por Linea, "
-            "y la tarjeta de regalo dentro de Rebate Anual). Si esta en "
+            "Starter, Mi Primer Pedido de $X y Mi Primer Pedido por Linea). "
+            "Si esta en "
             "False, esos programas se ocultan por completo en el portal "
             "de ese cliente."
         ),
@@ -45,8 +45,7 @@ class ResPartner(models.Model):
         string='Acepta participar en Rebate Anual',
         help=(
             "Controla el programa de Rebate Anual completo (nota de "
-            "credito a la empresa, mas la tarjeta de regalo si tambien "
-            "acepto Incentivos Starter). Si esta en False, ese programa "
+            "credito a la empresa). Si esta en False, ese programa "
             "no se muestra en el portal de ese cliente."
         ),
     )

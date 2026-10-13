@@ -5,7 +5,13 @@
     <template id="cart_jaguen_available_coupons" inherit_id="website_sale.cart_lines">
         <xpath expr="//div[@id='cart_products']" position="before">
             <t t-set="jaguen_coupons" t-value="website_sale_order and website_sale_order._jaguen_available_public_coupons()"/>
-            <div t-if="jaguen_coupons" class="alert alert-success d-flex flex-wrap align-items-center gap-2 mb-3" role="alert">
+            <t t-set="jaguen_sin_iva" t-value="jaguen_coupons and website_sale_order._jaguen_lineas_sin_iva()"/>
+            <div t-if="jaguen_coupons and jaguen_sin_iva" class="alert alert-warning mb-3" role="alert">
+                <b>🎟️ Tienes un cupón, pero no se puede aplicar todavía.</b>
+                Tu cupón solo vale en compras con productos con IVA 16%. Quita de tu carrito estos productos sin IVA:
+                <b><t t-esc="', '.join(jaguen_sin_iva.mapped('product_id.display_name'))"/></b>.
+            </div>
+            <div t-elif="jaguen_coupons" class="alert alert-success d-flex flex-wrap align-items-center gap-2 mb-3" role="alert">
                 <span class="fw-bold">🎟️ Tienes estos cupones:</span>
                 <form t-foreach="jaguen_coupons" t-as="jaguen_card" action="/shop/pricelist" method="post" class="d-inline m-0">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>

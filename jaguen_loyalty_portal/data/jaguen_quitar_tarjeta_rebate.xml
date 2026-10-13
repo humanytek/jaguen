@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Rebate Anual es solo la nota de credito del 3%: se borra cualquier tramo viejo de "tarjeta de regalo" que quede en la base -->
+    <function model="loyalty.reward" name="_jaguen_quitar_tarjeta_rebate"/>
+</odoo>

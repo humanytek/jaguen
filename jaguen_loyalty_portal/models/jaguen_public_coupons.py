@@ -21,6 +21,7 @@ import secrets
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -157,6 +158,61 @@ class ResPartnerJaguenCoupons(models.Model):
             card.jaguen_reminder_sent = True
 
 
+class LoyaltyRewardJaguenCoupons(models.Model):
+    _inherit = 'loyalty.reward'
+
+    @api.model
+    def _jaguen_setup_cupon_products(self):
+        """Cada cupon publico descuenta con SU PROPIO producto, con la configuracion contable de DescBono
+        (cuenta de ingresos 402.01.01 Descuentos sobre ventas, IVA 16%, clave SAT 84111506). Asi el
+        descuento no se esconde dentro de 401.01.01. Es un producto aparte (no DescBono mismo) porque Odoo
+        renombra o archiva el producto de descuento de un premio cuando cambia su texto o su estado, y
+        DescBono lo usan las notas de credito. Si no existe DescBono se deja el producto que Odoo creo solo."""
+        Product = self.env['product.product'].sudo().with_context(active_test=False)
+        base = Product.search([('default_code', '=', 'DescBono'), ('active', '=', True)], limit=1)
+        if not base:
+            _logger.warning('Cupones: no existe el producto DescBono; se deja el producto de descuento de Odoo.')
+            return
+        cfg = (
+            (PROGRAM_REGISTRO_XMLID, 'DescCuponBienv', 'Cupón de bienvenida $200'),
+            (PROGRAM_FAVORITOS_XMLID, 'DescCuponFav', 'Cupón Favoritos $500'),
+        )
+        for xmlid, code, name in cfg:
+            program = self.env.ref(xmlid, raise_if_not_found=False)
+            if not program:
+                continue
+            prod = Product.search([('default_code', '=', code)], limit=1)
+            if not prod:
+                vals = {
+                    'name': name, 'default_code': code, 'type': 'service', 'categ_id': base.categ_id.id,
+                    'sale_ok': True, 'purchase_ok': False, 'website_published': False, 'list_price': 0,
+                    'taxes_id': [(6, 0, base.taxes_id.ids)], 'property_account_income_id': base.property_account_income_id.id,
+                    'uom_id': base.uom_id.id, 'uom_po_id': base.uom_po_id.id,
+                }
+                if 'unspsc_code_id' in base._fields:
+                    vals['unspsc_code_id'] = base.unspsc_code_id.id
+                prod = Product.create(vals)
+            if not prod.sale_ok:
+                prod.sale_ok = True
+            for reward in program.reward_ids.sudo():
+                old = reward.discount_line_product_id
+                if old == prod:
+                    continue
+                reward.discount_line_product_id = prod
+                if old:
+                    # El producto que Odoo creo solo: se borra si nunca se uso, si no se archiva.
+                    usado = self.env['account.move.line'].sudo().search_count([('product_id', '=', old.id)]) \
+                        or self.env['sale.order.line'].sudo().search_count([('product_id', '=', old.id)])
+                    try:
+                        with self.env.cr.savepoint():
+                            if usado:
+                                old.active = False
+                            else:
+                                old.unlink()
+                    except Exception:  # noqa: BLE001
+                        _logger.exception('Cupones: no se pudo limpiar el producto anterior %s', old.id)
+
+
 class ProductWishlistJaguenCoupons(models.Model):
     _inherit = 'product.wishlist'
 
@@ -201,11 +257,35 @@ class ProductWishlistJaguenCoupons(models.Model):
 class SaleOrderJaguenCoupons(models.Model):
     _inherit = 'sale.order'
 
+    def _jaguen_lineas_sin_iva(self):
+        """Renglones del pedido que NO llevan IVA 16% (productos al 0% o sin impuesto). Los regalos, los
+        descuentos y el envio no cuentan: solo los productos que el cliente compra."""
+        self.ensure_one()
+        lines = self.order_line.filtered(
+            lambda l: not l.display_type and not l.is_reward_line and not ('is_delivery' in l._fields and l.is_delivery))
+        return lines.filtered(
+            lambda l: not any(t.amount_type == 'percent' and abs(t.amount - 16.0) < 0.001 for t in l.tax_id))
+
+    def _jaguen_cupones_publicos(self):
+        programs = self.env['loyalty.program']
+        for xmlid in (PROGRAM_REGISTRO_XMLID, PROGRAM_FAVORITOS_XMLID):
+            program = self.env.ref(xmlid, raise_if_not_found=False)
+            if program:
+                programs |= program
+        return programs
+
     def _get_claimable_rewards(self, forced_coupons=None):
-        """El Cupon Favoritos solo se puede reclamar si la compra trae al menos 20 de los 40
-        productos que tenia guardados cuando se le dio el cupon (la foto congelada, no sus
+        """Los 2 cupones publicos solo se pueden usar si TODOS los productos del pedido llevan IVA 16%
+        (si hubiera productos al 0%, parte del descuento caeria en una cuenta de tasa general contra una
+        venta al 0%). Ademas, el Cupon Favoritos solo se puede reclamar si la compra trae al menos 20 de
+        los 40 productos que tenia guardados cuando se le dio el cupon (la foto congelada, no sus
         favoritos actuales)."""
         result = super()._get_claimable_rewards(forced_coupons=forced_coupons)
+        publicos = self._jaguen_cupones_publicos()
+        if publicos and result and self._jaguen_lineas_sin_iva():
+            for coupon in list(result):
+                if coupon.program_id in publicos:
+                    del result[coupon]
         favoritos = self.env.ref(PROGRAM_FAVORITOS_XMLID, raise_if_not_found=False)
         if not favoritos:
             return result
@@ -216,6 +296,21 @@ class SaleOrderJaguenCoupons(models.Model):
                 if len(order_products & frozen) < FAVORITOS_MINIMO_COMPRA:
                     del result[coupon]
         return result
+
+    def action_confirm(self):
+        """Segunda llave del candado de IVA: ningun pedido (tambien los hechos desde el backend) se confirma
+        con un cupon publico si trae productos que no llevan IVA 16%."""
+        publicos = self._jaguen_cupones_publicos()
+        if publicos:
+            for order in self:
+                usa_cupon = order.order_line.filtered(lambda l: l.reward_id and l.reward_id.program_id in publicos)
+                if usa_cupon:
+                    malos = order._jaguen_lineas_sin_iva()
+                    if malos:
+                        raise UserError(
+                            'El cupón solo aplica a pedidos con productos con IVA 16%%. Quita estos productos sin IVA '
+                            'o quita el cupón: %s.' % ', '.join(malos.mapped('product_id.display_name')))
+        return super().action_confirm()
 
     def _update_programs_and_rewards(self):
         """Los 2 programas son 'con codigo' (si fueran automaticos Odoo los daria a TODOS los

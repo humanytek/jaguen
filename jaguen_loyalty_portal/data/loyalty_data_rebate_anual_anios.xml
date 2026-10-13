@@ -60,16 +60,6 @@
         <field name="discount_mode">percent</field>
         <field name="required_points">360000</field>
         <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">empresa</field>
-    </record>
-    <record id="reward_rebate_anual_2027_comprador" model="loyalty.reward">
-        <field name="program_id" ref="program_rebate_anual_2027"/>
-        <field name="reward_type">discount</field>
-        <field name="discount">0.01</field>
-        <field name="discount_mode">percent</field>
-        <field name="required_points">360000</field>
-        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">comprador</field>
     </record>
 
     <!-- ===================== Rebate Anual 2028 ===================== -->
@@ -99,16 +89,6 @@
         <field name="discount_mode">percent</field>
         <field name="required_points">360000</field>
         <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">empresa</field>
-    </record>
-    <record id="reward_rebate_anual_2028_comprador" model="loyalty.reward">
-        <field name="program_id" ref="program_rebate_anual_2028"/>
-        <field name="reward_type">discount</field>
-        <field name="discount">0.01</field>
-        <field name="discount_mode">percent</field>
-        <field name="required_points">360000</field>
-        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">comprador</field>
     </record>
 
     <!-- ===================== Rebate Anual 2029 ===================== -->
@@ -138,16 +118,6 @@
         <field name="discount_mode">percent</field>
         <field name="required_points">360000</field>
         <field name="description">3% en nota de crédito para tu empresa sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">empresa</field>
-    </record>
-    <record id="reward_rebate_anual_2029_comprador" model="loyalty.reward">
-        <field name="program_id" ref="program_rebate_anual_2029"/>
-        <field name="reward_type">discount</field>
-        <field name="discount">0.01</field>
-        <field name="discount_mode">percent</field>
-        <field name="required_points">360000</field>
-        <field name="description">1% en tarjeta de regalo para quien gestiona tu cuenta sobre tus compras totales sin IVA</field>
-        <field name="x_jaguen_reward_audience">comprador</field>
     </record>
 
 </odoo>

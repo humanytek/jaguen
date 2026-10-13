@@ -74,7 +74,7 @@
                     <div class="row align-items-center g-2">
                         <div class="col-md-9">
                             <b style="font-size:1rem">🎁 Regístrate gratis y llévate $200 de cupón de bienvenida</b>
-                            <div style="font-size:.82rem;opacity:.9">Compra mínima de $4,000 + IVA · El cupón vale 30 días</div>
+                            <div style="font-size:.82rem;opacity:.9">Compra mínima de $4,000 + IVA · Solo productos con IVA 16% · El cupón vale 30 días</div>
                         </div>
                         <div class="col-md-3 text-md-end">
                             <a href="/registrate" class="btn btn-sm fw-bold text-white" style="background:#f47c20;border-color:#f47c20">Regístrate ahora</a>
@@ -94,6 +94,13 @@
 
     <!-- Marca "ya lo vio" al entrar a Mis Puntos -->
     <template id="jaguen_puntos_novedad_mark" inherit_id="jaguen_loyalty_portal.portal_my_loyalty">
+        <xpath expr="//div[hasclass('o_portal_my_doc_table')]" position="inside">
+            <div t-if="request.env['res.partner'].jaguen_novedad('puntos')" class="jg-novedad-mark d-none" data-page="puntos"/>
+        </xpath>
+    </template>
+
+    <!-- Tambien cuenta como "ya lo vio" la pantalla de terminos que aparece antes de Mis Puntos -->
+    <template id="jaguen_puntos_novedad_mark_terminos" inherit_id="jaguen_loyalty_portal.portal_my_loyalty_terminos">
         <xpath expr="//div[hasclass('o_portal_my_doc_table')]" position="inside">
             <div t-if="request.env['res.partner'].jaguen_novedad('puntos')" class="jg-novedad-mark d-none" data-page="puntos"/>
         </xpath>

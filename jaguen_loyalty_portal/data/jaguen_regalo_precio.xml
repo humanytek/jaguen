@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Precio simbolico (antes de IVA) con el que entra al pedido el regalo de Starter y Mi Primer Pedido -->
+    <record id="param_regalo_precio" model="ir.config_parameter">
+        <field name="key">jaguen_loyalty_portal.regalo_precio</field>
+        <field name="value">0.01</field>
+    </record>
+</odoo>

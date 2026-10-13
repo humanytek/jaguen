@@ -150,8 +150,7 @@
                                     Regalos Promocionales y Vales de Gasolina que JAGUEN entrega,
                                     como parte de la relación comercial con mi empresa, a la
                                     persona que gestiona la cuenta en representación del Cliente
-                                    (JAGUEN Starter, Mi Primer Pedido, y la tarjeta de regalo
-                                    dentro de Rebate Anual). Al aceptar, confirmo que tengo la
+                                    (JAGUEN Starter y Mi Primer Pedido). Al aceptar, confirmo que tengo la
                                     autorización de mi empresa para recibir este tipo de
                                     incentivos de proveedores. JAGUEN no verifica ni se hace
                                     responsable de las políticas internas de mi empresa.
@@ -225,7 +224,7 @@
                 <ul>
                     <li><b>JAGUEN Starter:</b> Regalos Promocionales conforme el Cliente avanza en su nivel de compra acumulada, durante su periodo de incorporación como cliente nuevo.</li>
                     <li><b>Mi Primer Pedido:</b> Regalos Promocionales y Vales de Gasolina por alcanzar ciertos montos en sus pedidos, y por alcanzarlos en cada línea de producto que maneja Jaguen.</li>
-                    <li><b>Rebate Anual:</b> Nota de Crédito a la cuenta del Cliente, y una tarjeta de regalo, al cumplir los objetivos de compra anuales fijados conforme a su historial de compra.</li>
+                    <li><b>Rebate Anual:</b> Nota de Crédito a la cuenta del Cliente al cumplir los objetivos de compra anuales fijados conforme a su historial de compra.</li>
                 </ul>
 
                 <h5 class="mt-4">2. Mecánica de Los Programas</h5>
@@ -290,8 +289,8 @@
                     (c) <b>Rebate Anual:</b> a partir de cierto tiempo de actividad del Cliente,
                     Jaguen observa su promedio de compra mensual para fijar una meta anual de
                     compra. Al cierre de cada año, si el Cliente alcanza dicha meta, se le otorga
-                    una nota de crédito a la cuenta de su empresa y una tarjeta de regalo — ambas
-                    calculadas como un porcentaje del volumen comprado en el periodo evaluado. La
+                    una nota de crédito a la cuenta de su empresa, calculada como un porcentaje
+                    del volumen comprado en el periodo evaluado. La
                     nota de crédito es saldo a favor para compras posteriores en Jaguen, no es
                     canjeable por dinero en efectivo y no genera intereses ni rendimientos. El
                     comportamiento de
@@ -319,8 +318,7 @@
                     casillas dispuestas en "El Portal", pudiendo aceptar una, ambas, o ninguna:
                 </p>
                 <p>
-                    (a) <b>Incentivos Starter:</b> aplica a JAGUEN Starter, Mi Primer Pedido, y a
-                    la tarjeta de regalo dentro de Rebate Anual. Estos beneficios se entregan,
+                    (a) <b>Incentivos Starter:</b> aplica a JAGUEN Starter y Mi Primer Pedido. Estos beneficios se entregan,
                     como parte de la relación comercial con la empresa del Cliente, a la persona
                     que gestiona la cuenta en representación del Cliente. Al aceptar, la persona
                     que gestiona la cuenta confirma que tiene la autorización de su organización
@@ -657,27 +655,27 @@
                                     <tbody>
                                         <tr>
                                             <td>100% o más de la meta</td>
-                                            <td>3% - 1%</td>
-                                            <td>1.5% - 0.5%</td>
-                                            <td>0.0% - 0.0%</td>
+                                            <td>3%</td>
+                                            <td>1.5%</td>
+                                            <td>0.0%</td>
                                         </tr>
                                         <tr>
                                             <td>Entre 90% y 99% de la meta</td>
-                                            <td>1.5% - 0.5%</td>
-                                            <td>0.75% - 0.25%</td>
-                                            <td>0.0% - 0.0%</td>
+                                            <td>1.5%</td>
+                                            <td>0.75%</td>
+                                            <td>0.0%</td>
                                         </tr>
                                         <tr>
                                             <td>Menos de 90% de la meta</td>
-                                            <td>0.0% - 0.0%</td>
-                                            <td>0.0% - 0.0%</td>
-                                            <td>0.0% - 0.0%</td>
+                                            <td>0.0%</td>
+                                            <td>0.0%</td>
+                                            <td>0.0%</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                             <p class="text-muted small mb-0">
-                                Formato de cada celda: % en nota de crédito a tu empresa - % en tarjeta de regalo. Hasta 3 facturas a 30–59 días vencidas en el año no afectan tu beneficio; de la 4ta factura a 30–59 días vencidas en adelante, tu beneficio se corta a la mitad; una factura a 60 días o más vencida te deja en 0% ese año. El nivel de mora se fija en el momento en que ocurre y aplica a todo el año, aunque la factura se ponga al corriente después. El cálculo final se procesa en enero del año siguiente, y el ciclo vuelve a empezar limpio cada año.
+                                Cada celda es el % en nota de crédito a tu empresa sobre tus compras del año. Hasta 3 facturas a 30–59 días vencidas en el año no afectan tu beneficio; de la 4ta factura a 30–59 días vencidas en adelante, tu beneficio se corta a la mitad; una factura a 60 días o más vencida te deja en 0% ese año. El nivel de mora se fija en el momento en que ocurre y aplica a todo el año, aunque la factura se ponga al corriente después. El cálculo final se procesa en enero del año siguiente, y el ciclo vuelve a empezar limpio cada año.
                             </p>
                         </div>
                     </div>

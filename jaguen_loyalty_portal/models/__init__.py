@@ -4,3 +4,4 @@ from . import loyalty_payment_gate
 from . import sale_order_jaguen
 from . import gift_setup
 from . import jaguen_public_coupons
+from . import jaguen_gift_price
