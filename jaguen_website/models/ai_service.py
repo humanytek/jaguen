@@ -70,6 +70,7 @@ REGLAS (obligatorias):
 18. ESTADO DEL FORMULARIO: si en tus datos viene el ESTADO ACTUAL DEL FORMULARIO DE REGISTRATE, úsalo para decirle al cliente, en una lista corta y en el orden en que aparecen, qué campos obligatorios siguen pendientes y cuáles tienen error, con el nombre tal cual lo ve en pantalla (usa solo lo que viene ahí, no inventes campos). Si no falta nada, dile que ya puede presionar Enviar. Anímalo a seguir y ofrécele ayuda con lo que no entienda. Nunca le pidas sus datos por el chat para llenarlos tú.
 17. DOCUMENTOS EN REGISTRATE (la meta es NO perder al cliente que ya llenó todo por un documento). Pide la Constancia de situación fiscal y la Opinión de cumplimiento en PDF del SAT, de este mes o del anterior, del MISMO RFC que escribió. Si el sistema le objeta un documento, el primer mensaje trae "lo que leyó el sistema": explícaselo claro y breve (qué dice el documento contra lo que él escribió) y ofrece la liga: Constancia https://www.sat.gob.mx/portal/public/tramites/constancia-de-situacion-fiscal ; Opinión https://www.sat.gob.mx/portal/public/tramites/opinion-del-cumplimiento . Si dice que no encuentra o no abre la liga, da la ruta: www.sat.gob.mx > Trámites y servicios > Más trámites y servicios > Constancias, devoluciones > "Constancia de situación fiscal" (para la opinión: "Opinión del cumplimiento"). Pregúntale si puede conseguirlo ahorita mismo. Solo si responde que no puede (sin acceso, no lo tiene, no está la persona, etc.) usa desbloquear_documentos en ese mismo turno y dile "sin problema, ya lo solucioné": vuelve a elegir su archivo y presiona Enviar; la Opinión ya no es obligatoria, la Constancia sí hay que subirla pero se acepta aunque esté desactualizada o en foto; un asesor le pedirá luego los documentos actualizados. Nunca le pidas el archivo por el chat. LA ÚNICA EXCEPCIÓN: si el RFC del documento no es el que escribió, NO desbloquees: ayúdale a ver el error diciéndole los dos RFC ("escribiste X y el documento dice Y"), que revise cuál está mal (el que escribió o el documento) y lo corrija o suba el documento correcto.
 19. PREGUNTAS: NUNCA cierres dos mensajes seguidos con la misma pregunta, ni repitas una pregunta que ya hiciste aunque el cliente no la haya contestado (si no contestó, déjalo: contesta lo que pida y sigue). Si el cliente está molesto, groserillo, bromea o se sale de tema, NO le hagas preguntas de venta (compras, ciudad, volumen): atiende lo suyo con calma y, si hace falta, ofrece pasarlo con una persona. Respuestas breves: máximo 3 frases cortas; no repitas la invitación a registrarse si ya la hiciste en esta conversación (solo cuando pregunte por precios, cotización, volumen o crédito).
+21. HERRAMIENTAS: lo que escribas antes de usar una herramienta le llega al cliente junto con lo que escribas después, así que NO repitas lo ya dicho. Después de usar una herramienta, completa la respuesta a lo que preguntó el cliente (no te limites a confirmar que registraste algo) y, si ya lo habías contestado antes de la herramienta, solo agrega lo que falte en una frase.
 20. NUNCA DIGAS QUE YA HICISTE ALGO (registrar el caso, anotar tus datos, avisar al equipo) si en este mismo turno no usaste la herramienta; si quieres que el equipo lo atienda, primero usa crear_lead o pasar_a_persona y después sí díselo.
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
@@ -473,7 +474,7 @@ class JaguenAiService(models.AbstractModel):
 
     def _time_greeting(self):
         hour = datetime.now(pytz.utc).astimezone(pytz.timezone('America/Hermosillo')).hour
-        return 'Buenos días' if hour < 12 else ('Buenas tardes' if hour < 19 else 'Buenas noches')
+        return 'Buenas noches' if (hour < 6 or hour >= 19) else ('Buenos días' if hour < 12 else 'Buenas tardes')
 
     def _form_greeting(self, session):
         first = (session.contact_name or '').split()[0].title() if (session.contact_name or '').split() else ''
@@ -807,6 +808,7 @@ class JaguenAiService(models.AbstractModel):
             return '', 0, 0
         tokens_in = tokens_out = cache_read = cache_write = 0
         used_action = retried = False
+        pre_texts = []
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
         max_tokens = limits['max_tokens']
@@ -819,6 +821,9 @@ class JaguenAiService(models.AbstractModel):
             cache_read += usage.get('cache_read_input_tokens') or 0
             cache_write += usage.get('cache_creation_input_tokens') or 0
             if data.get('stop_reason') == 'tool_use':
+                pre = ''.join(b.get('text', '') for b in data['content'] if b.get('type') == 'text').strip()
+                if pre:
+                    pre_texts.append(pre)   # lo que escribio ANTES de usar la herramienta tambien le llega al cliente
                 messages.append({'role': 'assistant', 'content': data['content']})
                 results = []
                 for block in data['content']:
@@ -843,6 +848,8 @@ class JaguenAiService(models.AbstractModel):
                 messages.append({'role': 'assistant', 'content': text})
                 messages.append({'role': 'user', 'content': '(Aviso interno, no del cliente: dijiste que ya registraste, anotaste o avisaste algo pero NO usaste ninguna herramienta en este turno. Reescribe tu respuesta sin afirmarlo, o si quieres que el equipo lo atienda usa primero crear_lead o pasar_a_persona.)'})
                 continue
+            if pre_texts:
+                text = '\n\n'.join(pre_texts + ([text] if text else []))
             self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
         self._note_cache(session, cache_read, cache_write)

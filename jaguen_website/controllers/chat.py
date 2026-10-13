@@ -39,7 +39,7 @@ class JaguenChatController(http.Controller):
     def _greeting(self, mode, name, first_name=''):
         """Saludo segun la hora de Hermosillo. Visitante: pregunta su nombre. Cliente con sesion: lo saluda por nombre."""
         hour = datetime.now(pytz.utc).astimezone(pytz.timezone('America/Hermosillo')).hour
-        saludo = 'Buenos días' if hour < 12 else ('Buenas tardes' if hour < 19 else 'Buenas noches')
+        saludo = 'Buenas noches' if (hour < 6 or hour >= 19) else ('Buenos días' if hour < 12 else 'Buenas tardes')
         if mode == 'client':
             return "%s, te atiende %s de Jaguen. ¿En qué te puedo apoyar%s?" % (
                 saludo, name, (', %s' % first_name) if first_name else '')
