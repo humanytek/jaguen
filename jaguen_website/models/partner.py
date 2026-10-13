@@ -82,6 +82,7 @@ class ResPartner(models.Model):
     jaguen_contact_email = fields.Char(copy=False)
     jaguen_contact_mobile = fields.Char(copy=False)
     jaguen_contact_function = fields.Char(copy=False)
+    jaguen_contact_birthday = fields.Char(copy=False)   # opcional: fecha de cumpleanos (AAAA-MM-DD)
     jaguen_ship_same = fields.Char(copy=False)
     jaguen_ship_street = fields.Char(copy=False)
     jaguen_ship_colony = fields.Char(copy=False)
@@ -92,7 +93,7 @@ class ResPartner(models.Model):
     jaguen_ship_phone = fields.Char(copy=False)
     jaguen_ship_email = fields.Char(copy=False)
 
-    _JAGUEN_STEP_FIELDS = ('jaguen_contact_name', 'jaguen_contact_email', 'jaguen_contact_mobile', 'jaguen_contact_function',
+    _JAGUEN_STEP_FIELDS = ('jaguen_contact_name', 'jaguen_contact_email', 'jaguen_contact_mobile', 'jaguen_contact_function', 'jaguen_contact_birthday',
                            'jaguen_ship_same', 'jaguen_ship_street', 'jaguen_ship_colony', 'jaguen_ship_zip',
                            'jaguen_ship_city', 'jaguen_ship_state', 'jaguen_ship_receiver', 'jaguen_ship_phone', 'jaguen_ship_email')
 
@@ -111,7 +112,23 @@ class ResPartner(models.Model):
                 rec.sudo().write({'company_type': 'person', 'title': rec._jaguen_title(rec.name).id or False})
             if not rec.parent_id and (step['jaguen_contact_name'] or step['jaguen_ship_receiver'] or step['jaguen_ship_street']):
                 rec._jaguen_create_children(step)
+            if rec.jaguen_personal and not rec.parent_id and 'x_studio_cumpleanos' in rec._fields:
+                bday = rec._jaguen_parse_birthday(step.get('jaguen_contact_birthday'))
+                if bday:
+                    rec.sudo().write({'x_studio_cumpleanos': bday})
         return records
+
+    @api.model
+    def _jaguen_parse_birthday(self, value):
+        """Fecha de cumpleanos opcional del formulario (AAAA-MM-DD). Si viene mal o es absurda, se ignora."""
+        try:
+            day = fields.Date.to_date((value or '').strip()) if value else False
+        except Exception:  # noqa: BLE001
+            return False
+        today = fields.Date.context_today(self)
+        if not day or day.year < 1900 or day > today:
+            return False
+        return day
 
     def _jaguen_title(self, name):
         gender = guess_gender(name)
@@ -130,12 +147,16 @@ class ResPartner(models.Model):
             self.sudo().write({'title': self._jaguen_title(self.name).id or False})
         elif not self.is_company:
             self.sudo().write({'company_type': 'company'})
+        birthday = self._jaguen_parse_birthday(step.get('jaguen_contact_birthday'))
+        if self.jaguen_personal and birthday and 'x_studio_cumpleanos' in self._fields:
+            self.sudo().write({'x_studio_cumpleanos': birthday})
         if step['jaguen_contact_name'] and not self.jaguen_personal:
             Partner.create({
                 'parent_id': self.id, 'type': 'contact', 'name': step['jaguen_contact_name'][:80],
                 'title': self._jaguen_title(step['jaguen_contact_name']).id or False,
                 'email': step['jaguen_contact_email'][:80] or False, 'mobile': step['jaguen_contact_mobile'][:40] or False,
                 'function': step['jaguen_contact_function'][:80] or False,
+                **({'x_studio_cumpleanos': birthday} if birthday and 'x_studio_cumpleanos' in self._fields else {}),
             })
         # Direccion de entrega: contacto de tipo "entrega" con la persona autorizada para recibir mercancia.
         if self.jaguen_personal:
@@ -253,6 +274,9 @@ class ResPartner(models.Model):
             except Exception:
                 _logger.exception('CSF: fallo la revision de %s', self.id)
         self.sudo().write({'jaguen_alta_hold': False})
+        if 'x_studio_aniversario_cliente' in self._fields and not self.x_studio_aniversario_cliente:
+            # Aniversario del cliente = dia en que se registro (para felicitarlo cada ano)
+            self.sudo().write({'x_studio_aniversario_cliente': fields.Date.context_today(self)})
         rule = self.env['base.automation'].sudo().search(
             [('name', '=', 'Cliente Nuevo'), ('model_id.model', '=', 'res.partner')], limit=1)
         for action in rule.action_server_ids:
