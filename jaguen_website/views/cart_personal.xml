@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Aviso en el carrito cuando una compra personal no llega al minimo -->
+    <template id="cart_personal_minimo" inherit_id="website_sale.cart" name="Jaguen: minimo compra personal">
+        <xpath expr="//t[@t-call='website_sale.cart_lines']" position="before">
+            <div t-if="website_sale_order and website_sale_order.x_jaguen_personal_min_gap" class="alert alert-warning" role="alert">
+                <strong>Compra personal:</strong>
+                el pedido mínimo es de
+                <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
+                más IVA (antes de IVA y sin contar el envío).
+                Te faltan
+                <strong><span t-out="website_sale_order.x_jaguen_personal_min_gap" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/></strong>
+                más IVA para poder continuar con tu compra.
+            </div>
+        </xpath>
+    </template>
+</odoo>
