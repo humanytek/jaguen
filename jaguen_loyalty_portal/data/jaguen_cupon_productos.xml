@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Despues de crear los programas de cupones: cada uno descuenta con su propio producto (cuenta 402.01.01) -->
+    <function model="loyalty.reward" name="_jaguen_setup_cupon_products"/>
+</odoo>

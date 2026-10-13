@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Letrero de Favoritos con barra de avance: solo clientes con sesion y mientras no hayan ganado el cupon -->
+    <template id="jaguen_favoritos_banner_block" name="JAGUEN: letrero de Favoritos">
+        <t t-set="jg_fav" t-value="request.env['res.partner'].jaguen_favoritos_estado()"/>
+        <div t-if="jg_fav['logged'] and not jg_fav['has_card']" class="container pt-2">
+            <div class="rounded-3 px-3 py-2 text-white" style="background:linear-gradient(135deg,#263f6e 0%,#11819e 100%)">
+                <div class="d-flex flex-wrap align-items-baseline column-gap-3">
+                    <b style="font-size:1rem">🎁 Guarda 40 productos y llévate un cupón de $500</b>
+                    <span style="font-size:.85rem;opacity:.92">
+                        Llevas <b t-esc="jg_fav['count']"/> de <b t-esc="jg_fav['needed']"/> favoritos de tu empresa. Se aplica en una compra de al menos $10,000 + IVA (solo productos con IVA 16%) con 20 de esos 40.
+                    </span>
+                </div>
+                <div class="progress mt-2" style="height:6px;background:rgba(255,255,255,.25)">
+                    <div class="progress-bar" role="progressbar"
+                         t-attf-style="width:#{int(jg_fav['count'] * 100 / jg_fav['needed'])}%;background:#f47c20"/>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="jaguen_favoritos_banner_shop" inherit_id="website_sale.products">
+        <xpath expr="//div[@id='oe_structure_website_sale_products_1']" position="after">
+            <t t-call="jaguen_loyalty_portal.jaguen_favoritos_banner_block"/>
+        </xpath>
+    </template>
+
+    <template id="jaguen_favoritos_banner_wishlist" inherit_id="website_sale_wishlist.product_wishlist">
+        <xpath expr="//div[@id='oe_structure_website_sale_wishlist_product_wishlist_1']" position="after">
+            <t t-call="jaguen_loyalty_portal.jaguen_favoritos_banner_block"/>
+        </xpath>
+    </template>
+
+    <!-- Ventana "Nuevo: Mis Puntos" (se muestra una vez por visita; el JS la maneja) -->
+    <template id="jaguen_puntos_modal" name="JAGUEN: ventana Nuevo - Mis Puntos">
+        <div class="jg-novedad-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(20,30,50,.6);z-index:2000;align-items:center;justify-content:center">
+            <div style="background:#fff;border-radius:18px;max-width:480px;width:92%;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4)">
+                <div style="background:linear-gradient(135deg,#263f6e,#11819e);color:#fff;padding:22px 26px">
+                    <span style="display:inline-block;background:#f47c20;color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:99px;line-height:1.3">Nuevo</span>
+                    <h3 class="mt-2 mb-0 text-white">¡Ya tienes Mis Puntos!</h3>
+                </div>
+                <div style="padding:22px 26px">
+                    <p class="mb-2"><t t-out="jg_modal_text"/></p>
+                    <p class="mb-3">🎁 Ahí ves tu progreso y escoges tus regalos JAGUEN: se agregan directo a tu carrito.</p>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-light" data-jg-close="1">Cerrar</button>
+                        <a t-att-href="jg_modal_href" class="btn fw-bold text-white" style="background:#f47c20" data-jg-close="1"><t t-out="jg_modal_button"/></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- En Mi cuenta: la ventana lleva a Mis Puntos -->
+    <template id="jaguen_puntos_modal_cuenta" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[@id='oe_structure_portal_my_home_1']" position="after">
+            <t t-if="request.env['res.partner'].jaguen_novedad('puntos')">
+                <t t-call="jaguen_loyalty_portal.jaguen_puntos_modal">
+                    <t t-set="jg_modal_text">En Mi cuenta estrenamos la casilla <b>Mis Puntos</b>.</t>
+                    <t t-set="jg_modal_href" t-value="'/my/loyalty'"/>
+                    <t t-set="jg_modal_button">Ir a Mis Puntos</t>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- En la pagina principal (clientes con sesion): la ventana lleva a Mi cuenta; a los visitantes se les muestra el letrero de registro -->
+    <template id="jaguen_home_banner" inherit_id="web.frontend_layout">
+        <xpath expr="//main" position="before">
+            <t t-set="jg_es_inicio" t-value="request.httprequest.path.strip('/') in ('', 'en', 'es', 'en_US', 'es_MX')"/>
+            <div t-if="jg_es_inicio and request.env.user._is_public()"
+                 style="background:linear-gradient(135deg,#263f6e 0%,#11819e 100%);color:#fff">
+                <div class="container py-2">
+                    <div class="row align-items-center g-2">
+                        <div class="col-md-9">
+                            <b style="font-size:1rem">🎁 Regístrate gratis y llévate $200 de cupón de bienvenida</b>
+                            <div style="font-size:.82rem;opacity:.9">Compra mínima de $4,000 + IVA · Solo productos con IVA 16% · El cupón vale 30 días</div>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <a href="/registrate" class="btn btn-sm fw-bold text-white" style="background:#f47c20;border-color:#f47c20">Regístrate ahora</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <t t-if="jg_es_inicio and request.env['res.partner'].jaguen_novedad('puntos')">
+                <t t-call="jaguen_loyalty_portal.jaguen_puntos_modal">
+                    <t t-set="jg_modal_text">Entra a <b>Mi cuenta</b> y abre la casilla <b>Mis Puntos</b>.</t>
+                    <t t-set="jg_modal_href" t-value="'/my'"/>
+                    <t t-set="jg_modal_button">Ir a Mi cuenta</t>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Marca "ya lo vio" al entrar a Mis Puntos -->
+    <template id="jaguen_puntos_novedad_mark" inherit_id="jaguen_loyalty_portal.portal_my_loyalty">
+        <xpath expr="//div[hasclass('o_portal_my_doc_table')]" position="inside">
+            <div t-if="request.env['res.partner'].jaguen_novedad('puntos')" class="jg-novedad-mark d-none" data-page="puntos"/>
+        </xpath>
+    </template>
+
+    <!-- Tambien cuenta como "ya lo vio" la pantalla de terminos que aparece antes de Mis Puntos -->
+    <template id="jaguen_puntos_novedad_mark_terminos" inherit_id="jaguen_loyalty_portal.portal_my_loyalty_terminos">
+        <xpath expr="//div[hasclass('o_portal_my_doc_table')]" position="inside">
+            <div t-if="request.env['res.partner'].jaguen_novedad('puntos')" class="jg-novedad-mark d-none" data-page="puntos"/>
+        </xpath>
+    </template>
+</odoo>

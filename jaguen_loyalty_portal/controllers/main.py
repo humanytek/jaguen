@@ -51,10 +51,10 @@ class JaguenLoyaltyPortal(CustomerPortal):
         'description' nativo porque puede quedar desactualizado si el tipo
         de recompensa se edita después de creada)."""
         reward = reward.sudo()
-        if reward.x_jaguen_reward_audience:
-            # Tramos de Rebate Anual (NC / tarjeta de regalo): son de
-            # referencia, no un descuento real calculado por Odoo, así que
-            # se usa el texto que ya trae la descripción en vez del % crudo.
+        if reward.program_id.x_jaguen_loyalty_group == 'rebate':
+            # Tramos de Rebate Anual (nota de crédito): son de referencia,
+            # no un descuento real calculado por Odoo, así que se usa el
+            # texto que ya trae la descripción en vez del % crudo.
             return reward.description or _('Recompensa')
         if reward.reward_type == 'product':
             if reward.multi_product and reward.reward_product_ids:
@@ -177,11 +177,7 @@ class JaguenLoyaltyPortal(CustomerPortal):
         """Puntos, barra de progreso y escalera de tramos para UN programa
         acumulativo (JAGUEN Starter / Rebate Anual).
 
-        En Rebate Anual, un mismo nivel reparte dos cosas (nota de credito
-        a la empresa + tarjeta de regalo al comprador, marcadas con
-        x_jaguen_reward_audience). El tramo 'comprador' se oculta si este
-        cliente no acepto Incentivos Starter, aunque si haya aceptado
-        participar en Rebate Anual en si.
+        En Rebate Anual cada nivel es una nota de credito a la empresa.
 
         Rebate Anual es meta INDIVIDUAL por cliente (x_objetivo_anual_
         programa2), pero required_points de loyalty.reward es un valor
@@ -208,10 +204,6 @@ class JaguenLoyaltyPortal(CustomerPortal):
 
         rewards = program.reward_ids.sudo().filtered(
             lambda r: r.required_points > 0
-            and (
-                r.x_jaguen_reward_audience != 'comprador'
-                or partner.x_acepta_incentivos_personales
-            )
         ).sorted(key=lambda r: r.required_points)
 
         def _umbral(reward):

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ===================================================================== -->
+    <!-- Cupón Registro: $200 (ya con IVA). En Odoo se captura el monto CON IVA ($200.10 = $172.50 + IVA), para no pelearse con -->
+    <!-- un tercer decimal. En pantalla y correos SIEMPRE se dice "$200". -->
+    <!-- Publico: se ve y se aplica solo en la tienda (no se esconde como los 4 programas JAGUEN). -->
+    <!-- ===================================================================== -->
+    <record id="program_cupon_registro" model="loyalty.program">
+        <field name="name">Cupón de bienvenida (Regístrate)</field>
+        <field name="program_type">promotion</field>
+        <field name="applies_on">current</field>
+        <field name="trigger">with_code</field>
+        <field name="portal_visible" eval="False"/>
+    </record>
+    <record id="rule_cupon_registro" model="loyalty.rule">
+        <field name="program_id" ref="program_cupon_registro"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_amount">4000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_cupon_registro" model="loyalty.reward">
+        <field name="program_id" ref="program_cupon_registro"/>
+        <field name="reward_type">discount</field>
+        <field name="discount_applicability">order</field>
+        <field name="discount_mode">per_order</field>
+        <field name="description">Cupón de bienvenida $200</field>
+        <field name="discount">200.10</field>
+        <field name="required_points">1</field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Cupón Favoritos: $500 (ya con IVA). En Odoo se captura CON IVA: $499.96 (= $431 + IVA). Sin vencimiento. -->
+    <!-- ===================================================================== -->
+    <record id="program_cupon_favoritos" model="loyalty.program">
+        <field name="name">Cupón por Favoritos (40 productos guardados)</field>
+        <field name="program_type">promotion</field>
+        <field name="applies_on">current</field>
+        <field name="trigger">with_code</field>
+        <field name="portal_visible" eval="False"/>
+    </record>
+    <record id="rule_cupon_favoritos" model="loyalty.rule">
+        <field name="program_id" ref="program_cupon_favoritos"/>
+        <field name="reward_point_amount">1</field>
+        <field name="reward_point_mode">order</field>
+        <field name="minimum_amount">10000</field>
+        <field name="minimum_amount_tax_mode">excl</field>
+        <field name="mode">auto</field>
+    </record>
+    <record id="reward_cupon_favoritos" model="loyalty.reward">
+        <field name="program_id" ref="program_cupon_favoritos"/>
+        <field name="reward_type">discount</field>
+        <field name="discount_applicability">order</field>
+        <field name="discount_mode">per_order</field>
+        <field name="description">Cupón Favoritos $500</field>
+        <field name="discount">499.96</field>
+        <field name="required_points">1</field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Correo: Cupón de bienvenida (va al cliente, al terminar su registro) -->
+    <!-- ===================================================================== -->
+    <record id="mail_template_cupon_bienvenida" model="mail.template">
+        <field name="name">Cupón de bienvenida - Registro</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">¡Bienvenido a Jaguen! Aquí tienes tu cupón de $200</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial,sans-serif;font-size:14px">
+                <p>Hola <t t-out="object.name"/>,</p>
+                <p>Gracias por registrarte en Jaguen. Como bienvenida, tienes un cupón de <b>$200</b> para tu próxima compra.</p>
+                <div style="background:#f1f8fb;border:1px dashed #11819e;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
+                    <div style="font-size:12px;color:#555">Tu código</div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_registro').id)],limit=1,order='id desc').code or '')"/></div>
+                    <div style="font-size:12px;color:#555;margin-top:6px">Compra mínima $4,000 + IVA · Solo productos con IVA 16% · Válido 30 días</div>
+                </div>
+                <p>Lo aplicas solo al entrar a tu carrito: también lo verás listado ahí, no hace falta que lo copies ni lo guardes.</p>
+                <p>Gracias por tu preferencia,<br/>JAGUEN</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Correo: Cupón por Favoritos (va al cliente, al llegar a 40 favoritos) -->
+    <!-- ===================================================================== -->
+    <record id="mail_template_cupon_favoritos" model="mail.template">
+        <field name="name">Cupón de $500 - Favoritos</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">¡Ya guardaste 40 favoritos! Tienes un cupón de $500</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial,sans-serif;font-size:14px">
+                <p>Hola <t t-out="object.name"/>,</p>
+                <p>Ya guardaste 40 productos en tus favoritos. Como agradecimiento, tienes un cupón de <b>$500</b>.</p>
+                <div style="background:#f1f8fb;border:1px dashed #11819e;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
+                    <div style="font-size:12px;color:#555">Tu código</div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#11819e"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_favoritos').id)],limit=1,order='id desc').code or '')"/></div>
+                    <div style="font-size:12px;color:#555;margin-top:6px">Se aplica en una compra de al menos $10,000 + IVA, solo en productos con IVA 16%, que incluya al menos 20 de esos 40 productos guardados</div>
+                </div>
+                <p>Lo aplicas solo al entrar a tu carrito: también lo verás listado ahí, no hace falta que lo copies ni lo guardes.</p>
+                <p>Gracias por tu preferencia,<br/>JAGUEN</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Correo: Cupón de bienvenida por vencer (5 dias antes) -->
+    <!-- ===================================================================== -->
+    <record id="mail_template_cupon_por_vencer" model="mail.template">
+        <field name="name">Cupón de bienvenida - Por vencer</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Tu cupón de $200 vence en 5 días</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial,sans-serif;font-size:14px">
+                <p>Hola <t t-out="object.name"/>,</p>
+                <p>Tu cupón de bienvenida de <b>$200</b> todavía no lo usas, y en 5 días vence.</p>
+                <div style="background:#fff5ec;border:1px dashed #f47c20;border-radius:10px;padding:16px;text-align:center;margin:16px 0">
+                    <div style="font-size:12px;color:#555">Tu código</div>
+                    <div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#f47c20"><t t-out="(object.env['loyalty.card'].sudo().search([('partner_id','=',object.commercial_partner_id.id),('program_id','=',object.env.ref('jaguen_loyalty_portal.program_cupon_registro').id)],limit=1,order='id desc').code or '')"/></div>
+                    <div style="font-size:12px;color:#555;margin-top:6px">Compra mínima $4,000 + IVA · Solo productos con IVA 16%</div>
+                </div>
+                <p>Entra a tu carrito y lo verás listado ahí para aplicarlo.</p>
+                <p>Gracias por tu preferencia,<br/>JAGUEN</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- Accion programada: recordatorio 5 dias antes de que venza el Cupon Registro -->
+    <!-- ===================================================================== -->
+    <record id="cron_recordar_cupon_registro" model="ir.cron">
+        <field name="name">Cupón Registro: recordatorio 5 días antes de vencer</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">model._jaguen_cron_recordar_cupon_registro()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

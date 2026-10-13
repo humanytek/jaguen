@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class LoyaltyProgram(models.Model):
@@ -26,19 +26,12 @@ class LoyaltyProgram(models.Model):
 class LoyaltyReward(models.Model):
     _inherit = 'loyalty.reward'
 
-    x_jaguen_reward_audience = fields.Selection(
-        selection=[
-            ('empresa', 'Empresa (nota de crédito)'),
-            ('comprador', 'Comprador (Incentivo Starter)'),
-        ],
-        string='A quién va este tramo (JAGUEN)',
-        help=(
-            "Solo se usa en Rebate Anual, donde un mismo nivel de "
-            "cumplimiento reparte dos cosas distintas: una nota de "
-            "crédito a la empresa y una tarjeta de regalo a quien "
-            "gestiona la cuenta. El portal oculta los tramos marcados "
-            "'comprador' si ese cliente no aceptó Incentivos Starter. "
-            "Vacío = se muestra siempre (es el caso normal, para el resto "
-            "de los programas)."
-        ),
-    )
+    @api.model
+    def _jaguen_quitar_tarjeta_rebate(self):
+        """Rebate Anual es SOLO la nota de credito del 3% a la empresa: se borra cualquier tramo viejo de
+        "tarjeta de regalo" que haya quedado en una base (idea descartada)."""
+        viejos = self.sudo().with_context(active_test=False).search([
+            ('program_id.x_jaguen_loyalty_group', '=', 'rebate'),
+            ('description', 'ilike', 'tarjeta de regalo'),
+        ])
+        viejos.unlink()

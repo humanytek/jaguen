@@ -400,6 +400,9 @@ class AccountMove(models.Model):
         programas JAGUEN. Se llama vía base.automation cuando una nota
         de crédito (move_type='out_refund') se publica (state='posted').
 
+        Excepcion: las notas de credito de bonificacion (todos sus renglones son
+        del producto DescBono, como la del Rebate Anual) NO restan puntos.
+
         Siempre resta, sin importar qué tan vieja sea la venta original
         (decisión de negocio, oct/2026 - importa sobre todo para Rebate
         Anual, cuya meta se evalúa una vez al año contra el acumulado:
@@ -412,6 +415,11 @@ class AccountMove(models.Model):
         compras futuras."""
         Pending = self.env['jaguen.loyalty.pending.points'].sudo()
         for move in self.filtered(lambda m: m.move_type == 'out_refund' and m.state == 'posted'):
+            # Una nota de credito de BONIFICACION (producto DescBono, p. ej. el Rebate Anual) no es una devolucion
+            # de producto: no resta puntos (decision de negocio, oct/2026). Si trae cualquier otro producto, resta.
+            lineas = move.invoice_line_ids.filtered(lambda l: l.display_type == 'product')
+            if lineas and all(l.product_id.default_code == 'DescBono' for l in lineas):
+                continue
             orders = move._jaguen_get_source_orders()
             if not orders:
                 continue

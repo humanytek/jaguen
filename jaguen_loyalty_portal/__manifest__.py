@@ -63,12 +63,8 @@ reconfirmar) un pedido pueda llegar a duplicar los puntos otorgados.
 Candado de Términos y Condiciones: antes de ver cualquier programa, el
 cliente debe pasar por /my/loyalty/terminos y contestar dos casillas
 independientes (puede marcar una, las dos, o ninguna) - "Incentivos al
-comprador" (JAGUEN Starter, Mi Primer Pedido de $X, Mi Primer Pedido por
-Línea, y la tarjeta de regalo dentro de Rebate Anual) y "Rebate Anual"
-(la nota de crédito a la empresa). Dentro de Rebate Anual, la escalera
-muestra por separado la nota de crédito (empresa) y la tarjeta de regalo
-(comprador) - el segundo renglón desaparece si el cliente no aceptó
-incentivos al comprador, aunque sí haya aceptado el rebate. El cliente
+comprador" (JAGUEN Starter, Mi Primer Pedido de $X y Mi Primer Pedido por
+Línea) y "Rebate Anual" (la nota de crédito a la empresa). El cliente
 puede volver a esa pantalla cuando quiera para cambiar su respuesta. La
 página de términos completos (/my/loyalty/terminos/completos) está
 redactada en formato de cláusulas numeradas, en el mismo estilo que los
@@ -91,11 +87,11 @@ pagada en su totalidad - ya estaba en el texto de "El Portal" pero no en
 el documento legal de Términos y Condiciones.
 
     """,
-    'version': '18.0.20.0.48',
+    'version': '18.0.20.4.3',
     'category': 'Sales/Loyalty',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
-    'depends': ['portal', 'loyalty', 'sale_loyalty', 'website_sale_loyalty', 'account'],
+    'depends': ['portal', 'loyalty', 'sale_loyalty', 'website_sale_loyalty', 'account', 'jaguen_website'],
     'data': [
         'security/ir.model.access.csv',
         'data/loyalty_data.xml',
@@ -103,9 +99,19 @@ el documento legal de Términos y Condiciones.
         'data/loyalty_data_rebate_anual_anios.xml',
         'data/automation_data.xml',
         'data/fix_automations.xml',
+        'data/jaguen_public_coupons.xml',
+        'data/jaguen_cupon_productos.xml',
+        'data/jaguen_regalo_precio.xml',
+        'data/jaguen_novedades.xml',
+        'data/jaguen_quitar_tarjeta_rebate.xml',
         'views/portal_templates.xml',
         'views/res_partner_views.xml',
+        'views/jaguen_public_coupons_templates.xml',
+        'views/jaguen_novedades_templates.xml',
     ],
+    'assets': {
+        'web.assets_frontend': ['jaguen_loyalty_portal/static/src/js/novedades.js'],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,
