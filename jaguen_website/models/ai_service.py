@@ -792,7 +792,7 @@ class JaguenAiService(models.AbstractModel):
             payload['thinking'] = {'type': 'disabled'}
             payload['output_config'] = {'effort': 'low'}
         elif model.startswith('claude-sonnet-5'):
-            payload['thinking'] = {'type': 'disabled'}   # sin 'pensar': menos tokens y no se acaba el presupuesto antes de escribir
+            payload['thinking'] = {'type': 'between_tools'}   # Sonnet 5.5 no acepta 'disabled': asi no piensa antes de responder (menos tokens)
             payload['output_config'] = {'effort': 'low'}
         return payload
 
