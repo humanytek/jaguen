@@ -185,6 +185,8 @@ class JaguenChatController(http.Controller):
         if reply:
             msgs += bot(reply)
         else:
+            session.sudo().message_post(body='Error del asistente: respuesta vacia de la API', message_type='notification',
+                                        subtype_xmlid='mail.mt_note')
             msgs += bot(FALLBACK)
         if session.mode != 'client' and session.segment in ('empresa', 'pfae') and not session.lead_id:
             service._create_prospect_lead(session)   # formulario lleno + empezó a platicar = oportunidad en la etapa Web
