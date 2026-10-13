@@ -792,6 +792,7 @@ class JaguenAiService(models.AbstractModel):
             payload['thinking'] = {'type': 'disabled'}
             payload['output_config'] = {'effort': 'low'}
         elif model.startswith('claude-sonnet-5'):
+            payload['thinking'] = {'type': 'disabled'}   # sin 'pensar': menos tokens y no se acaba el presupuesto antes de escribir
             payload['output_config'] = {'effort': 'low'}
         return payload
 
@@ -808,8 +809,9 @@ class JaguenAiService(models.AbstractModel):
         used_action = retried = False
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
-        for _i in range(5):
-            data = self._http(self._payload(session, model, limits['max_tokens'], messages, form_ctx))
+        max_tokens = limits['max_tokens']
+        for _i in range(6):
+            data = self._http(self._payload(session, model, max_tokens, messages, form_ctx))
             usage = data.get('usage') or {}
             tokens_in += (usage.get('input_tokens') or 0) + (usage.get('cache_creation_input_tokens') or 0) \
                 + (usage.get('cache_read_input_tokens') or 0)
@@ -832,6 +834,9 @@ class JaguenAiService(models.AbstractModel):
                 self._note_cache(session, cache_read, cache_write)
                 return '', tokens_in, tokens_out
             text = ''.join(b.get('text', '') for b in data.get('content', []) if b.get('type') == 'text').strip()
+            if not text and data.get('stop_reason') == 'max_tokens' and max_tokens < 3 * limits['max_tokens']:
+                max_tokens *= 2   # se acabo el presupuesto antes de escribir: se reintenta con mas espacio
+                continue
             if text and not used_action and not retried and self._CLAIM.search(text):
                 # Dijo que ya registro/anoto algo sin haber usado ninguna herramienta: se le pide corregirlo (una sola vez)
                 retried = True
