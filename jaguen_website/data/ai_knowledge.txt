@@ -28,7 +28,7 @@ Resto de la República, más de 60 kg, por Transportes Pitic (sujeto a cobertura
 Detalle: https://www.jaguen.com/formas-de-envio
 
 FORMAS DE PAGO
-Transferencia electrónica (SPEI) y depósito en efectivo o cheque a la cuenta de BBVA. Tarjeta de crédito o débito con PayPal en el carrito (el sistema pregunta si es crédito o débito).
+Transferencia electrónica (SPEI) y depósito en efectivo o cheque a la cuenta de BBVA. Tarjeta de crédito o débito con PayPal u OpenPay en el carrito (aceptan Visa, MasterCard y American Express; el sistema pregunta si es crédito o débito).
 Detalle: https://www.jaguen.com/formas-de-pago
 
 FACTURACIÓN
