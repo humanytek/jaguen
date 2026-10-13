@@ -813,7 +813,7 @@
     <!-- Aviso en el carrito: un pedido de solo regalo no se puede finalizar -->
     <template id="cart_gift_only_warning" inherit_id="website_sale.cart_lines" name="JAGUEN: carrito solo con regalo">
         <xpath expr="//div[@id='cart_products']" position="before">
-            <div t-if="website_sale_order and website_sale_order.sudo().jaguen_is_gift_only()" class="alert alert-warning" role="alert">
+            <div t-if="website_sale_order and website_sale_order.sudo().jaguen_is_gift_only()" class="alert alert-warning js_cart_lines" role="alert">
                 Tu Regalo se entrega junto con una compra: agrega al menos un producto a tu carrito para poder finalizar tu pedido.
             </div>
         </xpath>

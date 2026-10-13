@@ -3,7 +3,7 @@
     <!-- Aviso de pedido minimo: va dentro de cart_lines (la parte del carrito que se vuelve a pintar al cambiar cantidades) para que se actualice solo -->
     <template id="cart_personal_minimo" inherit_id="website_sale.cart_lines" name="Jaguen: minimo compra personal">
         <xpath expr="//div[@id='cart_products']" position="before">
-            <div t-if="website_sale_order and website_sale_order.x_jaguen_personal_min_gap" class="alert alert-warning" role="alert">
+            <div t-if="website_sale_order and website_sale_order.x_jaguen_personal_min_gap" class="alert alert-warning js_cart_lines" role="alert">
                 <t t-if="website_sale_order.x_jaguen_min_reason == 'guest'">
                     <strong>Compra Sin Sesión:</strong>
                     El Pedido Mínimo es de <span t-out="website_sale_order.x_jaguen_personal_min" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> más IVA.
