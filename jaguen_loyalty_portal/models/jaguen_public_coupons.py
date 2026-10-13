@@ -7,8 +7,9 @@ programas JAGUEN que solo reclama un vendedor desde el backend, ver sale_order_j
    recordatorio 5 dias antes si no se uso. Uno por cliente, de por vida.
 2. Cupon Favoritos ($500, ya incluye IVA): se entrega en cuanto el cliente llega a 40 productos
    guardados en favoritos (compartido por toda la empresa). Se "congela" la foto de esos 40
-   productos exactos en ese momento; para poder USAR el cupon, la compra debe incluir al menos 20
-   de esos 40 (no importa si despues cambio sus favoritos). Sin vencimiento. Uno por cliente, de
+   productos exactos en ese momento; para poder USAR el cupon, la compra debe ser de al menos
+   $10,000 antes de IVA (solo productos con IVA 16%) e incluir al menos 20 de esos 40 (no importa si despues cambio sus
+   favoritos). Sin vencimiento. Uno por cliente, de
    por vida.
 
 Los montos reales en Odoo son $431 y $172.50 antes de IVA (asi el total con IVA da $499.96 y
