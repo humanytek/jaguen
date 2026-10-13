@@ -18,7 +18,7 @@ class PaymentPortalJaguen(PaymentPortal):
         order_check = request.env['sale.order'].sudo().browse(int(order_id or 0)).exists()
         if order_check and order_check.x_jaguen_personal_min_gap > 0:
             raise ValidationError(_(
-                "Las compras personales tienen un pedido mínimo de $%(min)s más IVA (antes de IVA y sin envío). "
+                "El pedido mínimo es de $%(min)s más IVA (antes de IVA y sin envío). "
                 "Te faltan $%(gap)s más IVA.",
                 min='{:,.2f}'.format(order_check.x_jaguen_personal_min),
                 gap='{:,.2f}'.format(order_check.x_jaguen_personal_min_gap)))
