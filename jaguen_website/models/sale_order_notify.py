@@ -23,8 +23,10 @@ class SaleOrder(models.Model):
         res = super().action_confirm()
         for order in candidates.filtered(lambda o: o.state == 'sale'):
             paid = order.transaction_ids.filtered(lambda t: t.state in ('done', 'authorized'))
-            if order.signature or paid:
-                order._jaguen_notify_web_order_confirmed(signed=bool(order.signature))
+            # Si el cliente firmo, Odoo ya avisa solo ("Orden firmada por ..."): un segundo aviso seria ruido.
+            # Este aviso es para el pedido pagado en linea sin firma.
+            if paid and not order.signature:
+                order._jaguen_notify_web_order_confirmed(signed=False)
         return res
 
     def _jaguen_notify_web_order_confirmed(self, signed):
