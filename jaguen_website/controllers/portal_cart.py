@@ -30,8 +30,11 @@ class CustomerPortalBackToCart(CustomerPortal):
                         lambda l: not l.display_type and not l.is_delivery and not l.is_reward_line and l.product_id):
                     cart._cart_update(product_id=line.product_id.id, add_qty=line.product_uom_qty)
                 # Sin avisos ni notas para nadie: una cotizacion que cambia no le importa al equipo, solo las ordenes de venta.
-                order_sudo.with_context(tracking_disable=True, mail_notrack=True,
+                # disable_cancel_warning: sin esto, Odoo no cancela la cotizacion enviada y solo devuelve su ventana de confirmacion
+                order_sudo.with_context(disable_cancel_warning=True, tracking_disable=True, mail_notrack=True,
                                         mail_auto_subscribe_no_notify=True).action_cancel()
+                if order_sudo.state != 'cancel':
+                    raise ValueError('La cotizacion no se cancelo')
         except Exception:
             _logger.exception('No se pudo regresar al carrito la cotizacion %s', order_id)
             return request.redirect(order_sudo.get_portal_url())
