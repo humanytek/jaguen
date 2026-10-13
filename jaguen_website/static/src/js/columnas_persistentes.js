@@ -6,6 +6,7 @@ import { patch } from "@web/core/utils/patch";
 import { registry } from "@web/core/registry";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { user } from "@web/core/user";
+import { ProductLabelSectionAndNoteListRender } from "@account/components/product_label_section_and_note_field/product_label_section_and_note_field";
 
 const jaguenColsService = {
     dependencies: ["orm"],
@@ -81,5 +82,30 @@ patch(ListRenderer.prototype, {
                     .join(",")
             );
         }
+    },
+});
+
+// Lineas de ventas, compras y facturas: Odoo esconde la columna "Descripcion"/"Etiqueta" cuando "Producto" esta visible
+// (las funde en una sola celda). Aqui, si el usuario tiene prendidas las dos, se muestran como columnas separadas.
+patch(ProductLabelSectionAndNoteListRender.prototype, {
+    getActiveColumns(list) {
+        const cols = super.getActiveColumns(list);
+        const productCol = cols.find((c) => this.productColumns.includes(c.name));
+        const labelCol = this.allColumns && this.allColumns.find((c) => c.name === "name");
+        if (!productCol || !labelCol || !this.optionalActiveFields || this.optionalActiveFields.name === false) {
+            return cols;
+        }
+        const labelActive = labelCol.optional ? this.optionalActiveFields.name : true;
+        if (!labelActive) {
+            return cols;
+        }
+        list.records.forEach((record) => (record.columnIsProductAndLabel = false));
+        const result = [];
+        for (const c of this.allColumns) {
+            if (cols.includes(c) || c === labelCol) {
+                result.push(c);
+            }
+        }
+        return result;
     },
 });
