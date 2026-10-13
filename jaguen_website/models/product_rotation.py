@@ -41,8 +41,8 @@ class ProductTemplateRotation(models.Model):
             for rank, tid in enumerate(free):
                 rows.append((rank / peso, tid))
                 taken.add(tid)
-        if rows:
-            cr.executemany("UPDATE product_template SET x_jaguen_portada = %s WHERE id = %s", rows)
+        for lugar, tid in rows:
+            cr.execute("UPDATE product_template SET x_jaguen_portada = %s WHERE id = %s", (lugar, tid))
         self.env.invalidate_all()
 
     @api.model
