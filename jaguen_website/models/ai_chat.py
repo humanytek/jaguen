@@ -92,6 +92,8 @@ class JaguenChatSession(models.Model):
         bot = self._bot_partner()
         if message.author_id == bot:
             return 'assistant'
+        if message.author_id == self._visitor_partner():
+            return 'user'   # quien esta chateando (aunque sea un usuario interno probando el chat)
         if message.author_id.user_ids.filtered(lambda u: not u.share):
             return 'staff'
         return 'user'

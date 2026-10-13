@@ -87,7 +87,7 @@ pagada en su totalidad - ya estaba en el texto de "El Portal" pero no en
 el documento legal de Términos y Condiciones.
 
     """,
-    'version': '18.0.20.4.4',
+    'version': '18.0.20.4.6',
     'category': 'Sales/Loyalty',
     'author': 'JAGUEN',
     'license': 'LGPL-3',

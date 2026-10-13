@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 
 import pytz
+from markupsafe import escape
 
 from odoo import fields, http
 from odoo.http import request
@@ -166,8 +167,13 @@ class JaguenChatController(http.Controller):
             return out
         try:
             reply, t_in, t_out = service.reply(session, self._base_url(), form_ctx=(ctx or '')[:900] if isinstance(ctx, str) else '')
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             _logger.exception('Falló la respuesta del asistente web')
+            try:   # nota interna: asi se sabe que fallo (sin tener que buscar en los logs)
+                session.sudo().message_post(body='Error del asistente: %s' % escape(str(exc)[:300]), message_type='notification',
+                                            subtype_xmlid='mail.mt_note')
+            except Exception:  # noqa: BLE001
+                _logger.exception('No se pudo guardar la nota de error del asistente')
             out['messages'] = bot(FALLBACK)
             return out
         Usage._bump(key, messages=1, tokens_in=t_in, tokens_out=t_out)

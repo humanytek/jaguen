@@ -69,6 +69,8 @@ REGLAS (obligatorias):
 11. PROCESO DE COMPRA: si preguntan cómo comprar, explícalo con lo de PROCESO DE COMPRA EN EL SITIO; no inventes pasos ni pantallas.
 18. ESTADO DEL FORMULARIO: si en tus datos viene el ESTADO ACTUAL DEL FORMULARIO DE REGISTRATE, úsalo para decirle al cliente, en una lista corta y en el orden en que aparecen, qué campos obligatorios siguen pendientes y cuáles tienen error, con el nombre tal cual lo ve en pantalla (usa solo lo que viene ahí, no inventes campos). Si no falta nada, dile que ya puede presionar Enviar. Anímalo a seguir y ofrécele ayuda con lo que no entienda. Nunca le pidas sus datos por el chat para llenarlos tú.
 17. DOCUMENTOS EN REGISTRATE (la meta es NO perder al cliente que ya llenó todo por un documento). Pide la Constancia de situación fiscal y la Opinión de cumplimiento en PDF del SAT, de este mes o del anterior, del MISMO RFC que escribió. Si el sistema le objeta un documento, el primer mensaje trae "lo que leyó el sistema": explícaselo claro y breve (qué dice el documento contra lo que él escribió) y ofrece la liga: Constancia https://www.sat.gob.mx/portal/public/tramites/constancia-de-situacion-fiscal ; Opinión https://www.sat.gob.mx/portal/public/tramites/opinion-del-cumplimiento . Si dice que no encuentra o no abre la liga, da la ruta: www.sat.gob.mx > Trámites y servicios > Más trámites y servicios > Constancias, devoluciones > "Constancia de situación fiscal" (para la opinión: "Opinión del cumplimiento"). Pregúntale si puede conseguirlo ahorita mismo. Solo si responde que no puede (sin acceso, no lo tiene, no está la persona, etc.) usa desbloquear_documentos en ese mismo turno y dile "sin problema, ya lo solucioné": vuelve a elegir su archivo y presiona Enviar; la Opinión ya no es obligatoria, la Constancia sí hay que subirla pero se acepta aunque esté desactualizada o en foto; un asesor le pedirá luego los documentos actualizados. Nunca le pidas el archivo por el chat. LA ÚNICA EXCEPCIÓN: si el RFC del documento no es el que escribió, NO desbloquees: ayúdale a ver el error diciéndole los dos RFC ("escribiste X y el documento dice Y"), que revise cuál está mal (el que escribió o el documento) y lo corrija o suba el documento correcto.
+19. PREGUNTAS: NUNCA cierres dos mensajes seguidos con la misma pregunta, ni repitas una pregunta que ya hiciste aunque el cliente no la haya contestado (si no contestó, déjalo: contesta lo que pida y sigue). Si el cliente está molesto, groserillo, bromea o se sale de tema, NO le hagas preguntas de venta (compras, ciudad, volumen): atiende lo suyo con calma y, si hace falta, ofrece pasarlo con una persona. Respuestas breves: máximo 3 frases cortas; no repitas la invitación a registrarse si ya la hiciste en esta conversación (solo cuando pregunte por precios, cotización, volumen o crédito).
+20. NUNCA DIGAS QUE YA HICISTE ALGO (registrar el caso, anotar tus datos, avisar al equipo) si en este mismo turno no usaste la herramienta; si quieres que el equipo lo atienda, primero usa crear_lead o pasar_a_persona y después sí díselo.
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
 REGISTER_INVITE = ("Los precios que ves ahora en la página son precios al público, porque aún no has iniciado sesión. Con solo registrarte "
@@ -235,6 +237,21 @@ class JaguenAiService(models.AbstractModel):
         return user or self.env['res.users'].sudo().browse(2)
 
     # ---------- herramientas ----------
+    @staticmethod
+    def _rank_products(products, stems):
+        """Primero los que EMPIEZAN con lo que se busco (clip estandar antes que porta clips) y los que coinciden en palabra completa."""
+        def score(p):
+            name = (p.name or '').lower()
+            pts = 0
+            for i, t in enumerate(stems):
+                t = t.lower()
+                if re.search(r'\b%s' % re.escape(t), name):
+                    pts += 2
+                if i == 0 and name.startswith(t):
+                    pts += 4
+            return -pts
+        return products.sorted(key=score)
+
     def _tool_buscar_productos(self, session, args, base_url):
         query = (args.get('consulta') or '').strip()[:100]
         tokens = [t for t in re.split(r'\s+', query) if len(t) >= 2][:6]
@@ -243,16 +260,17 @@ class JaguenAiService(models.AbstractModel):
         Product = self.env['product.template'].sudo().with_context(lang='es_MX')
         base = [('website_published', '=', True), ('sale_ok', '=', True)]
         domain = list(base)
-        for t in tokens:
+        stems = [t[:-1] if len(t) > 3 and t.lower().endswith('s') else t for t in tokens]   # clips -> clip
+        for t in stems:
             domain += ['|', ('name', 'ilike', t), ('default_code', 'ilike', t)]
-        products = Product.search(domain, limit=5, order='name')
+        products = self._rank_products(Product.search(domain, limit=40, order='name'), stems)[:5]
         parcial = False
         if not products and len(tokens) > 1:
             parcial = True
             any_dom = []
             for t in tokens:
                 any_dom = ['|'] + any_dom + [('name', 'ilike', t)] if any_dom else [('name', 'ilike', t)]
-            products = Product.search(base + any_dom, limit=5, order='name')
+            products = self._rank_products(Product.search(base + any_dom, limit=40, order='name'), stems)[:5]
         out = []
         for p in products:
             desc = html2plaintext(p.description_ecommerce or '').strip().replace('\n', ' ')[:140]
@@ -675,20 +693,20 @@ class JaguenAiService(models.AbstractModel):
 
     # ---------- llamada a la API ----------
     def _post_api(self, payload):
-        """Una llamada a la API; ante error de red o de servidor (429/5xx) reintenta una vez."""
+        """Una llamada a la API; ante error de red o de servidor (429/5xx) reintenta hasta 3 veces."""
         headers = {'x-api-key': self._param('anthropic_api_key'), 'anthropic-version': API_VERSION,
                    'content-type': 'application/json'}
         resp = None
-        for attempt in (1, 2):
+        for attempt in (1, 2, 3):
             try:
                 resp = requests.post(API_URL, json=payload, timeout=45, headers=headers)
             except requests.RequestException:
-                if attempt == 2:
+                if attempt == 3:
                     raise
-                time.sleep(2)
+                time.sleep(2 * attempt)
                 continue
-            if resp.status_code in (429, 500, 502, 503, 529) and attempt == 1:
-                time.sleep(2)
+            if resp.status_code in (429, 500, 502, 503, 529) and attempt < 3:
+                time.sleep(2 * attempt)
                 continue
             break
         return resp
@@ -721,6 +739,25 @@ class JaguenAiService(models.AbstractModel):
             return MODE_PROMPTS['persona'].format(datos=self._known_data(session))
         return MODE_PROMPTS['sin_filtro']
 
+    _ASKED = (
+        (r'te encargas de las compras', 'si quien escribe es quien compra'),
+        (r'\bciudad\b[^.?!]*\?', 'a qué ciudad serían las entregas'),
+        (r'cu[aá]nto cr[eé]dito', 'cuánto crédito necesita'),
+        (r'volumen[^.?!]*\?', 'su volumen mensual'),
+        (r'qu[eé] productos o l[ií]neas', 'qué productos o líneas necesita'),
+        (r'cu[aá]ntas piezas', 'cuántas piezas necesita'),
+        (r'con qui[eé]n tengo el gusto|cu[aá]l es tu nombre|tu nombre', 'su nombre'),
+    )
+
+    def _asked_note(self, session):
+        """Lo que la asistente YA preguntó en esta conversación: no se repite (aunque el cliente no haya contestado)."""
+        said = ' '.join(m['content'] for m in session._history(limit=40) if m['role'] == 'assistant')
+        done = [label for pat, label in self._ASKED if re.search(pat, said, re.I)]
+        if not done:
+            return ''
+        return (' YA PREGUNTASTE en esta conversación: %s. NO lo vuelvas a preguntar (aunque no te hayan contestado); '
+                'termina tu mensaje sin esa pregunta o con una pregunta distinta y útil.' % '; '.join(done))
+
     def _known_data(self, session):
         bits = []
         if session.contact_name:
@@ -747,7 +784,7 @@ class JaguenAiService(models.AbstractModel):
             'system': [
                 {'type': 'text', 'text': SYSTEM_PROMPT + '\n\n' + self._knowledge(),
                  'cache_control': {'type': 'ephemeral'}},
-                {'type': 'text', 'text': 'Te llamas %s. ' % (session.agent_name or self._ai_names()[0]) + self._gender_note(session.agent_name or self._ai_names()[0]) + self._mode_text(session) + self._form_note(form_ctx)},
+                {'type': 'text', 'text': 'Te llamas %s. ' % (session.agent_name or self._ai_names()[0]) + self._gender_note(session.agent_name or self._ai_names()[0]) + self._mode_text(session) + self._asked_note(session) + self._form_note(form_ctx)},
             ],
             'messages': messages,
         }
@@ -758,12 +795,17 @@ class JaguenAiService(models.AbstractModel):
             payload['output_config'] = {'effort': 'low'}
         return payload
 
+    _CLAIM = re.compile(r'\b(ya|acabo de|ahora s[ií])\s+(dej[eé]|registr(?:[eé]|ar)|anot(?:[eé]|ar)|apunt(?:[eé]|ar)|avis(?:[eé]|ar)|actualic(?:[eé]|ar)|guard(?:[eé]|ar)|pas(?:[eé]|ar)|mand(?:[eé]|ar)|envi(?:[eé]|ar))|qued[oó]\s+(registrad|anotad|guardad)|ya qued[oó]', re.I)
+
     def reply(self, session, base_url, form_ctx=''):
         """Devuelve (texto, tokens_entrada, tokens_salida)."""
         model = self._model_for(session)
         limits = self._limits(session)
         messages = session._history()
+        if not messages:   # sin mensaje del cliente no hay nada que mandar a la API (evita un error 400)
+            return '', 0, 0
         tokens_in = tokens_out = cache_read = cache_write = 0
+        used_action = retried = False
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
         for _i in range(5):
@@ -779,6 +821,8 @@ class JaguenAiService(models.AbstractModel):
                 results = []
                 for block in data['content']:
                     if block.get('type') == 'tool_use':
+                        if block['name'] in ('crear_lead', 'pasar_a_persona', 'consultar_pedido', 'clasificar_visitante', 'desbloquear_documentos'):
+                            used_action = True
                         out = self._run_tool(session, block['name'], block.get('input'), base_url)
                         results.append({'type': 'tool_result', 'tool_use_id': block['id'],
                                         'content': json.dumps(out, ensure_ascii=False)})
@@ -788,6 +832,12 @@ class JaguenAiService(models.AbstractModel):
                 self._note_cache(session, cache_read, cache_write)
                 return '', tokens_in, tokens_out
             text = ''.join(b.get('text', '') for b in data.get('content', []) if b.get('type') == 'text').strip()
+            if text and not used_action and not retried and self._CLAIM.search(text):
+                # Dijo que ya registro/anoto algo sin haber usado ninguna herramienta: se le pide corregirlo (una sola vez)
+                retried = True
+                messages.append({'role': 'assistant', 'content': text})
+                messages.append({'role': 'user', 'content': '(Aviso interno, no del cliente: dijiste que ya registraste, anotaste o avisaste algo pero NO usaste ninguna herramienta en este turno. Reescribe tu respuesta sin afirmarlo, o si quieres que el equipo lo atienda usa primero crear_lead o pasar_a_persona.)'})
+                continue
             self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
         self._note_cache(session, cache_read, cache_write)
