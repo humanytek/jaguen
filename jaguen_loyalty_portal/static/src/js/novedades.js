@@ -2,7 +2,7 @@
     var KEY = 'jgNovedadPuntosVisto';
     function stored() { try { return window.sessionStorage.getItem(KEY); } catch (e) { return null; } }
     function store() { try { window.sessionStorage.setItem(KEY, '1'); } catch (e) { /* sin sessionStorage */ } }
-    document.addEventListener('DOMContentLoaded', function () {
+    function init() {
         // Ventana "Nuevo": sale una sola vez por visita (si la cierran o entran, no vuelve a salir en esa visita)
         var modal = document.querySelector('.jg-novedad-modal');
         if (modal && !stored()) {
@@ -22,5 +22,11 @@
                 }).catch(function () {});
             }, 2500);
         }
-    });
+    }
+    // Odoo 18 carga este archivo "tarde" (bundle lazy): puede que la pagina ya haya terminado de cargar.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
