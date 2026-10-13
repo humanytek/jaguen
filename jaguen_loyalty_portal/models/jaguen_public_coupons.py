@@ -317,6 +317,16 @@ class SaleOrderJaguenCoupons(models.Model):
         clientes). Aqui se aplica solo el cupon propio de la persona en cuanto el carrito lo
         permite (minimo de compra, o 20 de los 40 favoritos), sin que escriba el codigo."""
         super()._update_programs_and_rewards()
+        # Candado de IVA: si el carrito ya traia un cupon publico y luego se agrego un producto sin IVA 16%,
+        # el cupon se retira (Odoo revalida los cupones puestos con sus propias reglas, no con este filtro).
+        publicos = self._jaguen_cupones_publicos()
+        if publicos and self._jaguen_lineas_sin_iva():
+            lineas = self.order_line.filtered(lambda l: l.reward_id and l.reward_id.program_id in publicos)
+            if lineas:
+                cupones = lineas.coupon_id
+                lineas._reset_loyalty(True)
+                lineas.unlink()
+                self.applied_coupon_ids -= cupones
         if not self.website_id or self.env.context.get('jaguen_autoapply'):
             return
         applied = self.order_line.filtered('reward_id').mapped('coupon_id')
