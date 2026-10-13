@@ -91,7 +91,7 @@ pagada en su totalidad - ya estaba en el texto de "El Portal" pero no en
 el documento legal de Términos y Condiciones.
 
     """,
-    'version': '18.0.20.1.7',
+    'version': '18.0.20.2.5',
     'category': 'Sales/Loyalty',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
@@ -104,10 +104,15 @@ el documento legal de Términos y Condiciones.
         'data/automation_data.xml',
         'data/fix_automations.xml',
         'data/jaguen_public_coupons.xml',
+        'data/jaguen_novedades.xml',
         'views/portal_templates.xml',
         'views/res_partner_views.xml',
         'views/jaguen_public_coupons_templates.xml',
+        'views/jaguen_novedades_templates.xml',
     ],
+    'assets': {
+        'web.assets_frontend': ['jaguen_loyalty_portal/static/src/js/novedades.js'],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

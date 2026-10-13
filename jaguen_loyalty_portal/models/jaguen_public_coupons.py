@@ -59,6 +59,38 @@ class LoyaltyCardJaguenCoupons(models.Model):
 class ResPartnerJaguenCoupons(models.Model):
     _inherit = 'res.partner'
 
+    jg_novedad_puntos_visto = fields.Datetime(string='Vio la novedad de Mis Puntos', copy=False)
+
+    @api.model
+    def jaguen_novedad(self, page):
+        """True mientras a la persona conectada le toque ver el aviso de la novedad 'puntos' (la casilla
+        Mis Puntos de Mi cuenta). Dura 30 dias (desde que se estreno el aviso, o desde que se registro la
+        persona si fue despues) y se apaga en cuanto entra a Mis Puntos. Solo mira a quien llama."""
+        if page != 'puntos' or self.env.user._is_public():
+            return False
+        partner = self.env.user.partner_id.sudo()
+        if partner.jg_novedad_puntos_visto:
+            return False
+        param = self.env['ir.config_parameter'].sudo().get_param('jaguen_loyalty_portal.novedades_inicio')
+        hoy = fields.Date.context_today(self)
+        inicio = fields.Date.to_date(param) if param else hoy
+        desde = max(partner.create_date.date(), inicio)
+        return hoy <= desde + relativedelta(days=30)
+
+    @api.model
+    def jaguen_favoritos_estado(self):
+        """Datos para el letrero de Favoritos: cuantos lleva la empresa y si ya tiene su cupon."""
+        if self.env.user._is_public():
+            return {'logged': False, 'count': 0, 'needed': FAVORITOS_REQUERIDOS, 'has_card': False}
+        commercial = self.env.user.partner_id.commercial_partner_id
+        Wish = self.env['product.wishlist'].sudo()
+        wishes = Wish.search([('partner_id', 'child_of', commercial.id)])
+        program = self.env.ref(PROGRAM_FAVORITOS_XMLID, raise_if_not_found=False)
+        has_card = bool(program and self.env['loyalty.card'].sudo().search_count(
+            [('partner_id', '=', commercial.id), ('program_id', '=', program.id)]))
+        return {'logged': True, 'count': min(len(set(wishes.mapped('product_id').ids)), FAVORITOS_REQUERIDOS),
+                'needed': FAVORITOS_REQUERIDOS, 'has_card': has_card}
+
     def _jaguen_finish_registration(self, forced=None):
         super()._jaguen_finish_registration(forced=forced)
         try:

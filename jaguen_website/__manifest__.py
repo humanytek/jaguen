@@ -18,7 +18,7 @@ Ajustes del sitio web de JAGUEN
 - Asistente web con IA (Ale, Mónica y Andrea, con Claude): Haiku filtra al visitante conversando; Sonnet atiende a empresas y clientes con
   sesion; busca productos, crea leads, avisa de prospectos calientes y de coincidencias en CRM/Ventas. Requiere el parametro de sistema jaguen_website.anthropic_api_key.
 """,
-    'version': '18.0.1.21.3',
+    'version': '18.0.1.22.0',
     'category': 'Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
@@ -27,6 +27,7 @@ Ajustes del sitio web de JAGUEN
         'security/ir.model.access.csv',
         'data/ai_data.xml',
         'data/partner_data.xml',
+        'data/rotation_data.xml',
         'data/form_whitelist.xml',
         'views/shop_templates.xml',
         'views/payment_templates.xml',

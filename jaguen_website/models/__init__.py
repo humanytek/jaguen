@@ -7,3 +7,4 @@ from . import ai_digest
 from . import attachment
 from . import sepomex
 from . import wishlist
+from . import product_rotation

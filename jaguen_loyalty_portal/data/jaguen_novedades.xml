@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Dia en que se estrena el aviso "Nuevo": a partir de aqui cada persona lo ve 30 dias (o 30 dias desde que se registre, si fue despues) -->
+    <record id="param_novedades_inicio" model="ir.config_parameter">
+        <field name="key">jaguen_loyalty_portal.novedades_inicio</field>
+        <field name="value" eval="datetime.date.today().isoformat()"/>
+    </record>
+</odoo>
