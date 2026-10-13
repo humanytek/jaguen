@@ -822,7 +822,10 @@ class JaguenAiService(models.AbstractModel):
 
     _NARRA = re.compile(r'^\W*(voy a|déjame|dejame|déjenme|permíteme|permiteme|un momento|ahorita|ahora (te|lo|la)\b|ya mismo|lo hago ahora|lo busco|busco|reviso|consulto|te dejo (registrad|anotad)|dejo (registrad|anotad)|una corrección|se me adelant|ahora (actualiz|registr|anot|guard|dej)\w*|ya hice el registro|i wrote in|i\'ll (pass|register|check)|let me |i will )', re.I)
 
-    def _clean_reply(self, pre_texts, text, used_action):
+    _NARRA_ANY = re.compile(r'(voy a|dejo|déjame|dejame) (dejar )?(anotad\w+|anotar|registrar|registrad\w+|actualizar)|antes de (contestar|despedir)\w*|quedó todo en orden|^\W*listo[,.!]? (ya )?(dej|quedó|registr|anot)', re.I)
+    _ASK_CONTACT = re.compile(r'contact|llam|humano|persona|vendedor|asesor|queja|reclam|problema|cobr|devol|dinero|reembols|gerente|pedido|factura|molest', re.I)
+
+    def _clean_reply(self, pre_texts, text, used_action, allow_announce=True):
         """Une lo escrito antes y despues de las herramientas SIN los avisos internos ("voy a buscar...", "voy a anotar...") y,
         si no se uso ninguna herramienta, sin frases que digan que ya se registro/aviso algo."""
         seen, paras = set(), []
@@ -831,7 +834,9 @@ class JaguenAiService(models.AbstractModel):
                 keep = []
                 for sent in re.split(r'(?<=[.!?])\s+|\n', para):
                     sent = sent.strip()
-                    if not sent or self._NARRA.search(sent) or (not used_action and self._CLAIM.search(sent)):
+                    if (not sent or self._NARRA.search(sent) or self._NARRA_ANY.search(sent)
+                            or (not used_action and self._CLAIM.search(sent))
+                            or (not allow_announce and self._CLAIM.search(sent))):
                         continue
                     key = re.sub(r'\W+', ' ', sent.lower())
                     if key in seen:
@@ -853,6 +858,9 @@ class JaguenAiService(models.AbstractModel):
         tokens_in = tokens_out = cache_read = cache_write = 0
         used_action = False
         pre_texts = []
+        # solo si el cliente pidio que lo contacten / tiene una queja se le confirma que se registro su caso
+        last_user = messages[-1]['content'] if messages and isinstance(messages[-1].get('content'), str) else ''
+        allow_announce = bool(self._ASK_CONTACT.search(last_user))
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
         max_tokens = limits['max_tokens']
@@ -886,7 +894,7 @@ class JaguenAiService(models.AbstractModel):
             if not text and data.get('stop_reason') == 'max_tokens' and max_tokens < 3 * limits['max_tokens']:
                 max_tokens *= 2   # se acabo el presupuesto antes de escribir: se reintenta con mas espacio
                 continue
-            text = self._clean_reply(pre_texts, text, used_action)
+            text = self._clean_reply(pre_texts, text, used_action, allow_announce=allow_announce)
             self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
         self._note_cache(session, cache_read, cache_write)
