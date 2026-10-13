@@ -15,6 +15,13 @@ class PaymentPortalJaguen(PaymentPortal):
     def shop_payment_transaction(self, order_id, access_token, **kwargs):
         card_type = kwargs.pop('jaguen_card_type', None)
         accepted = kwargs.pop('jaguen_tyc', None) in ('1', 'true', 'True', True, 1)
+        order_check = request.env['sale.order'].sudo().browse(int(order_id or 0)).exists()
+        if order_check and order_check.x_jaguen_personal_min_gap > 0:
+            raise ValidationError(_(
+                "El pedido mínimo es de $%(min)s más IVA (antes de IVA y sin envío). "
+                "Te faltan $%(gap)s más IVA.",
+                min='{:,.2f}'.format(order_check.x_jaguen_personal_min),
+                gap='{:,.2f}'.format(order_check.x_jaguen_personal_min_gap)))
         if not accepted:
             raise ValidationError(_(
                 "Debes aceptar los términos y condiciones para poder pagar."))

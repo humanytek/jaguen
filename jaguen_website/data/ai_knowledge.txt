@@ -8,7 +8,7 @@ Para cada producto manejamos más de tres opciones: calidad, buena-bonita-barata
 La venta es solo por internet. No hay venta en mostrador ni recolección de pedidos en bodega.
 
 QUIÉN PUEDE COMPRAR
-Atendemos a empresas y a personas físicas con actividad empresarial. A personas en general (uso personal) solo en compras de $4,000 más IVA o más, se facturen o no. Para empresas y personas físicas con actividad empresarial no hay pedido mínimo.
+Atendemos a empresas y a personas físicas con actividad empresarial, y también a personas en general (uso personal). PEDIDO MÍNIMO (sin IVA, sin contar el envío): TODOS los pedidos del sitio tienen un mínimo de $1,000 más IVA. Quien compra SIN registrarse (sin iniciar sesión), sea empresa o persona, y quien se registra como "compra personal", tiene un mínimo de $4,000 más IVA por pedido. Las empresas y personas físicas con actividad empresarial REGISTRADAS compran con mínimo de $1,000 más IVA; por eso conviene registrarse (gratis, menos de 5 minutos). El carrito no deja continuar si no llega al mínimo y le avisa cuánto le falta. Esto también está en los Términos y Condiciones y en Preguntas Frecuentes. Si alguien quiere comprar menos del mínimo, explícale con amabilidad que por ahora no se puede y que revise su carrito; no prometas excepciones.
 Recomendamos registrarse (https://www.jaguen.com/registrate) para ver cotizaciones, órdenes de venta, facturas, precios especiales y el programa de recompensas en Mi Cuenta (https://www.jaguen.com/my/home). Para iniciar sesión: https://www.jaguen.com/web/login
 
 PRECIOS
@@ -19,12 +19,13 @@ Política de mayoreo: https://www.jaguen.com/politica-de-mayoreo
 PRODUCTOS SOBRE PEDIDO
 Los productos de la página son los que trabajamos de línea. Si buscas un producto de una marca que distribuimos y no aparece, lo podemos cotizar como producto sobre pedido; se vende por caja según la marca y esa es la compra mínima. Se solicita a su asesor una vez registrado (o por contacto).
 
-ENVÍOS Y ENTREGAS (precios incluyen IVA)
+ENVÍOS Y ENTREGAS (los cargos de envío son MÁS IVA; los precios de los productos sí incluyen IVA)
 Tiempo de entrega: en el 99% de los productos, de 1 a 3 días hábiles en Hermosillo.
-Hermosillo: reparto con carros propios. Pedidos menores a $4,000: cargo de $150. Pedidos mayores a $4,000: entrega gratis.
-Sonora y Sinaloa: carros de reparto o paquetería según ubicación. Menos de 10 kg: $100. De 10 a 100 kg: $400. De 100 a 250 kg: $1,000. De 250 a 1,000 kg: $2,000. Cada tonelada extra: $2,000.
-Resto de la República, menos de 60 kg, por Estafeta (sujeto a cobertura): menos de 10 kg $250; cada kg extra $20.
-Resto de la República, más de 60 kg, por Transportes Pitic (sujeto a cobertura): menos de 250 kg $1,250; de 250 a 500 kg $2,000; de 500 a 1,000 kg $4,000; cada tonelada extra $4,000.
+Hermosillo: reparto con carros propios. Pedidos con un total (IVA incluido) menor a $4,000: cargo de $150 más IVA. Pedidos con un total (IVA incluido) de $4,000 o más: entrega gratis.
+Sonora y Sinaloa: carros de reparto o paquetería según ubicación. 10 kg o menos: $175 más IVA. Más de 10 y hasta 100 kg: $175 más $5.50 por cada kg del pedido, más IVA (50 kg = $450 más IVA). Más de 100 y hasta 250 kg: $1,000 más IVA. Más de 250 y hasta 1,000 kg: $2,000 más IVA. Más de 1,000 kg: $2,000 más $2 por cada kg del pedido, más IVA.
+Resto de la República, menos de 60 kg, por Estafeta (sujeto a cobertura): 10 kg o menos $425 más IVA; más de 10 y menos de 60 kg: $500 más $18.50 por cada kg del pedido, más IVA.
+Resto de la República, 60 kg o más, por Transportes Pitic (sujeto a cobertura): $1,600 más $5 por cada kg del pedido, más IVA.
+El costo exacto se ve en el carrito, en el paso de entrega y envío; no prometas un costo exacto si no sabes el peso.
 Detalle: https://www.jaguen.com/formas-de-envio
 
 FORMAS DE PAGO
