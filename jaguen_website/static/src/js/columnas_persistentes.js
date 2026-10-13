@@ -6,6 +6,8 @@ import { patch } from "@web/core/utils/patch";
 import { registry } from "@web/core/registry";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { user } from "@web/core/user";
+import { onMounted, onPatched, onWillUnmount } from "@odoo/owl";
+import { ProductLabelSectionAndNoteListRender } from "@account/components/product_label_section_and_note_field/product_label_section_and_note_field";
 
 const jaguenColsService = {
     dependencies: ["orm"],
@@ -81,5 +83,103 @@ patch(ListRenderer.prototype, {
                     .join(",")
             );
         }
+    },
+});
+
+// Lineas de ventas, compras y facturas: Odoo esconde la columna "Descripcion"/"Etiqueta" cuando "Producto" esta visible
+// (las funde en una sola celda). Aqui, si el usuario tiene prendidas las dos, se muestran como columnas separadas.
+patch(ProductLabelSectionAndNoteListRender.prototype, {
+    getActiveColumns(list) {
+        const cols = super.getActiveColumns(list);
+        const productCol = cols.find((c) => this.productColumns.includes(c.name));
+        const labelCol = this.allColumns && this.allColumns.find((c) => c.name === "name");
+        if (!productCol || !labelCol || !this.optionalActiveFields || this.optionalActiveFields.name === false) {
+            return cols;
+        }
+        const labelActive = labelCol.optional ? this.optionalActiveFields.name : true;
+        if (!labelActive) {
+            return cols;
+        }
+        list.records.forEach((record) => (record.columnIsProductAndLabel = false));
+        const result = [];
+        for (const c of this.allColumns) {
+            if (cols.includes(c) || c === labelCol) {
+                result.push(c);
+            }
+        }
+        return result;
+    },
+});
+
+// Ancho de las columnas: Odoo lo pierde al recargar. Se guarda por usuario y por lista (misma llave estable que las
+// columnas opcionales). Se aplica encima del ancho que calcula Odoo despues de cada pintado de la lista.
+patch(ListRenderer.prototype, {
+    setup() {
+        super.setup(...arguments);
+        const widthKey = () => "w|" + this.keyOptionalFields;
+        const apply = () => {
+            const table = this.tableRef && this.tableRef.el;
+            const svc = this.env.services.jaguen_cols;
+            if (!table || !svc || table.classList.contains("o_resizing")) {
+                return;
+            }
+            let saved;
+            try {
+                saved = JSON.parse(svc.get(widthKey()) || "null");
+            } catch (e) {
+                saved = null;
+            }
+            if (!saved || !saved.w || !saved.pw || !table.parentNode.clientWidth) {
+                return;
+            }
+            const scale = table.parentNode.clientWidth / saved.pw;
+            const heads = [...table.querySelectorAll("thead th")];
+            let changed = false;
+            for (const th of heads) {
+                const w = th.dataset.name && saved.w[th.dataset.name];
+                if (w) {
+                    th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
+                    changed = true;
+                }
+            }
+            if (changed) {
+                table.style.tableLayout = "fixed";
+                table.style.width = `${Math.floor(
+                    heads.reduce((sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width), 0)
+                )}px`;
+            }
+        };
+        let timer = null;
+        const onPointerDown = (ev) => {
+            const table = this.tableRef && this.tableRef.el;
+            if (!table || !ev.target.closest || !ev.target.closest(".o_resize") || !table.contains(ev.target)) {
+                return;
+            }
+            const onUp = () => {
+                window.removeEventListener("pointerup", onUp, true);
+                setTimeout(() => {
+                    const svc = this.env.services.jaguen_cols;
+                    if (!svc || !this.tableRef.el) {
+                        return;
+                    }
+                    const w = {};
+                    for (const th of this.tableRef.el.querySelectorAll("thead th")) {
+                        if (th.dataset.name) {
+                            w[th.dataset.name] = Math.round(th.getBoundingClientRect().width);
+                        }
+                    }
+                    svc.set(widthKey(), JSON.stringify({ w, pw: this.tableRef.el.parentNode.clientWidth }));
+                }, 80);
+            };
+            window.addEventListener("pointerup", onUp, true);
+        };
+        onMounted(() => {
+            apply();
+            clearTimeout(timer);
+            timer = setTimeout(apply, 400);
+            this.tableRef.el.addEventListener("pointerdown", onPointerDown, true);
+        });
+        onPatched(apply);
+        onWillUnmount(() => clearTimeout(timer));
     },
 });
