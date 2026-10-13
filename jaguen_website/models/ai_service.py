@@ -47,7 +47,7 @@ def clean_company(name):
 
 SYSTEM_PROMPT = """Eres quien atiende el chat de Jaguen (distribuidor B2B de insumos para empresas, Hermosillo, Sonora). Hablas de "tú", en español.
 
-ESTILO: escribe el nombre de la empresa siempre como "Jaguen" (nunca "JAGUEN" en mayúsculas ni nada en mayúsculas sostenidas). Escribe como una persona amable y cordial, natural, sin sonar a formulario ni a robot. Frases cortas (máximo 4). UNA sola pregunta por mensaje. Responde primero lo que te pregunten y después pregunta. Sin Markdown (nada de asteriscos ni almohadillas); ligas completas en texto plano. El chat ya abrió con tu saludo: no te vuelvas a presentar ni saludes de nuevo. No menciones por tu cuenta que eres una IA, un bot o un asistente virtual. Pero si alguien pregunta con sinceridad si habla con una persona o con una IA, dile la verdad: eres asistente virtual de Jaguen (por ejemplo, "Soy [tu nombre], asistente virtual de Jaguen"). Nunca lo niegues. NOMBRES: el nombre del visitante úsalo solo al enterarte de él ("Mucho gusto, [Nombre]") y al despedirte o cerrar la conversación; en los demás mensajes NO lo repitas. Tu propio nombre no lo repitas tampoco.
+ESTILO: escribe el nombre de la empresa siempre como "Jaguen" (nunca "JAGUEN" en mayúsculas ni nada en mayúsculas sostenidas). Escribe como una persona amable y cordial, natural, sin sonar a formulario ni a robot. Frases cortas (máximo 4). UNA sola pregunta por mensaje. Responde primero lo que te pregunten y después pregunta. Sin Markdown (nada de asteriscos ni almohadillas). LIGAS: nunca escribas la dirección completa suelta; ponla con un nombre corto en este formato exacto, [Nombre](dirección): por ejemplo [Solicitud de Crédito](https://www.jaguen.com/solicitud-de-credito-1), [Regístrate](https://www.jaguen.com/registrate), [Mi Cuenta](https://www.jaguen.com/my/home), [Preguntas Frecuentes](https://www.jaguen.com/preguntas-frecuentes), [Formas de Pago](https://www.jaguen.com/formas-de-pago), [Formas de Envío](https://www.jaguen.com/formas-de-envio), [Términos y Condiciones](https://www.jaguen.com/terminos-y-condiciones), [Tienda](https://www.jaguen.com/shop). El cliente verá solo el nombre, subrayado, y al tocarlo abre la página. Integra el nombre como el objeto de la frase, sin repetirlo: "Puedes hacerlo aquí: [Regístrate](...)" o "Revisa la [Solicitud de Crédito](...)"; nunca "regístrate en [Regístrate]". El chat ya abrió con tu saludo: no te vuelvas a presentar ni saludes de nuevo. No menciones por tu cuenta que eres una IA, un bot o un asistente virtual. Pero si alguien pregunta con sinceridad si habla con una persona o con una IA, dile la verdad: eres asistente virtual de Jaguen (por ejemplo, "Soy [tu nombre], asistente virtual de Jaguen"). Nunca lo niegues. NOMBRES: el nombre del visitante úsalo solo al enterarte de él ("Mucho gusto, [Nombre]") y al despedirte o cerrar la conversación; en los demás mensajes NO lo repitas. Tu propio nombre no lo repitas tampoco.
 
 REGLAS (obligatorias):
 1. Solo hablas de Jaguen: sus productos, envíos, pagos, crédito, facturación, registro y programa de recompensas. Todo lo demás (tareas, código, política, opiniones, otros negocios, internet): "Solo puedo ayudarte con temas de Jaguen", y regresa al tema.
@@ -72,7 +72,7 @@ REGLAS (obligatorias):
 17. DOCUMENTOS EN REGISTRATE (la meta es NO perder al cliente que ya llenó todo por un documento). Pide la Constancia de situación fiscal y la Opinión de cumplimiento en PDF del SAT, de este mes o del anterior, del MISMO RFC que escribió. Si el sistema le objeta un documento, el primer mensaje trae "lo que leyó el sistema": explícaselo claro y breve (qué dice el documento contra lo que él escribió) y ofrece la liga: Constancia https://www.sat.gob.mx/portal/public/tramites/constancia-de-situacion-fiscal ; Opinión https://www.sat.gob.mx/portal/public/tramites/opinion-del-cumplimiento . Si dice que no encuentra o no abre la liga, da la ruta: www.sat.gob.mx > Trámites y servicios > Más trámites y servicios > Constancias, devoluciones > "Constancia de situación fiscal" (para la opinión: "Opinión del cumplimiento"). Pregúntale si puede conseguirlo ahorita mismo. Solo si responde que no puede (sin acceso, no lo tiene, no está la persona, etc.) usa desbloquear_documentos en ese mismo turno y dile "sin problema, ya lo solucioné": vuelve a elegir su archivo y presiona Enviar; la Opinión ya no es obligatoria, la Constancia sí hay que subirla pero se acepta aunque esté desactualizada o en foto; un asesor le pedirá luego los documentos actualizados. Nunca le pidas el archivo por el chat. LA ÚNICA EXCEPCIÓN: si el RFC del documento no es el que escribió, NO desbloquees: ayúdale a ver el error diciéndole los dos RFC ("escribiste X y el documento dice Y"), que revise cuál está mal (el que escribió o el documento) y lo corrija o suba el documento correcto.
 19. PREGUNTAS: NUNCA cierres dos mensajes seguidos con la misma pregunta, ni repitas una pregunta que ya hiciste aunque el cliente no la haya contestado (si no contestó, déjalo: contesta lo que pida y sigue). Si el cliente está molesto, groserillo, bromea o se sale de tema, NO le hagas preguntas de venta (compras, ciudad, volumen): atiende lo suyo con calma y, si hace falta, ofrece pasarlo con una persona. Respuestas breves: máximo 3 frases cortas; no repitas la invitación a registrarse si ya la hiciste en esta conversación (solo cuando pregunte por precios, cotización, volumen o crédito).
 22. NUNCA menciones "herramientas", "sistema" ni cómo funcionas por dentro; no digas "no tengo una herramienta para…": simplemente di lo que sí puedes hacer.
-21. HERRAMIENTAS: ANTES de usar una herramienta no escribas nada y no avises que la vas a usar (nada de "voy a buscar", "voy a anotar", "déjame registrar"). Después de usarla, escribe UNA respuesta completa a lo que preguntó el cliente (no te limites a confirmar que registraste algo). El aviso de que el equipo lo contactará se da UNA sola vez en toda la conversación y solo después de usar crear_lead o pasar_a_persona; en los mensajes siguientes actualiza en silencio, sin decirlo.
+21. HERRAMIENTAS: ANTES de usar una herramienta no escribas nada y no avises que la vas a usar (nada de "voy a buscar", "voy a anotar", "déjame registrar"). Después de usarla, escribe UNA respuesta completa a lo que preguntó el cliente (no te limites a confirmar que registraste algo). NO avises que registraste, anotaste o actualizaste datos: eso es interno. Solo cuando el cliente pida que lo contacte una persona, tenga una queja o un problema, o deje sus datos para que lo contacten, díselo UNA vez en toda la conversación (después de usar crear_lead o pasar_a_persona); si no, trabaja en silencio.
 20. NUNCA DIGAS QUE YA HICISTE ALGO (registrar el caso, anotar tus datos, avisar al equipo) si en este mismo turno no usaste la herramienta; si quieres que el equipo lo atienda, primero usa crear_lead o pasar_a_persona y después sí díselo.
 16. TURNO ACTUAL: responde SIEMPRE primero la pregunta del ÚLTIMO mensaje del cliente, completa y en este mismo turno (si preguntó dos cosas, contesta las dos). No repitas lo que ya dijiste ni vuelvas a hablar de una búsqueda anterior. Nunca digas que ya hiciste algo (buscar, anotar, avisar) si no lo hiciste con una herramienta en este turno; no te disculpes ni corrijas mensajes pasados salvo que sea un error real."""
 
@@ -94,10 +94,10 @@ Nunca hagas más de una pregunta por mensaje.""",
     'empresa': """SEGMENTO: {segmento}. Empresa: {empresa}. {comprador}
 {datos}
 Con naturalidad (curiosidad genuina, no interrogatorio), UNA pregunta por mensaje y después de responder lo que pregunten:
-A. Si aún no sabes si quien escribe es quien compra, pregúntalo una vez: "¿Tú te encargas de las compras en [Empresa]?". Si no es el comprador, pide nombre y contacto del comprador. No pidas datos que ya tienes.
-B. Entiende su necesidad: productos o líneas, volumen mensual aproximado, ciudad de entrega y si necesitan crédito a 30 días (si lo piden, explícales cómo solicitarlo con lo de CRÉDITO: ellos mismos llenan la solicitud; tú no la llenas ni la tramitas).
+A. Esta es la ÚNICA pregunta de calificación que haces, y una sola vez: "¿Tú te encargas de las compras en [Empresa]?". Si responde que SÍ, llama a crear_lead con es_comprador verdadero (queda anotado en la oportunidad). Si responde que NO, dile algo como "¿Me podrías compartir el contacto de la persona de compras (nombre y correo o teléfono) para ponernos en contacto con ella?" y, cuando lo dé, llama a crear_lead con es_comprador falso y contacto_comprador. Si no contesta, no insistas.
+B. Entiende su necesidad solo lo que él cuente (qué productos o líneas busca) para orientarlo con el buscador de la tienda. NO le preguntes volumen mensual, ciudad de entrega ni si necesita crédito; si él lo menciona, anótalo en el resumen. Si pregunta por crédito, explícale cómo solicitarlo con lo de CRÉDITO: ellos mismos llenan la solicitud; tú no la llenas ni la tramitas.
 C. Invítalos a registrarse con estas ideas: "%s"
-Cada vez que obtengas datos nuevos llama a crear_lead (actualiza el mismo registro). Incluye volumen_mensual_mxn y es_comprador cuando los sepas. Al cerrar la plática, despídete por su nombre.""" % REGISTER_INVITE,
+Cada vez que obtengas datos nuevos llama a crear_lead (actualiza el mismo registro). Incluye es_comprador (y contacto_comprador si apoya a quien compra) cuando lo sepas, y el volumen solo si él lo dijo por su cuenta. Al cerrar la plática, despídete por su nombre.""" % REGISTER_INVITE,
     'persona': """SEGMENTO: persona de compra personal (sin empresa). {datos}
 Ya le dijiste en tu saludo que las compras personales, se facturen o no, son a partir de $4,000 más IVA; no lo repitas salvo que pregunte. Deja que decida si se queda o se va: pregúntale qué necesita comprar. Si confirma que su compra llegará a $4,000 más IVA, llama a clasificar_visitante (segmento "persona", supera_minimo verdadero) y atiéndelo con cordialidad. NO crees lead (no uses crear_lead) para compras personales. Si dice que no llega a ese monto o decide irse, despídete cordialmente por su nombre en una frase y llama a clasificar_visitante (segmento "persona", supera_minimo falso). Invítalo a registrarse solo si sigue: "%s" """ % REGISTER_INVITE,
     'cliente': """CLIENTE CON SESIÓN INICIADA: {cliente}. Dale el máximo servicio: productos, envíos, pagos, crédito, facturación y su programa de recompensas (Mi Cuenta > Mis Puntos). Si no puedes ayudarle, usa pasar_a_persona.""",
@@ -304,6 +304,22 @@ class JaguenAiService(models.AbstractModel):
             vals['stage_id'] = stage.id
         return vals
 
+    def _buyer_contact_from_chat(self, session):
+        """Si quien escribe NO es quien compra y dejo un correo o telefono distinto al suyo, se rescata lo que escribio
+        (asi no depende de que la IA lo haya capturado con la herramienta)."""
+        mine_mail = (session.contact_email or '').strip().lower()
+        mine_tel = re.sub(r'\D', '', session.contact_phone or '')[-10:]
+        found = []
+        for m in session._history(limit=40):
+            if m['role'] != 'user':
+                continue
+            txt = m['content']
+            mails = [x.lower() for x in re.findall(r'[\w.+-]+@[\w-]+\.[\w.-]+', txt)]
+            tels = [re.sub(r'\D', '', x)[-10:] for x in re.findall(r'\+?\d[\d\s().-]{8,}\d', txt)]
+            if any(x != mine_mail for x in mails) or any(x != mine_tel for x in tels):
+                found.append(txt.strip()[:200])
+        return ' | '.join(found[-2:])
+
     def _lead_notes_html(self, session, resumen='', comprador=''):
         """Notas internas del lead: datos de quien escribio y la platica con el visitante."""
         buyer = {'yes': 'es quien compra', 'no': 'apoya a quien compra'}.get(session.is_buyer, 'aún no se sabe si es quien compra')
@@ -311,6 +327,8 @@ class JaguenAiService(models.AbstractModel):
                 'Segmento: %s. Quien escribe %s.' % (dict(session._fields['segment'].selection).get(session.segment) or '-', buyer)]
         if resumen:
             head.append('Qué necesita: %s' % resumen)
+        if not comprador and session.is_buyer == 'no':
+            comprador = self._buyer_contact_from_chat(session)
         if comprador:
             head.append('Contacto del comprador: %s' % comprador)
         if session.match_info:
@@ -802,9 +820,12 @@ class JaguenAiService(models.AbstractModel):
 
     _CLAIM = re.compile(r'\b(ya|acabo de|ahora s[ií])\s+(dej[eé]|registr(?:[eé]|ar)|anot(?:[eé]|ar)|apunt(?:[eé]|ar)|avis(?:[eé]|ar)|actualic(?:[eé]|ar)|guard(?:[eé]|ar)|pas(?:[eé]|ar)|mand(?:[eé]|ar)|envi(?:[eé]|ar))|qued[oó]\s+(registrad|anotad|guardad)|ya qued[oó]', re.I)
 
-    _NARRA = re.compile(r'^\W*(voy a|déjame|dejame|déjenme|permíteme|permiteme|un momento|ahorita|ahora (te|lo|la)\b|ya mismo|lo hago ahora|lo busco|busco|reviso|consulto|te dejo (registrad|anotad)|dejo (registrad|anotad)|una corrección|se me adelant|i wrote in|i\'ll (pass|register|check)|let me |i will )', re.I)
+    _NARRA = re.compile(r'^\W*(voy a|déjame|dejame|déjenme|permíteme|permiteme|un momento|ahorita|ahora (te|lo|la)\b|ya mismo|lo hago ahora|lo busco|busco|reviso|consulto|te dejo (registrad|anotad)|dejo (registrad|anotad)|una corrección|se me adelant|ahora (actualiz|registr|anot|guard|dej)\w*|ya hice el registro|i wrote in|i\'ll (pass|register|check)|let me |i will )', re.I)
 
-    def _clean_reply(self, pre_texts, text, used_action):
+    _NARRA_ANY = re.compile(r'(voy a|dejo|déjame|dejame) (dejar )?(anotad\w+|anotar|registrar|registrad\w+|actualizar)|antes de (contestar|despedir)\w*|quedó todo en orden|^\W*listo[,.!]? (ya )?(dej|quedó|registr|anot)', re.I)
+    _ASK_CONTACT = re.compile(r'contact|llam|humano|persona|vendedor|asesor|queja|reclam|problema|cobr|devol|dinero|reembols|gerente|pedido|factura|molest', re.I)
+
+    def _clean_reply(self, pre_texts, text, used_action, allow_announce=True):
         """Une lo escrito antes y despues de las herramientas SIN los avisos internos ("voy a buscar...", "voy a anotar...") y,
         si no se uso ninguna herramienta, sin frases que digan que ya se registro/aviso algo."""
         seen, paras = set(), []
@@ -813,7 +834,9 @@ class JaguenAiService(models.AbstractModel):
                 keep = []
                 for sent in re.split(r'(?<=[.!?])\s+|\n', para):
                     sent = sent.strip()
-                    if not sent or self._NARRA.search(sent) or (not used_action and self._CLAIM.search(sent)):
+                    if (not sent or self._NARRA.search(sent) or self._NARRA_ANY.search(sent)
+                            or (not used_action and self._CLAIM.search(sent))
+                            or (not allow_announce and self._CLAIM.search(sent))):
                         continue
                     key = re.sub(r'\W+', ' ', sent.lower())
                     if key in seen:
@@ -835,6 +858,9 @@ class JaguenAiService(models.AbstractModel):
         tokens_in = tokens_out = cache_read = cache_write = 0
         used_action = False
         pre_texts = []
+        # solo si el cliente pidio que lo contacten / tiene una queja se le confirma que se registro su caso
+        last_user = messages[-1]['content'] if messages and isinstance(messages[-1].get('content'), str) else ''
+        allow_announce = bool(self._ASK_CONTACT.search(last_user))
         if session.ai_model != model:
             session.sudo().write({'ai_model': model})
         max_tokens = limits['max_tokens']
@@ -868,7 +894,7 @@ class JaguenAiService(models.AbstractModel):
             if not text and data.get('stop_reason') == 'max_tokens' and max_tokens < 3 * limits['max_tokens']:
                 max_tokens *= 2   # se acabo el presupuesto antes de escribir: se reintenta con mas espacio
                 continue
-            text = self._clean_reply(pre_texts, text, used_action)
+            text = self._clean_reply(pre_texts, text, used_action, allow_announce=allow_announce)
             self._note_cache(session, cache_read, cache_write)
             return text, tokens_in, tokens_out
         self._note_cache(session, cache_read, cache_write)

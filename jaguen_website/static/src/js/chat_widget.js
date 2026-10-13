@@ -116,24 +116,43 @@
     }
 
     // ---------- conversacion ----------
+    // Nombres cortos para las ligas del propio sitio: "Regístrate", "Mi Cuenta"... en vez de la direccion completa
+    var FRIENDLY = [
+        [/^\/registrate/, 'Regístrate'], [/^\/solicitud-de-credito/, 'Solicitud de Crédito'],
+        [/^\/my(\/home)?\/?$/, 'Mi Cuenta'], [/^\/my\/loyalty/, 'Mis Puntos'], [/^\/preguntas-frecuentes/, 'Preguntas Frecuentes'],
+        [/^\/formas-de-pago/, 'Formas de Pago'], [/^\/formas-de-envio/, 'Formas de Envío'],
+        [/^\/terminos-y-condiciones/, 'Términos y Condiciones'], [/^\/aviso-de-privacidad/, 'Aviso de Privacidad'],
+        [/^\/politica-de-mayoreo/, 'Política de Mayoreo'], [/^\/contactus/, 'Contáctanos'], [/^\/web\/login/, 'Iniciar sesión'],
+        [/^\/nuestra-empresa/, 'Nuestra Empresa'], [/^\/por-que-jaguen/, 'Por qué Jaguen'], [/^\/shop/, 'Tienda']
+    ];
+    function friendly(u) {
+        if (/[?&]search=/.test(u.search)) { return 'Buscador de la tienda'; }
+        for (var i = 0; i < FRIENDLY.length; i++) { if (FRIENDLY[i][0].test(u.pathname)) { return FRIENDLY[i][1]; } }
+        return null;
+    }
     function linkify(container, text) {
-        var parts = String(text).split(/(https?:\/\/[^\s]+)/g);
-        parts.forEach(function (p) {
-            if (/^https?:\/\//.test(p)) {
-                var m = p.match(/^(.*?)([.,;:!?)]*)$/);
-                var url = m[1], tail = m[2], host = '';
-                try { host = new URL(url).hostname; } catch (e) { host = ''; }
-                if (/(^|\.)jaguen\.com$/.test(host) || host === location.hostname) {
-                    var a = el('a', null, url); a.href = url; a.target = '_blank'; a.rel = 'noopener';
-                    container.appendChild(a);
-                    if (tail) { container.appendChild(document.createTextNode(tail)); }
-                } else {
-                    container.appendChild(document.createTextNode(p));
-                }
-            } else if (p) {
-                container.appendChild(document.createTextNode(p));
+        // [Texto](https://...) o una direccion suelta; solo ligas de jaguen.com se vuelven ligas
+        var re = /\[([^\]\n]{1,80})\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s]+)/g;
+        var str = String(text), last = 0, m;
+        while ((m = re.exec(str)) !== null) {
+            if (m.index > last) { container.appendChild(document.createTextNode(str.slice(last, m.index))); }
+            last = re.lastIndex;
+            var label = null, url, tail = '';
+            if (m[2]) { label = m[1]; url = m[2]; }
+            else {
+                var t = m[3].match(/^(.*?)([.,;:!?)]*)$/); url = t[1]; tail = t[2];
             }
-        });
+            var u = null;
+            try { u = new URL(url); } catch (e) { u = null; }
+            if (u && (/(^|\.)jaguen\.com$/.test(u.hostname) || u.hostname === location.hostname)) {
+                var a = el('a', null, label || friendly(u) || url); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+                container.appendChild(a);
+            } else {
+                container.appendChild(document.createTextNode(label ? label : url));
+            }
+            if (tail) { container.appendChild(document.createTextNode(tail)); }
+        }
+        if (last < str.length) { container.appendChild(document.createTextNode(str.slice(last))); }
     }
 
     function bubble(role, text) {
