@@ -162,12 +162,23 @@ patch(ListRenderer.prototype, {
                     }
                 }
                 table.style.tableLayout = "fixed";
-                table.style.width = `${Math.floor(
-                    heads.reduce((sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width), 0)
-                )}px`;
+                // Nunca mas angosta que el area disponible: si no, queda un hueco a la derecha y la lista se ve corrida.
+                const total = heads.reduce(
+                    (sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width),
+                    0
+                );
+                table.style.width = `${Math.floor(Math.max(total, table.parentNode.clientWidth))}px`;
             }
         };
         let timer = null;
+        let resizeTimer = null;
+        let observer = null;
+        // Odoo recalcula los anchos cuando cambia el tamano del area de la lista (ventana, barra lateral...);
+        // se vuelve a aplicar despues de que termine.
+        const onResize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(apply, 150);
+        };
         const onPointerDown = (ev) => {
             const table = this.tableRef && this.tableRef.el;
             if (!table || !ev.target.closest || !ev.target.closest(".o_resize") || !table.contains(ev.target)) {
@@ -196,8 +207,18 @@ patch(ListRenderer.prototype, {
             clearTimeout(timer);
             timer = setTimeout(apply, 400);
             this.tableRef.el.addEventListener("pointerdown", onPointerDown, true);
+            if (window.ResizeObserver && this.tableRef.el.parentNode) {
+                observer = new ResizeObserver(onResize);
+                observer.observe(this.tableRef.el.parentNode);
+            }
         });
         onPatched(apply);
-        onWillUnmount(() => clearTimeout(timer));
+        onWillUnmount(() => {
+            clearTimeout(timer);
+            clearTimeout(resizeTimer);
+            if (observer) {
+                observer.disconnect();
+            }
+        });
     },
 });
