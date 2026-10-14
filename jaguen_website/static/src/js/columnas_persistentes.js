@@ -129,20 +129,38 @@ patch(ListRenderer.prototype, {
             } catch (e) {
                 saved = null;
             }
-            if (!saved || !saved.w || !saved.pw || !table.parentNode.clientWidth) {
-                return;
-            }
-            const scale = table.parentNode.clientWidth / saved.pw;
             const heads = [...table.querySelectorAll("thead th")];
             let changed = false;
+            // Columnas de botones/iconos (grafica de inventario, historial de precios...): no tienen nombre ni se pueden
+            // mover, asi que no se guardan; se ajustan al ancho de su icono para que no sean espacio muerto.
             for (const th of heads) {
-                const w = th.dataset.name && saved.w[th.dataset.name];
-                if (w) {
-                    th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
-                    changed = true;
+                if (th.dataset.name || !th.classList.contains("o_list_button")) {
+                    continue;
                 }
+                const idx = heads.indexOf(th);
+                let need = 0;
+                for (const row of table.querySelectorAll("tbody tr")) {
+                    const cell = row.children[idx];
+                    if (cell && cell.classList.contains("o_list_button")) {
+                        let total = 0;
+                        for (const btn of cell.querySelectorAll("button, a, .btn")) {
+                            total += btn.getBoundingClientRect().width + 4;
+                        }
+                        need = Math.max(need, total);
+                    }
+                }
+                th.style.width = `${Math.ceil(Math.max(32, need + 20))}px`;
+                changed = true;
             }
-            if (changed) {
+            if (saved && saved.w && saved.pw && table.parentNode.clientWidth) {
+                const scale = table.parentNode.clientWidth / saved.pw;
+                for (const th of heads) {
+                    const w = th.dataset.name && saved.w[th.dataset.name];
+                    if (w) {
+                        th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
+                        changed = true;
+                    }
+                }
                 table.style.tableLayout = "fixed";
                 table.style.width = `${Math.floor(
                     heads.reduce((sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width), 0)
