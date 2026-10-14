@@ -66,7 +66,7 @@ class JaguenAltCache(models.Model):
         return alt_engine.Engine(products, _load_json('weights.json'), _load_json('complement_map.json'), popularity)
 
     @api.model
-    def _cron_rebuild(self, limit=1500, budget=100):
+    def _cron_rebuild(self, limit=6000, budget=100):
         """Calcula los candidatos de los productos que no los tienen (nuevos) y vuelve a calcular los de mas de
         REFRESH_DAYS dias. Se detiene al llegar al tiempo maximo y sigue en la siguiente corrida."""
         started = time.time()
@@ -142,4 +142,54 @@ class JaguenAltCache(models.Model):
                 break
             if i not in picked:
                 picked.append(i)
-        return picked[:limit]
+        picked = picked[:limit]
+        return self._slots_6_7(template_id, picked, similar + complement, rng)
+
+    @api.model
+    def _slots_6_7(self, template_id, picked, pool, rng):
+        """Lugares 6 y 7: por prioridad misma marca, mismo proveedor, misma categoria; nunca productos que ya salen
+        en los lugares 1 a 4. Si ninguno califica, quedan como estaban."""
+        if len(picked) < 7:
+            return picked
+        out = list(picked)
+        cands = []
+        for i in out[5:] + pool:
+            if i != template_id and i not in out[:5] and i not in cands:
+                cands.append(i)
+        ids = list(set([template_id] + cands))
+        tmpls = {t.id: t for t in self.env['product.template'].sudo().browse(ids)}
+        sup = {}
+        for line in self.env['product.supplierinfo'].sudo().search(
+                ['|', ('product_tmpl_id', 'in', ids), ('product_id.product_tmpl_id', 'in', ids)]):
+            tid = line.product_tmpl_id.id or line.product_id.product_tmpl_id.id
+            sup.setdefault(tid, set()).add(line.partner_id.id)
+
+        def brand(t):
+            toks = alt_engine.tokens(t.name or '')
+            return toks[-1] if toks else ''
+
+        me = tmpls.get(template_id)
+        if not me:
+            return picked
+        mybrand, mysup = brand(me), sup.get(template_id) or set()
+
+        def tier(i):
+            t = tmpls.get(i)
+            if not t:
+                return 9
+            if mybrand and brand(t) == mybrand:
+                return 1
+            if mysup and (sup.get(i) or set()) & mysup:
+                return 2
+            if t.categ_id == me.categ_id:
+                return 3
+            return 9
+
+        rng.shuffle(cands)
+        best = sorted((i for i in cands if tier(i) < 9), key=tier)[:2]
+        for slot, new in zip((5, 6), best):
+            if new in out:  # ya estaba en otro lugar (el 6, 7 u 8): intercambio
+                other = out.index(new)
+                out[other] = out[slot]
+            out[slot] = new
+        return out

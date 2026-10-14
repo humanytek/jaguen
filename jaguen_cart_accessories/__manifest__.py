@@ -50,14 +50,14 @@ Cada producto publicado tiene 8 alternativos que cambian cada dia (parametro del
 ``jaguen_cart_accessories.alt_rotation_days``; ``jaguen_cart_accessories.alt_auto`` = 0 los apaga):
 los 3 primeros casi identicos (otros colores o medidas del mismo modelo), el 4o un complemento (corrector junto a una
 pluma, puntillas junto a un lapicero, cafe junto a una cafetera: mapa en data/complement_map.json) y los otros 4 de la
-misma linea. Los candidatos se calculan con una formula lineal ajustada con los alternativos que la tienda ya tenia
+misma linea (los lugares 6 y 7 por prioridad: misma marca, mismo proveedor, misma categoria, sin repetir los 4 primeros). Los candidatos se calculan con una formula lineal ajustada con los alternativos que la tienda ya tenia
 (data/weights.json); una tarea programada los calcula para los productos nuevos. No modifica el campo "Productos
 alternativos" de los productos.
 
 Solo se consideran productos publicados en el sitio, vendibles, con un unico
 variante (no requieren elegir atributos) y con precio mayor a $1.
 """,
-    'version': '18.0.1.3.0',
+    'version': '18.0.1.3.2',
     'category': 'Website/Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
