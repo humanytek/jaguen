@@ -44,15 +44,25 @@ Espacio en el carrito
 Deja unos 160 px (64 px en celular) entre los productos del carrito y el titulo
 "Accesorios sugeridos", para que no se vea amontonado.
 
+Alternativos automaticos (version 1.3)
+--------------------------------------
+Cada producto publicado tiene 8 alternativos que cambian cada dia (parametro del sistema
+``jaguen_cart_accessories.alt_rotation_days``; ``jaguen_cart_accessories.alt_auto`` = 0 los apaga):
+los 3 primeros casi identicos (otros colores o medidas del mismo modelo), el 4o un complemento (corrector junto a una
+pluma, puntillas junto a un lapicero, cafe junto a una cafetera: mapa en data/complement_map.json) y los otros 4 de la
+misma linea. Los candidatos se calculan con una formula lineal ajustada con los alternativos que la tienda ya tenia
+(data/weights.json); una tarea programada los calcula para los productos nuevos. No modifica el campo "Productos
+alternativos" de los productos.
+
 Solo se consideran productos publicados en el sitio, vendibles, con un unico
 variante (no requieren elegir atributos) y con precio mayor a $1.
 """,
-    'version': '18.0.1.2.0',
+    'version': '18.0.1.3.0',
     'category': 'Website/Website',
     'author': 'JAGUEN',
     'license': 'LGPL-3',
     'depends': ['website_sale'],
-    'data': ['security/ir.model.access.csv', 'views/cart_templates.xml'],
+    'data': ['security/ir.model.access.csv', 'views/cart_templates.xml', 'data/alt_cron.xml'],
     'installable': True,
     'application': False,
     'auto_install': False,
