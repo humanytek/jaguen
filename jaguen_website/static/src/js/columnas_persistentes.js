@@ -129,19 +129,8 @@ patch(ListRenderer.prototype, {
             } catch (e) {
                 saved = null;
             }
-            if (!saved || !saved.w || !saved.pw || !table.parentNode.clientWidth) {
-                return;
-            }
-            const scale = table.parentNode.clientWidth / saved.pw;
             const heads = [...table.querySelectorAll("thead th")];
             let changed = false;
-            for (const th of heads) {
-                const w = th.dataset.name && saved.w[th.dataset.name];
-                if (w) {
-                    th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
-                    changed = true;
-                }
-            }
             // Columnas de botones/iconos (grafica de inventario, historial de precios...): no tienen nombre ni se pueden
             // mover, asi que no se guardan; se ajustan al ancho de su icono para que no sean espacio muerto.
             for (const th of heads) {
@@ -163,7 +152,15 @@ patch(ListRenderer.prototype, {
                 th.style.width = `${Math.ceil(Math.max(32, need + 20))}px`;
                 changed = true;
             }
-            if (changed) {
+            if (saved && saved.w && saved.pw && table.parentNode.clientWidth) {
+                const scale = table.parentNode.clientWidth / saved.pw;
+                for (const th of heads) {
+                    const w = th.dataset.name && saved.w[th.dataset.name];
+                    if (w) {
+                        th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
+                        changed = true;
+                    }
+                }
                 table.style.tableLayout = "fixed";
                 table.style.width = `${Math.floor(
                     heads.reduce((sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width), 0)
