@@ -11,4 +11,11 @@
             <style t-if="suggested_products">.jaguen_acc_title{margin-top:10rem}@media (max-width:767.98px){.jaguen_acc_title{margin-top:4rem}}</style>
         </xpath>
     </template>
+    <!-- Productos nuevos (sin alternativos manuales) tambien muestran el carrusel cuando los automaticos estan encendidos. -->
+    <template id="alternative_products_auto" inherit_id="website_sale.alternative_products"
+              name="JAGUEN - Alternativos automaticos en la ficha" priority="99">
+        <xpath expr="//div[@id='oe_structure_website_sale_recommended_products']" position="attributes">
+            <attribute name="t-if">product.alternative_product_ids or product._jaguen_show_alternatives()</attribute>
+        </xpath>
+    </template>
 </odoo>

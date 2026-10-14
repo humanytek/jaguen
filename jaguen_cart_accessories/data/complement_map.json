@@ -1,0 +1,991 @@
+{
+"Papeleria Oficina / Accesorios Escritorio": [
+"Papeleria Oficina / Organizadores",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Lapices y Lapiceros",
+"Papeleria Oficina / Notas Adhesivas y Banderitas",
+"Papeleria Oficina / Cintas Adhesivas y Despachadores",
+"Papeleria Oficina / Engrapadoras y Grapas"
+],
+"Papeleria Oficina / Accesorios Oficina": [
+"Papeleria Oficina / Engrapadoras y Grapas",
+"Papeleria Oficina / Clips Pins y Binderclips",
+"Papeleria Oficina / Cintas Adhesivas y Despachadores",
+"Papeleria Oficina / Organizadores",
+"Papeleria Oficina / Tintas Sellos y Cojines"
+],
+"Papeleria Oficina / Cajas de Archivo": [
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Carpetas y Accesorios",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Oficina / Marcadores"
+],
+"Papeleria Oficina / Calculadoras y Sumadoras": [
+"Papeleria Oficina / Pilas y Baterias",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Cuadernos Libretas y Libros",
+"Papeleria Oficina / Papel Bond"
+],
+"Papeleria Oficina / Carpetas y Accesorios": [
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Enmicado",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Oficina / Perforadoras",
+"Papeleria Oficina / Clips Pins y Binderclips",
+"Papeleria Oficina / Marcadores"
+],
+"Papeleria Oficina / Cintas Adhesivas y Despachadores": [
+"Papeleria Oficina / Masking Tape",
+"Papeleria Oficina / Cutters y Repuestos",
+"Papeleria Oficina / Tijeras",
+"Papeleria Oficina / Accesorios Oficina",
+"Papeleria Oficina / Etiquetas Adhesivas"
+],
+"Papeleria Oficina / Clips Pins y Binderclips": [
+"Papeleria Oficina / Engrapadoras y Grapas",
+"Papeleria Oficina / Perforadoras",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Notas Adhesivas y Banderitas"
+],
+"Papeleria Oficina / Cuadernos Libretas y Libros": [
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Lapices y Lapiceros",
+"Papeleria Oficina / Marcatextos",
+"Papeleria Oficina / Notas Adhesivas y Banderitas",
+"Papeleria Oficina / Carpetas y Accesorios"
+],
+"Papeleria Oficina / Cutters y Repuestos": [
+"Papeleria Oficina / Tijeras",
+"Papeleria Oficina / Cintas Adhesivas y Despachadores",
+"Papeleria Oficina / Masking Tape",
+"Papeleria Oficina / Accesorios Oficina"
+],
+"Papeleria Oficina / Encuadernado": [
+"Papeleria Oficina / Perforadoras",
+"Papeleria Oficina / Carpetas y Accesorios",
+"Papeleria Oficina / Enmicado",
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Folders"
+],
+"Papeleria Oficina / Engrapadoras y Grapas": [
+"Papeleria Oficina / Perforadoras",
+"Papeleria Oficina / Clips Pins y Binderclips",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Accesorios Escritorio"
+],
+"Papeleria Oficina / Enmicado": [
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Carpetas y Accesorios",
+"Papeleria Oficina / Gafetes y Yoyos",
+"Papeleria Oficina / Folders"
+],
+"Papeleria Oficina / Etiquetas Adhesivas": [
+"Papeleria Oficina / Marcadores",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Cajas de Archivo",
+"Papeleria Oficina / Tintas Sellos y Cojines"
+],
+"Papeleria Oficina / Folders": [
+"Papeleria Oficina / Carpetas y Accesorios",
+"Papeleria Oficina / Clips Pins y Binderclips",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Oficina / Cajas de Archivo",
+"Papeleria Oficina / Marcadores",
+"Papeleria Oficina / Plumas y Correctores"
+],
+"Papeleria Oficina / Formas Administrativas": [
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Tintas Sellos y Cojines",
+"Papeleria Oficina / Papel Bond"
+],
+"Papeleria Oficina / Gafetes y Yoyos": [
+"Papeleria Oficina / Enmicado",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Marcadores"
+],
+"Papeleria Oficina / Guillotinas": [
+"Papeleria Oficina / Cutters y Repuestos",
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Tijeras",
+"Papeleria Oficina / Encuadernado"
+],
+"Papeleria Oficina / Lapices y Lapiceros": [
+"@MISMA",
+"Papeleria Escolar / Borradores",
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Marcatextos",
+"Papeleria Oficina / Accesorios Escritorio",
+"Papeleria Oficina / Organizadores"
+],
+"Papeleria Oficina / Marcadores": [
+"@MISMA",
+"Papeleria Oficina / Pizarrones",
+"Papeleria Escolar / Borradores",
+"Papeleria Oficina / Marcatextos",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Notas Adhesivas y Banderitas"
+],
+"Papeleria Oficina / Marcatextos": [
+"Papeleria Oficina / Marcadores",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Notas Adhesivas y Banderitas",
+"Papeleria Oficina / Cuadernos Libretas y Libros",
+"Papeleria Oficina / Lapices y Lapiceros"
+],
+"Papeleria Oficina / Masking Tape": [
+"Papeleria Oficina / Cintas Adhesivas y Despachadores",
+"Papeleria Oficina / Cutters y Repuestos",
+"Material Ferreteria / Adhesivos, Cintas y Selladores",
+"Papeleria Oficina / Marcadores"
+],
+"Papeleria Oficina / Notas Adhesivas y Banderitas": [
+"Papeleria Oficina / Marcatextos",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Clips Pins y Binderclips",
+"Papeleria Oficina / Cuadernos Libretas y Libros"
+],
+"Papeleria Oficina / Organizadores": [
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Lapices y Lapiceros",
+"Papeleria Oficina / Accesorios Escritorio",
+"Papeleria Oficina / Notas Adhesivas y Banderitas",
+"Papeleria Oficina / Clips Pins y Binderclips"
+],
+"Papeleria Oficina / Papel Bond": [
+"Papeleria Oficina / Papeles de Colores",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Engrapadoras y Grapas",
+"Papeleria Oficina / Perforadoras",
+"Computo y Tecnologia / Toners",
+"Computo y Tecnologia / Cartuchos y Tintas"
+],
+"Papeleria Oficina / Papeles de Colores": [
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Tijeras",
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Oficina / Marcadores"
+],
+"Papeleria Oficina / Perforadoras": [
+"Papeleria Oficina / Engrapadoras y Grapas",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Carpetas y Accesorios",
+"Papeleria Oficina / Clips Pins y Binderclips"
+],
+"Papeleria Oficina / Pilas y Baterias": [
+"Papeleria Oficina / Calculadoras y Sumadoras",
+"Computo y Tecnologia / Mouse y Mouse Pads",
+"Computo y Tecnologia / Teclados",
+"Computo y Tecnologia / Audio y Bocinas"
+],
+"Papeleria Oficina / Pizarrones": [
+"Papeleria Oficina / Marcadores",
+"Papeleria Escolar / Gises",
+"Papeleria Escolar / Borradores",
+"Papeleria Oficina / Accesorios Oficina"
+],
+"Papeleria Oficina / Plumas y Correctores": [
+"@MISMA",
+"Papeleria Oficina / Organizadores",
+"Papeleria Oficina / Accesorios Escritorio",
+"Papeleria Oficina / Lapices y Lapiceros",
+"Papeleria Oficina / Marcatextos",
+"Papeleria Oficina / Cuadernos Libretas y Libros"
+],
+"Papeleria Oficina / Rollo Plotter": [
+"Papeleria Oficina / Papel Bond",
+"Computo y Tecnologia / Impresoras y Multifuncionales",
+"Computo y Tecnologia / Cartuchos y Tintas"
+],
+"Papeleria Oficina / Sobres": [
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Oficina / Tintas Sellos y Cojines",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Folders"
+],
+"Papeleria Oficina / Tablas con Clip": [
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Cuadernos Libretas y Libros"
+],
+"Papeleria Oficina / Tijeras": [
+"Papeleria Oficina / Cutters y Repuestos",
+"Papeleria Oficina / Cintas Adhesivas y Despachadores",
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Oficina / Papeles de Colores"
+],
+"Papeleria Oficina / Tintas Sellos y Cojines": [
+"Papeleria Oficina / Sobres",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Oficina / Folders",
+"Papeleria Oficina / Formas Administrativas"
+],
+"Papeleria Oficina / Varios": [
+"Papeleria Oficina / Accesorios Oficina",
+"Papeleria Oficina / Accesorios Escritorio",
+"Papeleria Oficina / Organizadores"
+],
+"Papeleria Escolar / Acuarelas": [
+"Papeleria Escolar / Pinturas y Pinceles",
+"Papeleria Escolar / Papeles",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Lapices de Colores"
+],
+"Papeleria Escolar / Adhesivos y Pegamentos": [
+"Papeleria Escolar / Tijeras",
+"Papeleria Escolar / Papeles",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Foamy",
+"Papeleria Escolar / Cuadernos y Blocks"
+],
+"Papeleria Escolar / Articulos de Geometria": [
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Escolar / Borradores",
+"Papeleria Escolar / Calculadoras Escolares",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Estuches y Lapiceras"
+],
+"Papeleria Escolar / Borradores": [
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Oficina / Lapices y Lapiceros",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Estuches y Lapiceras"
+],
+"Papeleria Escolar / Calculadoras Escolares": [
+"Papeleria Oficina / Pilas y Baterias",
+"Papeleria Escolar / Articulos de Geometria",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Lapices y Sacapuntas"
+],
+"Papeleria Escolar / Crayones": [
+"Papeleria Escolar / Papeles",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Lapices de Colores",
+"Papeleria Escolar / Marcadores y Plumones",
+"Papeleria Escolar / Mochilas y Loncheras"
+],
+"Papeleria Escolar / Cuadernos y Blocks": [
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Oficina / Plumas y Correctores",
+"Papeleria Escolar / Forros y Contact",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Lapices de Colores",
+"Papeleria Escolar / Mochilas y Loncheras"
+],
+"Papeleria Escolar / Diccionarios": [
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Libros y Cuentos",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Lapices y Sacapuntas"
+],
+"Papeleria Escolar / Didacticos": [
+"Papeleria Escolar / Libros y Cuentos",
+"Papeleria Escolar / Crayones",
+"Papeleria Escolar / Plastilina y Masas",
+"Papeleria Escolar / Manualidades"
+],
+"Papeleria Escolar / Estuches y Lapiceras": [
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Escolar / Borradores",
+"Papeleria Escolar / Lapices de Colores",
+"Papeleria Escolar / Marcadores y Plumones",
+"Papeleria Escolar / Tijeras"
+],
+"Papeleria Escolar / Foamy": [
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Escolar / Tijeras",
+"Papeleria Escolar / Pinturas y Pinceles"
+],
+"Papeleria Escolar / Forros y Contact": [
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Libros y Cuentos",
+"Papeleria Oficina / Etiquetas Adhesivas",
+"Papeleria Escolar / Tijeras"
+],
+"Papeleria Escolar / Gises": [
+"Papeleria Oficina / Pizarrones",
+"Papeleria Escolar / Borradores",
+"Papeleria Escolar / Marcadores y Plumones"
+],
+"Papeleria Escolar / Lapices de Colores": [
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Papeleria Escolar / Crayones",
+"Papeleria Escolar / Marcadores y Plumones",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Estuches y Lapiceras"
+],
+"Papeleria Escolar / Lapices y Sacapuntas": [
+"@MISMA",
+"Papeleria Escolar / Borradores",
+"Papeleria Escolar / Lapices de Colores",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Articulos de Geometria"
+],
+"Papeleria Escolar / Libros y Cuentos": [
+"Papeleria Escolar / Crayones",
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Diccionarios",
+"Papeleria Escolar / Didacticos"
+],
+"Papeleria Escolar / Lupas": [
+"Papeleria Escolar / Didacticos",
+"Papeleria Escolar / Articulos de Geometria",
+"Papeleria Escolar / Libros y Cuentos"
+],
+"Papeleria Escolar / Manualidades": [
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Escolar / Tijeras",
+"Papeleria Escolar / Foamy",
+"Papeleria Escolar / Pinturas y Pinceles",
+"Papeleria Escolar / Papeles"
+],
+"Papeleria Escolar / Marcadores y Plumones": [
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Lapices de Colores",
+"Papeleria Escolar / Crayones",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Papeles"
+],
+"Papeleria Escolar / Mochilas y Loncheras": [
+"Papeleria Escolar / Cuadernos y Blocks",
+"Papeleria Escolar / Estuches y Lapiceras",
+"Papeleria Escolar / Lapices y Sacapuntas",
+"Promocionales / Hieleras y Loncheras"
+],
+"Papeleria Escolar / Papeles": [
+"Papeleria Escolar / Tijeras",
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Foamy",
+"Papeleria Escolar / Marcadores y Plumones"
+],
+"Papeleria Escolar / Pinturas y Pinceles": [
+"Papeleria Escolar / Papeles",
+"Papeleria Escolar / Acuarelas",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Plastilina y Masas"
+],
+"Papeleria Escolar / Plastilina y Masas": [
+"Papeleria Escolar / Didacticos",
+"Papeleria Escolar / Crayones",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Foamy"
+],
+"Papeleria Escolar / Tijeras": [
+"Papeleria Escolar / Adhesivos y Pegamentos",
+"Papeleria Escolar / Papeles",
+"Papeleria Escolar / Foamy",
+"Papeleria Escolar / Manualidades",
+"Papeleria Escolar / Cuadernos y Blocks"
+],
+"Productos Cafeteria / Café y Suminitros": [
+"@MISMA",
+"Productos Cafeteria / Electrodomesticos",
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Botanas"
+],
+"Productos Cafeteria / Desechables": [
+"@MISMA",
+"Limpieza Institucional / Servilletas",
+"Productos Cafeteria / Botanas",
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Refrescos",
+"Productos Cafeteria / Agua",
+"Productos Cafeteria / Café y Suminitros"
+],
+"Productos Cafeteria / Agua": [
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Botanas",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Refrescos"
+],
+"Productos Cafeteria / Bebidas": [
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Botanas",
+"Productos Cafeteria / Desechables"
+],
+"Productos Cafeteria / Botanas": [
+"Productos Cafeteria / Refrescos",
+"Productos Cafeteria / Agua",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Galletas"
+],
+"Productos Cafeteria / Electrodomesticos": [
+"Productos Cafeteria / Café y Suminitros",
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Agua"
+],
+"Productos Cafeteria / Galletas": [
+"Productos Cafeteria / Café y Suminitros",
+"Productos Cafeteria / Agua",
+"Productos Cafeteria / Refrescos",
+"Productos Cafeteria / Botanas"
+],
+"Productos Cafeteria / Refrescos": [
+"Productos Cafeteria / Botanas",
+"Productos Cafeteria / Galletas",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Agua"
+],
+"Productos Cafeteria / Varios": [
+"Productos Cafeteria / Café y Suminitros",
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Galletas"
+],
+"Limpieza Institucional / Accesorios de Limpieza": [
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Cubetas Exprimidoras",
+"Limpieza Institucional / Mops y Fundas",
+"Limpieza Institucional / Escobas",
+"Limpieza Institucional / Recogedores"
+],
+"Limpieza Institucional / Bastones": [
+"Limpieza Institucional / Mops y Fundas",
+"Limpieza Institucional / Trapeadores",
+"Limpieza Institucional / Escobas",
+"Limpieza Institucional / Jaladores",
+"Limpieza Institucional / Cepillos"
+],
+"Limpieza Institucional / Bolsas Basura": [
+"Limpieza Institucional / Cestos y Contenedores",
+"Limpieza Institucional / Guantes Domesticos",
+"Limpieza Institucional / Control de Aromas",
+"Limpieza Institucional / Quimicos y Detergentes"
+],
+"Limpieza Institucional / Cepillos": [
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Fibras y Microfibras",
+"Limpieza Institucional / Guantes Domesticos",
+"Limpieza Institucional / Cubetas Exprimidoras"
+],
+"Limpieza Institucional / Cestos y Contenedores": [
+"Limpieza Institucional / Bolsas Basura",
+"Limpieza Institucional / Control de Aromas",
+"Limpieza Institucional / Guantes Domesticos"
+],
+"Limpieza Institucional / Control de Aromas": [
+"Limpieza Institucional / Dispensadores y Jaboneras",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Bolsas Basura",
+"Limpieza Institucional / Papel Higienico"
+],
+"Limpieza Institucional / Cubetas Exprimidoras": [
+"Limpieza Institucional / Trapeadores",
+"Limpieza Institucional / Mops y Fundas",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Jaladores"
+],
+"Limpieza Institucional / Discos Pulido": [
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Fibras y Microfibras",
+"Limpieza Institucional / Accesorios de Limpieza"
+],
+"Limpieza Institucional / Dispensadores y Jaboneras": [
+"Limpieza Institucional / Papel Higienico",
+"Limpieza Institucional / Toalla para Manos",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Control de Aromas"
+],
+"Limpieza Institucional / Escobas": [
+"Limpieza Institucional / Recogedores",
+"Limpieza Institucional / Bastones",
+"Limpieza Institucional / Trapeadores",
+"Limpieza Institucional / Bolsas Basura"
+],
+"Limpieza Institucional / Fibras y Microfibras": [
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Franela y Jerga",
+"Limpieza Institucional / Guantes Domesticos",
+"Limpieza Institucional / Cepillos"
+],
+"Limpieza Institucional / Franela y Jerga": [
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Fibras y Microfibras",
+"Limpieza Institucional / Jaladores"
+],
+"Limpieza Institucional / Guantes Domesticos": [
+"Limpieza Institucional / Fibras y Microfibras",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Cepillos",
+"Limpieza Institucional / Bolsas Basura"
+],
+"Limpieza Institucional / Jaladores": [
+"Limpieza Institucional / Cubetas Exprimidoras",
+"Limpieza Institucional / Bastones",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Franela y Jerga"
+],
+"Limpieza Institucional / Mops y Fundas": [
+"Limpieza Institucional / Cubetas Exprimidoras",
+"Limpieza Institucional / Bastones",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Trapeadores"
+],
+"Limpieza Institucional / Papel Higienico": [
+"Limpieza Institucional / Dispensadores y Jaboneras",
+"Limpieza Institucional / Toalla para Manos",
+"Limpieza Institucional / Control de Aromas",
+"Limpieza Institucional / Servilletas"
+],
+"Limpieza Institucional / Quimicos y Detergentes": [
+"Limpieza Institucional / Fibras y Microfibras",
+"Limpieza Institucional / Cubetas Exprimidoras",
+"Limpieza Institucional / Trapeadores",
+"Limpieza Institucional / Guantes Domesticos",
+"Limpieza Institucional / Cepillos",
+"Limpieza Institucional / Dispensadores y Jaboneras"
+],
+"Limpieza Institucional / Recogedores": [
+"Limpieza Institucional / Escobas",
+"Limpieza Institucional / Bolsas Basura",
+"Limpieza Institucional / Bastones"
+],
+"Limpieza Institucional / Servilletas": [
+"Productos Cafeteria / Desechables",
+"Limpieza Institucional / Dispensadores y Jaboneras",
+"Limpieza Institucional / Papel Higienico",
+"Limpieza Institucional / Toalla para Manos"
+],
+"Limpieza Institucional / Toalla para Manos": [
+"Limpieza Institucional / Dispensadores y Jaboneras",
+"Limpieza Institucional / Papel Higienico",
+"Limpieza Institucional / Control de Aromas"
+],
+"Limpieza Institucional / Trapeadores": [
+"Limpieza Institucional / Cubetas Exprimidoras",
+"Limpieza Institucional / Quimicos y Detergentes",
+"Limpieza Institucional / Bastones",
+"Limpieza Institucional / Jaladores"
+],
+"Computo y Tecnologia / Accesorios Computo": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Mouse y Mouse Pads",
+"Computo y Tecnologia / Teclados",
+"Computo y Tecnologia / Limpieza y Mantenimiento"
+],
+"Computo y Tecnologia / Accesorios Redes": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Almacenamiento / Memoria Usb"
+],
+"Computo y Tecnologia / Aire Comprimido": [
+"Computo y Tecnologia / Limpieza y Mantenimiento",
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Teclados"
+],
+"Computo y Tecnologia / Almacenamiento / Discos Duros": [
+"Computo y Tecnologia / Almacenamiento / Memoria Usb",
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Accesorios Computo"
+],
+"Computo y Tecnologia / Almacenamiento / Memoria Ram": [
+"Computo y Tecnologia / Almacenamiento / Discos Duros",
+"Computo y Tecnologia / Procesadores",
+"Computo y Tecnologia / Enfriamiento y Ventilacion"
+],
+"Computo y Tecnologia / Almacenamiento / Memoria Usb": [
+"Computo y Tecnologia / Almacenamiento / Discos Duros",
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Accesorios Computo"
+],
+"Computo y Tecnologia / Audio y Bocinas": [
+"Computo y Tecnologia / Diademas, Audifonos y Microfonos",
+"Computo y Tecnologia / Cables y Adaptadores",
+"Papeleria Oficina / Pilas y Baterias"
+],
+"Computo y Tecnologia / Cables y Adaptadores": [
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Accesorios Redes",
+"Computo y Tecnologia / Almacenamiento / Memoria Usb",
+"Computo y Tecnologia / Almacenamiento / Discos Duros"
+],
+"Computo y Tecnologia / Cartuchos y Tintas": [
+"Computo y Tecnologia / Impresoras y Multifuncionales",
+"Papeleria Oficina / Papel Bond",
+"Papeleria Oficina / Papeles de Colores"
+],
+"Computo y Tecnologia / Diademas, Audifonos y Microfonos": [
+"Computo y Tecnologia / Webcams",
+"Computo y Tecnologia / Audio y Bocinas",
+"Computo y Tecnologia / Cables y Adaptadores"
+],
+"Computo y Tecnologia / Enfriamiento y Ventilacion": [
+"Computo y Tecnologia / Procesadores",
+"Computo y Tecnologia / Almacenamiento / Memoria Ram",
+"Computo y Tecnologia / Limpieza y Mantenimiento"
+],
+"Computo y Tecnologia / Impresoras y Multifuncionales": [
+"Computo y Tecnologia / Cartuchos y Tintas",
+"Computo y Tecnologia / Toners",
+"Papeleria Oficina / Papel Bond",
+"Computo y Tecnologia / Cables y Adaptadores"
+],
+"Computo y Tecnologia / Kit Mouse y Teclado": [
+"Computo y Tecnologia / Mouse y Mouse Pads",
+"Computo y Tecnologia / Teclados",
+"Computo y Tecnologia / Monitores",
+"Computo y Tecnologia / Webcams"
+],
+"Computo y Tecnologia / Limpieza y Mantenimiento": [
+"Computo y Tecnologia / Aire Comprimido",
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Teclados",
+"Computo y Tecnologia / Mouse y Mouse Pads"
+],
+"Computo y Tecnologia / Monitores": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Kit Mouse y Teclado",
+"Computo y Tecnologia / Webcams",
+"Computo y Tecnologia / Pantallas"
+],
+"Computo y Tecnologia / Mouse y Mouse Pads": [
+"Computo y Tecnologia / Teclados",
+"Computo y Tecnologia / Kit Mouse y Teclado",
+"Papeleria Oficina / Pilas y Baterias",
+"Computo y Tecnologia / Accesorios Computo"
+],
+"Computo y Tecnologia / No Breaks": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Monitores",
+"Computo y Tecnologia / Accesorios Redes"
+],
+"Computo y Tecnologia / Pantallas": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Monitores"
+],
+"Computo y Tecnologia / Procesadores": [
+"Computo y Tecnologia / Almacenamiento / Memoria Ram",
+"Computo y Tecnologia / Enfriamiento y Ventilacion",
+"Computo y Tecnologia / Almacenamiento / Discos Duros"
+],
+"Computo y Tecnologia / Smarthphones": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Audio y Bocinas",
+"Computo y Tecnologia / Diademas, Audifonos y Microfonos"
+],
+"Computo y Tecnologia / Tabletas": [
+"Computo y Tecnologia / Cables y Adaptadores",
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Diademas, Audifonos y Microfonos",
+"Computo y Tecnologia / Almacenamiento / Memoria Usb"
+],
+"Computo y Tecnologia / Teclados": [
+"Computo y Tecnologia / Mouse y Mouse Pads",
+"Computo y Tecnologia / Kit Mouse y Teclado",
+"Computo y Tecnologia / Limpieza y Mantenimiento"
+],
+"Computo y Tecnologia / Toners": [
+"Computo y Tecnologia / Impresoras y Multifuncionales",
+"Papeleria Oficina / Papel Bond",
+"Computo y Tecnologia / Cartuchos y Tintas"
+],
+"Computo y Tecnologia / Varios": [
+"Computo y Tecnologia / Accesorios Computo",
+"Computo y Tecnologia / Cables y Adaptadores"
+],
+"Computo y Tecnologia / Webcams": [
+"Computo y Tecnologia / Diademas, Audifonos y Microfonos",
+"Computo y Tecnologia / Monitores",
+"Computo y Tecnologia / Accesorios Computo"
+],
+"Empaque Industrial / Espuma": [
+"Empaque Industrial / Esquineros",
+"Empaque Industrial / Stretch Film",
+"Material Ferreteria / Adhesivos, Cintas y Selladores"
+],
+"Empaque Industrial / Esquineros": [
+"Empaque Industrial / Stretch Film",
+"Empaque Industrial / Espuma",
+"Material Ferreteria / Adhesivos, Cintas y Selladores"
+],
+"Empaque Industrial / Stretch Film": [
+"Empaque Industrial / Esquineros",
+"Empaque Industrial / Espuma",
+"Material Ferreteria / Adhesivos, Cintas y Selladores",
+"Material Ferreteria / Manejo de Carga"
+],
+"Higiene Personal / Cofias": [
+"Higiene Personal / Cubrebocas",
+"Higiene Personal / Guantes Latex",
+"Higiene Personal / Cubrezapatos"
+],
+"Higiene Personal / Cubrebocas": [
+"Higiene Personal / Guantes Latex",
+"Higiene Personal / Cofias",
+"Higiene Personal / Productos Medicos"
+],
+"Higiene Personal / Cubrezapatos": [
+"Higiene Personal / Cofias",
+"Higiene Personal / Cubrebocas",
+"Higiene Personal / Guantes Latex"
+],
+"Higiene Personal / Guantes Latex": [
+"Higiene Personal / Cubrebocas",
+"Higiene Personal / Cofias",
+"Higiene Personal / Guantes Nitrilo",
+"Higiene Personal / Productos Medicos"
+],
+"Higiene Personal / Guantes Nitrilo": [
+"Higiene Personal / Guantes Latex",
+"Higiene Personal / Cubrebocas",
+"Higiene Personal / Cofias"
+],
+"Higiene Personal / Guantes Vinyl": [
+"Higiene Personal / Guantes Latex",
+"Higiene Personal / Cubrebocas",
+"Higiene Personal / Cofias"
+],
+"Higiene Personal / Productos Medicos": [
+"Higiene Personal / Guantes Latex",
+"Higiene Personal / Cubrebocas"
+],
+"Material Ferreteria / Adhesivos, Cintas y Selladores": [
+"Material Ferreteria / Herramientas",
+"Material Ferreteria / Equipos",
+"Papeleria Oficina / Masking Tape"
+],
+"Material Ferreteria / Equipos": [
+"Material Ferreteria / Herramientas",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Lentes y Goggles",
+"Material Ferreteria / Iluminacion"
+],
+"Material Ferreteria / Herramientas": [
+"Material Ferreteria / Equipos",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Lentes y Goggles",
+"Seguridad Industrial / Cascos",
+"Material Ferreteria / Adhesivos, Cintas y Selladores"
+],
+"Material Ferreteria / Iluminacion": [
+"Material Ferreteria / Equipos",
+"Material Ferreteria / Herramientas"
+],
+"Material Ferreteria / Jardineria": [
+"Material Ferreteria / Herramientas",
+"Seguridad Industrial / Guantes"
+],
+"Material Ferreteria / Manejo de Carga": [
+"Empaque Industrial / Stretch Film",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Chalecos"
+],
+"Material Ferreteria / Plomeria": [
+"Material Ferreteria / Herramientas",
+"Material Ferreteria / Adhesivos, Cintas y Selladores"
+],
+"Material Ferreteria / Soldaduras": [
+"Seguridad Industrial / Lentes y Goggles",
+"Seguridad Industrial / Guantes",
+"Material Ferreteria / Herramientas"
+],
+"Material Ferreteria / Varios": [
+"Material Ferreteria / Herramientas",
+"Material Ferreteria / Equipos"
+],
+"Seguridad Industrial / Cascos": [
+"Seguridad Industrial / Lentes y Goggles",
+"Seguridad Industrial / Proteccion Auditiva",
+"Seguridad Industrial / Chalecos",
+"Seguridad Industrial / Guantes"
+],
+"Seguridad Industrial / Chalecos": [
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Control Vial",
+"Seguridad Industrial / Zapatos Seguridad",
+"Seguridad Industrial / Guantes"
+],
+"Seguridad Industrial / Control Vial": [
+"Seguridad Industrial / Chalecos",
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Varios"
+],
+"Seguridad Industrial / Guantes": [
+"Seguridad Industrial / Lentes y Goggles",
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Proteccion Auditiva",
+"Seguridad Industrial / Impermeables y Mandiles"
+],
+"Seguridad Industrial / Impermeables y Mandiles": [
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Zapatos Seguridad",
+"Seguridad Industrial / Cascos"
+],
+"Seguridad Industrial / Lentes y Goggles": [
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Proteccion Auditiva",
+"Seguridad Industrial / Guantes"
+],
+"Seguridad Industrial / Overoles": [
+"Seguridad Industrial / Zapatos Seguridad",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Chalecos"
+],
+"Seguridad Industrial / Proteccion Auditiva": [
+"Seguridad Industrial / Cascos",
+"Seguridad Industrial / Lentes y Goggles",
+"Seguridad Industrial / Guantes"
+],
+"Seguridad Industrial / Varios": [
+"Seguridad Industrial / Chalecos",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Cascos"
+],
+"Seguridad Industrial / Zapatos Seguridad": [
+"Seguridad Industrial / Overoles",
+"Seguridad Industrial / Chalecos",
+"Seguridad Industrial / Guantes",
+"Seguridad Industrial / Cascos"
+],
+"Promocionales / Accesorios Computo": [
+"Promocionales / Usb",
+"Promocionales / Audio",
+"Promocionales / Accesorios Escritorio",
+"Promocionales / Mochilas"
+],
+"Promocionales / Accesorios Escritorio": [
+"Promocionales / Boligrafos",
+"Promocionales / Carpetas y Libretas",
+"Promocionales / Agendas",
+"Promocionales / Articulos Oficina"
+],
+"Promocionales / Agendas": [
+"Promocionales / Boligrafos",
+"Promocionales / Carpetas y Libretas",
+"Promocionales / Articulos Oficina",
+"Promocionales / Llaveros"
+],
+"Promocionales / Articulos Oficina": [
+"Promocionales / Boligrafos",
+"Promocionales / Agendas",
+"Promocionales / Accesorios Escritorio",
+"Promocionales / Carpetas y Libretas"
+],
+"Promocionales / Audio": [
+"Promocionales / Usb",
+"Promocionales / Accesorios Computo",
+"Promocionales / Mochilas"
+],
+"Promocionales / Auto": [
+"Promocionales / Llaveros",
+"Promocionales / Herramientas",
+"Promocionales / Hieleras y Loncheras"
+],
+"Promocionales / Bar y BBQ": [
+"Promocionales / Hieleras y Loncheras",
+"Promocionales / Termos",
+"Promocionales / Cilindros y Vasos",
+"Promocionales / Tazas"
+],
+"Promocionales / Belleza": [
+"Promocionales / Bolsas",
+"Promocionales / Hogar",
+"Promocionales / Llaveros"
+],
+"Promocionales / Boligrafos": [
+"Promocionales / Carpetas y Libretas",
+"Promocionales / Agendas",
+"Promocionales / Llaveros",
+"Promocionales / Accesorios Escritorio",
+"Promocionales / Usb"
+],
+"Promocionales / Bolsas": [
+"Promocionales / Mochilas",
+"Promocionales / Hieleras y Loncheras",
+"Promocionales / Llaveros"
+],
+"Promocionales / Camisas": [
+"Promocionales / Playeras y Polos",
+"Promocionales / Gorras",
+"Promocionales / Chamarras"
+],
+"Promocionales / Carpetas y Libretas": [
+"Promocionales / Boligrafos",
+"Promocionales / Agendas",
+"Promocionales / Accesorios Escritorio",
+"Promocionales / Llaveros"
+],
+"Promocionales / Chamarras": [
+"Promocionales / Gorras",
+"Promocionales / Playeras y Polos",
+"Promocionales / Camisas",
+"Promocionales / Mochilas"
+],
+"Promocionales / Cilindros y Vasos": [
+"Promocionales / Termos",
+"Promocionales / Tazas",
+"Promocionales / Hieleras y Loncheras",
+"Promocionales / Bar y BBQ"
+],
+"Promocionales / Gorras": [
+"Promocionales / Playeras y Polos",
+"Promocionales / Chamarras",
+"Promocionales / Camisas"
+],
+"Promocionales / Herramientas": [
+"Promocionales / Llaveros",
+"Promocionales / Auto",
+"Promocionales / Accesorios Escritorio"
+],
+"Promocionales / Hieleras y Loncheras": [
+"Promocionales / Cilindros y Vasos",
+"Promocionales / Termos",
+"Promocionales / Bolsas",
+"Promocionales / Bar y BBQ"
+],
+"Promocionales / Hogar": [
+"Promocionales / Tazas",
+"Promocionales / Termos",
+"Promocionales / Cilindros y Vasos",
+"Promocionales / Bolsas"
+],
+"Promocionales / Llaveros": [
+"Promocionales / Boligrafos",
+"Promocionales / Usb",
+"Promocionales / Agendas"
+],
+"Promocionales / Mochilas": [
+"Promocionales / Bolsas",
+"Promocionales / Hieleras y Loncheras",
+"Promocionales / Accesorios Computo",
+"Promocionales / Usb"
+],
+"Promocionales / Playeras y Polos": [
+"Promocionales / Gorras",
+"Promocionales / Camisas",
+"Promocionales / Chamarras"
+],
+"Promocionales / Tazas": [
+"Promocionales / Termos",
+"Promocionales / Cilindros y Vasos",
+"Promocionales / Hogar"
+],
+"Promocionales / Termos": [
+"Promocionales / Cilindros y Vasos",
+"Promocionales / Tazas",
+"Promocionales / Hieleras y Loncheras",
+"Promocionales / Mochilas"
+],
+"Promocionales / Usb": [
+"Promocionales / Llaveros",
+"Promocionales / Boligrafos",
+"Promocionales / Accesorios Computo",
+"Promocionales / Audio"
+],
+"Productos Varios / Fiestas": [
+"Productos Cafeteria / Desechables",
+"Productos Cafeteria / Botanas",
+"Productos Cafeteria / Refrescos"
+]
+}
