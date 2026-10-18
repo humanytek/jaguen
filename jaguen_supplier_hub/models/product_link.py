@@ -3,6 +3,8 @@ import re
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from . import match_rules
+
 
 class ApihubProductLink(models.Model):
     _name = "apihub.product.link"
@@ -62,15 +64,18 @@ class ApihubProductLink(models.Model):
     approved_on = fields.Datetime(string="Fecha de decisión", readonly=True)
     active = fields.Boolean(default=True)
 
+    def _cost_odoo(self):
+        self.ensure_one()
+        tmpl = self.product_tmpl_id
+        lines = tmpl.seller_ids.sorted(lambda l: (l.sequence, l.id))
+        own = lines.filtered(lambda l: self.provider_id.partner_id and l.partner_id == self.provider_id.partner_id)
+        return own[:1].price or tmpl.standard_price or lines[:1].price or 0.0
+
     @api.depends("product_tmpl_id.standard_price", "product_tmpl_id.seller_ids.price",
                  "product_tmpl_id.seller_ids.partner_id", "provider_id.partner_id")
     def _compute_cost_reference(self):
         for link in self:
-            tmpl = link.product_tmpl_id
-            lines = tmpl.seller_ids.sorted(lambda l: (l.sequence, l.id))
-            own = lines.filtered(lambda l: link.provider_id.partner_id and l.partner_id == link.provider_id.partner_id)
-            cost = own[:1].price or tmpl.standard_price or lines[:1].price or 0.0
-            link.cost_reference = cost
+            link.cost_reference = link._cost_odoo()
 
     @api.depends("provider_sku", "provider_ref", "provider_description")
     def _compute_provider_code(self):
@@ -169,7 +174,8 @@ class ApihubProductLink(models.Model):
         codes = {r["default_code"] for r in rows if r.get("default_code")}
         for tmpl in self.env["product.template"].with_context(active_test=False).search([("default_code", "in", list(codes))]):
             templates.setdefault(tmpl.default_code, tmpl)
-        counts = {"created": 0, "updated": 0, "kept": 0, "no_product": 0, "discarded": 0}
+        lang = self.env["apihub.config"].get_config().main_lang or "es_MX"
+        counts = {"created": 0, "updated": 0, "kept": 0, "no_product": 0, "discarded": 0, "no_cuadra": 0}
         # Varios candidatos del mismo proveedor para un mismo producto (ej. SSD de 240/480/960 GB que comparten el
         # principio del codigo): si uno coincide claramente mejor (parcial o mejor), los demas no se ofrecen.
         best = {}
@@ -192,11 +198,19 @@ class ApihubProductLink(models.Model):
             if not tmpl or not sku:
                 counts["no_product"] += 1
                 continue
-            state = row.get("state") or "review"
+            res = match_rules.evaluate(
+                tmpl.with_context(lang=lang).name,
+                [tmpl.with_context(lang=lang).description_sale, tmpl.with_context(lang=lang).description_ecommerce],
+                [tmpl.with_context(lang=lang).description_purchase, tmpl.with_context(lang=lang).description_sale],
+                row.get("provider_sku"), row.get("provider_sku"), row.get("provider_description"), row.get("brand"),
+                tmpl.standard_price or row.get("cost_reference"), row.get("cost_provider_raw"), row.get("multiplier") or 1.0)
+            if res["failed"]:
+                # si una regla de marca, descripción, código o precio no cuadra no es el mismo producto: no se sugiere
+                counts["no_cuadra"] += 1
+                continue
+            state = "review"  # nada se da por seguro: lo aprueba una persona
             review_reason = row.get("review_reason")
-            if state == "auto" and abs((row.get("multiplier") or 1.0) - 1.0) > 1e-9:
-                # un multiplicador distinto de 1 nunca se da por seguro: lo confirma una persona
-                state = "review"
+            if abs((row.get("multiplier") or 1.0) - 1.0) > 1e-9:
                 review_reason = "multiplicador distinto de 1 sin confirmar: verificar la presentacion (pieza/paquete) antes de aprobar"
             vals = {
                 "provider_ref": row.get("provider_ref"), "provider_description": row.get("provider_description"),
