@@ -32,11 +32,41 @@ def words(text):
     return out
 
 
-def brand_ok(brand, our_name):
-    b = norm_code(brand)
-    if not b:
+BRAND_ALIASES = {"HEWLETTPACKARD": "HP", "HEWLETTPACKARDENTERPRISE": "HPE"}
+GENERIC_BRAND_WORDS = {"PLUS", "PAPER", "PEN", "MAX", "PRO", "TECH", "DIGITAL", "SYSTEMS", "GROUP", "MEXICO", "INTERNATIONAL"}
+
+
+def brand_candidates(brand):
+    """Formas en que nuestro nombre puede escribir la marca de un proveedor: 'HEWLETT PACKARD' = HP; en 'MANHATTAN
+    (INTRACOM)' o 'MAPASA (ARPAPEL)' la marca es lo de antes del paréntesis y lo de dentro es el grupo."""
+    text = str(brand or "")
+    outer = re.sub(r"\(.*?\)", " ", text)
+    inner = re.findall(r"\((.*?)\)", text)
+    cands = {norm_code(outer)}
+    cands |= {norm_code(w) for w in re.split(r"[^A-Za-z0-9]+", outer) if len(w) >= 4}
+    cands |= {norm_code(i) for i in inner}
+    for full, alias in BRAND_ALIASES.items():
+        if full in norm_code(outer):
+            cands.add(alias)
+    return {c for c in cands if len(c) >= 2 and c not in GENERIC_BRAND_WORDS}
+
+
+def brand_ok(brand, our_name, provider_description="", brands=()):
+    """La marca del proveedor está en nuestro nombre (con alias, sin paréntesis de grupo y tolerando una letra de
+    diferencia, PAPERMATTE = Papermate); o, si el proveedor la puso mal pero su descripción dice la marca de nuestro
+    producto, también cuenta."""
+    cands = brand_candidates(brand)
+    if not cands:
         return None
-    return b in norm_code(our_name)
+    name = norm_code(our_name)
+    if any(c in name for c in cands):
+        return True
+    our_words = [norm_code(w) for w in re.split(r"[^A-Za-z0-9]+", str(our_name or "")) if len(w) >= 5]
+    for c in cands:
+        if len(c) >= 6 and any(difflib.SequenceMatcher(None, c, w).ratio() >= 0.88 for w in our_words):
+            return True
+    shared = words(our_name) & words(provider_description)
+    return any(w in brands for w in shared)
 
 
 def description_ok(our_texts, provider_description, brand="", code=""):
