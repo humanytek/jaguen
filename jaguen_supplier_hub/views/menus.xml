@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_apihub_root" name="ApiHub" sequence="90" groups="base.group_system"/>
+    <menuitem id="menu_apihub_provider" name="Proveedores" parent="menu_apihub_root" action="action_apihub_provider" sequence="10"/>
+    <menuitem id="menu_apihub_warehouse_rule" name="Almacenes y reglas" parent="menu_apihub_root" action="action_apihub_warehouse_rule" sequence="20"/>
+    <menuitem id="menu_apihub_config" name="Configuración general" parent="menu_apihub_root" action="action_apihub_config" sequence="90"/>
+</odoo>

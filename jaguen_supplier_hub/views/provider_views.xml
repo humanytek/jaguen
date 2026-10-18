@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apihub_provider_view_list" model="ir.ui.view">
+        <field name="name">apihub.provider.list</field>
+        <field name="model">apihub.provider</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="partner_id"/>
+                <field name="source_type"/>
+                <field name="native_currency"/>
+                <field name="fx_source"/>
+                <field name="min_stock"/>
+                <field name="max_data_age_hours"/>
+                <field name="last_sync_at"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apihub_provider_view_form" model="ir.ui.view">
+        <field name="name">apihub.provider.form</field>
+        <field name="model">apihub.provider</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_fx" type="object" string="Probar tipo de cambio" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nombre del proveedor"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificación">
+                            <field name="code"/>
+                            <field name="partner_id"/>
+                            <field name="partner_pattern"/>
+                            <field name="source_type"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Moneda y antigüedad del dato">
+                            <field name="native_currency"/>
+                            <field name="fx_source"/>
+                            <field name="fx_fixed_rate" invisible="fx_source != 'fixed'"/>
+                            <field name="max_data_age_hours"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Existencia, flete y AVCO">
+                            <field name="min_stock"/>
+                            <field name="freight_amount"/>
+                            <field name="freight_only_tech"/>
+                            <field name="avco_factor"/>
+                        </group>
+                        <group string="Última corrida">
+                            <field name="last_sync_at"/>
+                            <field name="last_data_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Almacenes y reglas">
+                            <field name="warehouse_rule_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="counts_for_publication"/>
+                                    <field name="free_shipping"/>
+                                    <field name="min_stock_override"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Credenciales" groups="base.group_system">
+                            <field name="credential_ids">
+                                <list editable="bottom">
+                                    <field name="key"/>
+                                    <field name="value" password="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apihub_warehouse_rule_view_list" model="ir.ui.view">
+        <field name="name">apihub.warehouse.rule.list</field>
+        <field name="model">apihub.warehouse.rule</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="provider_id"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="counts_for_publication"/>
+                <field name="free_shipping"/>
+                <field name="min_stock_override"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_apihub_provider" model="ir.actions.act_window">
+        <field name="name">Proveedores</field>
+        <field name="res_model">apihub.provider</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_apihub_warehouse_rule" model="ir.actions.act_window">
+        <field name="name">Almacenes y reglas</field>
+        <field name="res_model">apihub.warehouse.rule</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

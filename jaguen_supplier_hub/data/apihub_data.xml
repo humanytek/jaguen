@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Proveedores. Los valores de arranque salen de docs/DECISIONES.md y se editan desde Odoo. -->
+        <record id="provider_ct" model="apihub.provider">
+            <field name="name">CT Internacional</field>
+            <field name="code">ct</field>
+            <field name="sequence">10</field>
+            <field name="partner_pattern">ct internacional</field>
+            <field name="source_type">api</field>
+            <field name="native_currency">mixed</field>
+            <field name="min_stock">3</field>
+            <field name="max_data_age_hours">24</field>
+            <field name="notes">XML 3 veces al día (catálogo completo con costo); JSON cada 15 minutos (solo con existencia); API en vivo con token.</field>
+        </record>
+        <record id="provider_ingram" model="apihub.provider">
+            <field name="name">Ingram Micro</field>
+            <field name="code">ingram</field>
+            <field name="sequence">20</field>
+            <field name="partner_pattern">ingram</field>
+            <field name="source_type">file</field>
+            <field name="native_currency">MXN</field>
+            <field name="min_stock">10</field>
+            <field name="max_data_age_hours">72</field>
+            <field name="notes">Solo entrega PRICE.ZIP por SFTP, con existencia total y datos de hasta 2 o 3 días de atraso. Sin API.</field>
+        </record>
+        <record id="provider_loma" model="apihub.provider">
+            <field name="name">Grupo Loma</field>
+            <field name="code">loma</field>
+            <field name="sequence">30</field>
+            <field name="partner_pattern">loma</field>
+            <field name="source_type">api</field>
+            <field name="native_currency">MXN</field>
+            <field name="min_stock">3</field>
+            <field name="max_data_age_hours">36</field>
+        </record>
+        <record id="provider_syscom" model="apihub.provider">
+            <field name="name">Syscom</field>
+            <field name="code">syscom</field>
+            <field name="sequence">40</field>
+            <field name="partner_pattern">sistemas y servicios de comunicacion</field>
+            <field name="source_type">api</field>
+            <field name="native_currency">USD</field>
+            <field name="min_stock">3</field>
+            <field name="max_data_age_hours">36</field>
+            <field name="notes">En Odoo se llama SISTEMAS Y SERVICIOS DE COMUNICACION. Precios en dólares.</field>
+        </record>
+        <record id="provider_exel" model="apihub.provider">
+            <field name="name">Exel del Norte</field>
+            <field name="code">exel</field>
+            <field name="sequence">50</field>
+            <field name="partner_pattern">exel</field>
+            <field name="source_type">robot</field>
+            <field name="native_currency">MXN</field>
+            <field name="min_stock">3</field>
+            <field name="max_data_age_hours">36</field>
+            <field name="notes">Sin API. Robot en el servidor de Oracle (CSV por marca para costo, buscarJSON para existencia).</field>
+        </record>
+
+        <!-- Almacenes que cuentan para publicar en la Fase 1 -->
+        <record id="rule_ct_hmo" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_ct"/>
+            <field name="code">HMO</field>
+            <field name="name">Hermosillo (clave en el XML y el JSON)</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="rule_ct_01a" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_ct"/>
+            <field name="code">01A</field>
+            <field name="name">Hermosillo (clave en la API)</field>
+            <field name="sequence">11</field>
+        </record>
+        <record id="rule_ct_d2a" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_ct"/>
+            <field name="code">D2A</field>
+            <field name="name">Cedis Hermosillo</field>
+            <field name="sequence">12</field>
+        </record>
+        <record id="rule_ingram_any" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_ingram"/>
+            <field name="code">*</field>
+            <field name="name">Cualquier almacén (solo existencia disponible, no bajo pedido)</field>
+        </record>
+        <record id="rule_loma_1006" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_loma"/>
+            <field name="code">1006</field>
+            <field name="name">Hermosillo</field>
+        </record>
+        <record id="rule_syscom_hermosillo" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_syscom"/>
+            <field name="code">hermosillo</field>
+            <field name="name">Hermosillo</field>
+        </record>
+        <record id="rule_exel_he" model="apihub.warehouse.rule">
+            <field name="provider_id" ref="provider_exel"/>
+            <field name="code">HE</field>
+            <field name="name">Hermosillo</field>
+        </record>
+
+        <!-- Configuración general (un solo registro) -->
+        <record id="config_default" model="apihub.config">
+            <field name="name">Configuración general</field>
+        </record>
+    </data>
+</odoo>
