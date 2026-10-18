@@ -77,6 +77,17 @@ def price_ok(cost_odoo, cost_provider_raw, multiplier=1.0):
     return abs(ours - cost_odoo) / cost_odoo <= PRICE_TOLERANCE
 
 
+def _shared_model_token(our_texts, provider_description):
+    """Número de modelo (letras y dígitos juntos, 4+ caracteres) que aparece en nuestros textos y en la descripción."""
+    def tokens(text):
+        return {t for t in re.findall(r"[A-Z0-9]+", re.sub(r"[-_/ ]", " ", (text or "").upper()))
+                if len(t) >= 4 and any(c.isdigit() for c in t) and any(c.isalpha() for c in t)}
+    ours = set()
+    for t in our_texts:
+        ours |= tokens(t)
+    return bool(ours & tokens(provider_description))
+
+
 def evaluate(our_name, our_texts, our_codes, provider_code, provider_sku, provider_description, brand,
              cost_odoo, cost_provider_raw, multiplier):
     desc, shared = description_ok(list(our_texts) + [our_name], provider_description, brand, provider_sku)
@@ -87,6 +98,10 @@ def evaluate(our_name, our_texts, our_codes, provider_code, provider_sku, provid
         "precio": price_ok(cost_odoo, cost_provider_raw, multiplier),
     }
     failed = [k for k, v in checks.items() if v is False]
+    if failed == ["marca"] and _shared_model_token(list(our_texts) + [our_name], provider_description):
+        # el proveedor a veces pone mal la marca en su campo (tóner Samsung con marca HP): si código, descripción y
+        # precio cuadran y ambos textos traen el mismo número de modelo (D111S), es el mismo producto
+        failed = []
     unknown = [k for k, v in checks.items() if v is None]
     verdict = "no" if failed else ("sin_dato" if unknown else "si")
     return {"checks": checks, "failed": failed, "unknown": unknown, "verdict": verdict, "shared": shared}
