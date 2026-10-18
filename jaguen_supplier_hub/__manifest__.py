@@ -8,7 +8,7 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
 """,
     "author": "JAGUEN",
     "category": "Inventory/Purchase",
-    "version": "18.0.1.2.4",
+    "version": "18.0.1.2.6",
     "license": "LGPL-3",
     "depends": ["product", "website_sale"],
     "data": [

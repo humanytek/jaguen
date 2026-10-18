@@ -44,12 +44,26 @@ class ApihubProductLink(models.Model):
                                      help="Lo que cobra el proveedor por SU presentación, en pesos, sin multiplicador.")
     cost_provider = fields.Float(string="Costo Prov en nuestra presentación", digits=(12, 2),
                                  help="Costo del proveedor × multiplicador: lo que costaría una unidad como la vendemos nosotros.")
-    cost_reference = fields.Float(string="Costo Odoo", digits=(12, 2))
+    cost_reference = fields.Float(
+        string="Costo Odoo", digits=(12, 2), compute="_compute_cost_reference",
+        help="Lo que Odoo ya tiene como costo de este producto, en este orden: 1) la línea de este proveedor en la "
+             "pestaña Compras del producto; 2) el costo (AVCO) de la ficha del producto; 3) la línea de Compras del "
+             "primer proveedor del producto. Se calcula al abrir la pantalla; 0 solo si Odoo no tiene ningún costo.")
     diff_pct = fields.Float(string="% diferencia", digits=(12, 1))
     note = fields.Text(string="Notas")
     approved_by = fields.Many2one("res.users", string="Aprobado por", readonly=True)
     approved_on = fields.Datetime(string="Fecha de decisión", readonly=True)
     active = fields.Boolean(default=True)
+
+    @api.depends("product_tmpl_id.standard_price", "product_tmpl_id.seller_ids.price",
+                 "product_tmpl_id.seller_ids.partner_id", "provider_id.partner_id")
+    def _compute_cost_reference(self):
+        for link in self:
+            tmpl = link.product_tmpl_id
+            lines = tmpl.seller_ids.sorted(lambda l: (l.sequence, l.id))
+            own = lines.filtered(lambda l: link.provider_id.partner_id and l.partner_id == link.provider_id.partner_id)
+            cost = own[:1].price or tmpl.standard_price or lines[:1].price or 0.0
+            link.cost_reference = cost
 
     @staticmethod
     def _norm(value):
@@ -58,13 +72,17 @@ class ApihubProductLink(models.Model):
     @api.depends("brand", "provider_sku", "product_tmpl_id.name", "product_tmpl_id.description_purchase",
                  "product_tmpl_id.description_sale")
     def _compute_checks(self):
+        """Compara contra TODAS las traducciones del producto: el nombre y las descripciones se traducen por idioma
+        (en_US puede no traer la marca que si trae es_MX) y un proceso automatico corre con otro idioma que el de Javier."""
+        langs = [code for code, _name in self.env["res.lang"].get_installed()] or ["es_MX"]
         for link in self:
-            name = link._norm(link.product_tmpl_id.name)
+            tmpls = [link.product_tmpl_id.with_context(lang=lang) for lang in langs]
+            names = [link._norm(t.name) for t in tmpls]
             brand = link._norm(link.brand)
-            link.brand_in_name = False if not brand else ("si" if brand in name else "no")
+            link.brand_in_name = False if not brand else ("si" if any(brand in n for n in names) else "no")
             sku = link._norm(link.provider_sku)
-            ours = [link._norm(link.product_tmpl_id.description_purchase), link._norm(link.product_tmpl_id.description_sale)]
-            ours = [o for o in ours if o]
+            ours = {link._norm(v) for t in tmpls for v in (t.description_purchase, t.description_sale)}
+            ours.discard("")
             if not sku or not ours:
                 link.code_match = False
             elif sku in ours:
@@ -147,7 +165,7 @@ class ApihubProductLink(models.Model):
                 "match_reason": row.get("match_reason"), "review_reason": review_reason,
                 "confidence": row.get("confidence") or False, "cost_provider": row.get("cost_provider") or 0.0,
                 "cost_provider_raw": row.get("cost_provider_raw") or 0.0,
-                "cost_reference": row.get("cost_reference") or 0.0, "diff_pct": row.get("diff_pct") or 0.0,
+                "diff_pct": row.get("diff_pct") or 0.0,
             }
             link = self.with_context(active_test=False).search(
                 [("product_tmpl_id", "=", tmpl.id), ("provider_id", "=", provider.id), ("provider_sku", "=", sku)], limit=1)
