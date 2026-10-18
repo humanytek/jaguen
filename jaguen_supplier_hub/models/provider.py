@@ -54,6 +54,21 @@ class ApihubProvider(models.Model):
         string="Factor de flete del AVCO", default=1.0, digits=(12, 4),
         help="El AVCO de un producto sin existencia es el costo de su Proveedor 1 por este factor.",
     )
+    pricing_group = fields.Selection(
+        [("fabrica", "Grupo Fábrica (precio fijo en Página; las demás listas encadenadas a Página)"),
+         ("distribuidor", "Grupo Distribuidor (fórmula sobre el costo en todas las listas)")],
+        string="Grupo de precios",
+        help="Decide cómo se arma la regla de precio de venta de los productos cuyo Proveedor 1 es este. "
+             "Nunca se infiere del nombre: lo confirma Javier (docs/DECISIONES.md, sección 7o).",
+    )
+    price_freight_pct = fields.Float(
+        string="Flete para el precio de venta (%)", default=0.0, digits=(12, 2),
+        help="Solo Grupo Fábrica: precio = costo × (1 + flete) ÷ 0.75. En la Fase 1 (entrega local) es 0.",
+    )
+    price_discount_pct = fields.Float(
+        string="Descuento del proveedor (%)", default=0.0, digits=(12, 2),
+        help="Descuento que aplica el proveedor sobre su lista. En la Fase 1 es 0.",
+    )
     last_sync_at = fields.Datetime(string="Última corrida", readonly=True)
     last_data_date = fields.Datetime(string="Fecha del dato del proveedor", readonly=True)
     notes = fields.Text(string="Notas")
