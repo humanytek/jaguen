@@ -20,11 +20,18 @@ class ApihubProductLink(models.Model):
         [("si", "Sí"), ("no", "No")], string="¿Marca igual?", compute="_compute_checks",
         help="Sí si la marca/fábrica del proveedor aparece en el nombre de nuestro producto.")
     code_match = fields.Selection(
-        [("si", "Sí"), ("parcial", "Parcial"), ("no", "No")], string="¿Código igual?", compute="_compute_checks",
+        [("si", "Sí"), ("desc", "Sí, en la descripción"), ("parcial", "Parcial"), ("no", "No")],
+        string="¿Código igual?", compute="_compute_checks",
         help="Compara el código del proveedor con nuestra descripción de compra y de venta, sin espacios ni guiones. "
-             "Sí = idéntico; Parcial = uno contiene al otro; No = distintos.")
+             "Sí = idéntico; Sí en la descripción = nuestro código completo aparece en la descripción del proveedor "
+             "(Loma corta sus códigos a ~15 caracteres en su API); Parcial = uno contiene al otro; No = distintos.")
     provider_id = fields.Many2one("apihub.provider", string="Proveedor", required=True, ondelete="cascade", index=True)
-    provider_sku = fields.Char(string="Cod Prov", required=True, index=True)
+    provider_sku = fields.Char(string="Cod Prov (API)", required=True, index=True,
+                               help="El código tal como lo entrega la API del proveedor. Loma lo corta a ~15 caracteres.")
+    provider_code = fields.Char(
+        string="Cod Prov", compute="_compute_provider_code",
+        help="El código completo, como lo ves en la página del proveedor. Si la API lo entrega cortado, se completa con "
+             "el código que aparece al final de la descripción del proveedor y con el prefijo de marca del ID.")
     provider_ref = fields.Char(string="ID interno del proveedor")
     provider_description = fields.Char(string="Desc Prov")
     brand = fields.Char(string="Marca Prov")
@@ -65,6 +72,17 @@ class ApihubProductLink(models.Model):
             cost = own[:1].price or tmpl.standard_price or lines[:1].price or 0.0
             link.cost_reference = cost
 
+    @api.depends("provider_sku", "provider_ref", "provider_description")
+    def _compute_provider_code(self):
+        for link in self:
+            sku = (link.provider_sku or "").strip()
+            words = (link.provider_description or "").split()
+            last = words[-1].strip(",;.") if words else ""
+            completed = last if sku and len(last) > len(sku) and last.upper().startswith(sku.upper()) else sku
+            ref = (link.provider_ref or "").strip()
+            prefix = ref[:-len(sku)] if sku and len(ref) > len(sku) and ref.upper().endswith(sku.upper()) else ""
+            link.provider_code = (prefix + completed) if completed else sku
+
     @staticmethod
     def _norm(value):
         return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
@@ -72,21 +90,23 @@ class ApihubProductLink(models.Model):
     @api.depends("brand", "provider_sku", "product_tmpl_id.name", "product_tmpl_id.description_purchase",
                  "product_tmpl_id.description_sale")
     def _compute_checks(self):
-        """Compara contra TODAS las traducciones del producto: el nombre y las descripciones se traducen por idioma
-        (en_US puede no traer la marca que si trae es_MX) y un proceso automatico corre con otro idioma que el de Javier."""
-        langs = [code for code, _name in self.env["res.lang"].get_installed()] or ["es_MX"]
+        """Compara en UN idioma (Configuración → Idioma de referencia, es_MX): el nombre y las descripciones se guardan
+        por idioma y el inglés suele traer copias viejas (en 1,111 productos el código de compra difiere)."""
+        lang = self.env["apihub.config"].get_config().main_lang or "es_MX"
         for link in self:
-            tmpls = [link.product_tmpl_id.with_context(lang=lang) for lang in langs]
-            names = [link._norm(t.name) for t in tmpls]
+            tmpl = link.product_tmpl_id.with_context(lang=lang)
+            name = link._norm(tmpl.name)
             brand = link._norm(link.brand)
-            link.brand_in_name = False if not brand else ("si" if any(brand in n for n in names) else "no")
+            link.brand_in_name = False if not brand else ("si" if brand in name else "no")
             sku = link._norm(link.provider_sku)
-            ours = {link._norm(v) for t in tmpls for v in (t.description_purchase, t.description_sale)}
+            ours = {link._norm(tmpl.description_purchase), link._norm(tmpl.description_sale)}
             ours.discard("")
             if not sku or not ours:
                 link.code_match = False
             elif sku in ours:
                 link.code_match = "si"
+            elif any(len(o) >= 6 and o in link._norm(link.provider_description) for o in ours):
+                link.code_match = "desc"
             elif len(sku) >= 4 and any(len(o) >= 4 and (sku in o or o in sku) for o in ours):
                 link.code_match = "parcial"
             else:

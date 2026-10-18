@@ -8,6 +8,10 @@ class ApihubConfig(models.Model):
     _description = "Configuración general de ApiHub"
 
     name = fields.Char(string="Nombre", default="Configuración general", required=True)
+    main_lang = fields.Char(
+        string="Idioma de referencia", default="es_MX", required=True,
+        help="Idioma en el que se comparan nombres y descripciones (marca y código). Es el que se ve y se captura en Odoo; "
+             "los demás idiomas pueden traer copias viejas.")
     dry_run = fields.Boolean(
         string="Modo simulación",
         default=True,

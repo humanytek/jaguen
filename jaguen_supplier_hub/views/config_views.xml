@@ -12,6 +12,7 @@
                     <group>
                         <group string="Seguridad de las corridas">
                             <field name="dry_run"/>
+                        <field name="main_lang"/>
                             <field name="max_failed_pct"/>
                             <field name="price_ratio_min"/>
                             <field name="price_ratio_max"/>

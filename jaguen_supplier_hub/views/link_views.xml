@@ -9,12 +9,12 @@
                 <field name="product_tmpl_id"/>
                 <field name="our_description_purchase"/>
                 <field name="provider_id"/>
-                <field name="provider_sku"/>
+                <field name="provider_code"/>
                 <field name="provider_description"/>
                 <field name="brand"/>
                 <field name="brand_in_name" widget="badge" decoration-success="brand_in_name == 'si'"
                        decoration-danger="brand_in_name == 'no'"/>
-                <field name="code_match" widget="badge" decoration-success="code_match == 'si'"
+                <field name="code_match" widget="badge" decoration-success="code_match in ('si', 'desc')"
                        decoration-warning="code_match == 'parcial'" decoration-danger="code_match == 'no'"/>
                 <field name="multiplier"/>
                 <field name="cost_reference"/>
@@ -53,6 +53,7 @@
                         </group>
                         <group string="En el proveedor">
                             <field name="provider_id"/>
+                            <field name="provider_code"/>
                             <field name="provider_sku"/>
                             <field name="provider_ref"/>
                             <field name="brand"/>
