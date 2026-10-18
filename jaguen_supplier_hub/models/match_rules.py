@@ -89,7 +89,7 @@ def _shared_model_token(our_texts, provider_description):
 
 
 def evaluate(our_name, our_texts, our_codes, provider_code, provider_sku, provider_description, brand,
-             cost_odoo, cost_provider_raw, multiplier):
+             cost_odoo, cost_provider_raw, multiplier, published=True):
     desc, shared = description_ok(list(our_texts) + [our_name], provider_description, brand, provider_sku)
     checks = {
         "marca": brand_ok(brand, our_name),
@@ -101,6 +101,9 @@ def evaluate(our_name, our_texts, our_codes, provider_code, provider_sku, provid
     if failed == ["marca"] and _shared_model_token(list(our_texts) + [our_name], provider_description):
         # el proveedor a veces pone mal la marca en su campo (tóner Samsung con marca HP): si código, descripción y
         # precio cuadran y ambos textos traen el mismo número de modelo (D111S), es el mismo producto
+        failed = []
+    if failed == ["precio"] and not published:
+        # un producto sin publicar no tiene el costo al día en Odoo: la diferencia de precio no lo descarta
         failed = []
     unknown = [k for k, v in checks.items() if v is None]
     verdict = "no" if failed else ("sin_dato" if unknown else "si")

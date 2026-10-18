@@ -203,7 +203,8 @@ class ApihubProductLink(models.Model):
                 [tmpl.with_context(lang=lang).description_sale, tmpl.with_context(lang=lang).description_ecommerce],
                 [tmpl.with_context(lang=lang).description_purchase, tmpl.with_context(lang=lang).description_sale],
                 row.get("provider_sku"), row.get("provider_sku"), row.get("provider_description"), row.get("brand"),
-                tmpl.standard_price or row.get("cost_reference"), row.get("cost_provider_raw"), row.get("multiplier") or 1.0)
+                tmpl.standard_price or row.get("cost_reference"), row.get("cost_provider_raw"), row.get("multiplier") or 1.0,
+                tmpl.is_published)
             if res["failed"]:
                 # si una regla de marca, descripción, código o precio no cuadra no es el mismo producto: no se sugiere
                 counts["no_cuadra"] += 1
