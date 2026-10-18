@@ -30,8 +30,8 @@ class ApihubProductLink(models.Model):
                                help="El código tal como lo entrega la API del proveedor. Loma lo corta a ~15 caracteres.")
     provider_code = fields.Char(
         string="Cod Prov", compute="_compute_provider_code",
-        help="El código completo, como lo ves en la página del proveedor. Si la API lo entrega cortado, se completa con "
-             "el código que aparece al final de la descripción del proveedor y con el prefijo de marca del ID.")
+        help="Código del proveedor lo más completo posible, como se ve en su página. Si la API lo entrega cortado, se "
+             "completa con el código al final de su descripción y con el prefijo de marca del ID (KIN-, ADA-...).")
     provider_ref = fields.Char(string="ID interno del proveedor")
     provider_description = fields.Char(string="Desc Prov")
     brand = fields.Char(string="Marca Prov")
@@ -74,6 +74,9 @@ class ApihubProductLink(models.Model):
 
     @api.depends("provider_sku", "provider_ref", "provider_description")
     def _compute_provider_code(self):
+        """Codigo del proveedor lo mas completo posible, como se ve en su pagina, para comparar con el nuestro.
+        Si la API lo entrega cortado (Loma), se completa con el codigo al final de su descripcion y con el prefijo de
+        marca del ID (KIN-, ADA-, XER-). El codigo tal cual lo entrega la API esta en 'provider_sku'."""
         for link in self:
             sku = (link.provider_sku or "").strip()
             words = (link.provider_description or "").split()
@@ -166,8 +169,24 @@ class ApihubProductLink(models.Model):
         codes = {r["default_code"] for r in rows if r.get("default_code")}
         for tmpl in self.env["product.template"].with_context(active_test=False).search([("default_code", "in", list(codes))]):
             templates.setdefault(tmpl.default_code, tmpl)
-        counts = {"created": 0, "updated": 0, "kept": 0, "no_product": 0}
+        counts = {"created": 0, "updated": 0, "kept": 0, "no_product": 0, "discarded": 0}
+        # Varios candidatos del mismo proveedor para un mismo producto (ej. SSD de 240/480/960 GB que comparten el
+        # principio del codigo): si uno coincide claramente mejor (parcial o mejor), los demas no se ofrecen.
+        best = {}
         for row in rows:
+            tmpl = templates.get(row.get("default_code"))
+            if tmpl:
+                tier = self._code_tier(tmpl, row.get("provider_sku"), row.get("provider_description"))
+                row["_tier"] = tier
+                best[tmpl.id] = max(best.get(tmpl.id, 0), tier)
+        kept_rows = []
+        for row in rows:
+            tmpl = templates.get(row.get("default_code"))
+            if tmpl and best.get(tmpl.id, 0) >= 2 and row.get("_tier", 0) < best[tmpl.id]:
+                counts["discarded"] += 1
+                continue
+            kept_rows.append(row)
+        for row in kept_rows:
             tmpl = templates.get(row.get("default_code"))
             sku = (row.get("provider_sku") or "").strip()
             if not tmpl or not sku:
