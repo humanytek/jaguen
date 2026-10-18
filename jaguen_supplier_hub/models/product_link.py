@@ -11,9 +11,9 @@ class ApihubProductLink(models.Model):
     _rec_name = "provider_sku"
 
     product_tmpl_id = fields.Many2one("product.template", string="Producto", required=True, ondelete="cascade", index=True)
-    default_code = fields.Char(related="product_tmpl_id.default_code", string="Cód. interno", store=True)
+    default_code = fields.Char(related="product_tmpl_id.default_code", string="Código Interno", store=True)
     our_description_purchase = fields.Text(
-        related="product_tmpl_id.description_purchase", string="Nuestra descripción de compra", readonly=True)
+        related="product_tmpl_id.description_purchase", string="Desc Compra", readonly=True)
     our_description_sale = fields.Text(
         related="product_tmpl_id.description_sale", string="Nuestra descripción de venta", readonly=True)
     brand_in_name = fields.Selection(
@@ -24,10 +24,10 @@ class ApihubProductLink(models.Model):
         help="Compara el código del proveedor con nuestra descripción de compra y de venta, sin espacios ni guiones. "
              "Sí = idéntico; Parcial = uno contiene al otro; No = distintos.")
     provider_id = fields.Many2one("apihub.provider", string="Proveedor", required=True, ondelete="cascade", index=True)
-    provider_sku = fields.Char(string="Código del proveedor", required=True, index=True)
+    provider_sku = fields.Char(string="Cod Prov", required=True, index=True)
     provider_ref = fields.Char(string="ID interno del proveedor")
-    provider_description = fields.Char(string="Descripción del proveedor")
-    brand = fields.Char(string="Marca")
+    provider_description = fields.Char(string="Desc Prov")
+    brand = fields.Char(string="Marca Prov")
     multiplier = fields.Float(
         string="Multiplicador", digits=(12, 4), default=1.0,
         help="Costo por unidad de Odoo = costo del proveedor × multiplicador. 1 si ambos venden la misma presentación; "
@@ -40,11 +40,11 @@ class ApihubProductLink(models.Model):
     match_reason = fields.Char(string="Cómo coincidió")
     review_reason = fields.Char(string="Por qué se pide revisar")
     confidence = fields.Selection([("alta", "Alta"), ("media", "Media"), ("baja", "Baja")], string="Confianza del costo")
-    cost_provider_raw = fields.Float(string="Costo del proveedor (tal cual)", digits=(12, 2),
+    cost_provider_raw = fields.Float(string="Costo Prov", digits=(12, 2),
                                      help="Lo que cobra el proveedor por SU presentación, en pesos, sin multiplicador.")
-    cost_provider = fields.Float(string="Costo en nuestra presentación", digits=(12, 2),
+    cost_provider = fields.Float(string="Costo Prov en nuestra presentación", digits=(12, 2),
                                  help="Costo del proveedor × multiplicador: lo que costaría una unidad como la vendemos nosotros.")
-    cost_reference = fields.Float(string="Costo de referencia en Odoo", digits=(12, 2))
+    cost_reference = fields.Float(string="Costo Odoo", digits=(12, 2))
     diff_pct = fields.Float(string="% diferencia", digits=(12, 1))
     note = fields.Text(string="Notas")
     approved_by = fields.Many2one("res.users", string="Aprobado por", readonly=True)
