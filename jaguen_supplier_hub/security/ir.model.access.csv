@@ -4,3 +4,4 @@ access_apihub_provider_system,apihub.provider system,model_apihub_provider,base.
 access_apihub_warehouse_rule_system,apihub.warehouse.rule system,model_apihub_warehouse_rule,base.group_system,1,1,1,1
 access_apihub_provider_credential_system,apihub.provider.credential system,model_apihub_provider_credential,base.group_system,1,1,1,1
 access_apihub_product_link_system,apihub.product.link system,model_apihub_product_link,base.group_system,1,1,1,1
+access_apihub_special_price_system,apihub.special.price system,model_apihub_special_price,base.group_system,1,1,1,1

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apihub_special_price_view_list" model="ir.ui.view">
+        <field name="name">apihub.special.price.list</field>
+        <field name="model">apihub.special.price</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="provider_id"/>
+                <field name="brand"/>
+                <field name="provider_sku"/>
+                <field name="description"/>
+                <field name="list_price"/>
+                <field name="cost"/>
+                <field name="list_name"/>
+                <field name="loaded_on"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apihub_special_price_view_search" model="ir.ui.view">
+        <field name="name">apihub.special.price.search</field>
+        <field name="model">apihub.special.price</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="provider_sku"/>
+                <field name="description"/>
+                <field name="brand"/>
+                <field name="provider_id"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_provider" string="Proveedor" context="{'group_by': 'provider_id'}"/>
+                    <filter name="group_list" string="Lista" context="{'group_by': 'list_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_apihub_special_price" model="ir.actions.act_window">
+        <field name="name">Precios especiales</field>
+        <field name="res_model">apihub.special.price</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
