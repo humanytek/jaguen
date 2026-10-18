@@ -12,6 +12,7 @@
                 <field name="provider_id"/>
                 <field name="provider_sku"/>
                 <field name="provider_description" optional="show"/>
+                <field name="cost_provider_raw" optional="show"/>
                 <field name="multiplier"/>
                 <field name="cost_provider" optional="show"/>
                 <field name="cost_reference" optional="show"/>
@@ -58,12 +59,13 @@
                             <field name="provider_ref"/>
                             <field name="brand"/>
                             <field name="provider_description"/>
-                            <field name="cost_provider"/>
+                            <field name="cost_provider_raw"/>
                         </group>
                     </group>
                     <group>
                         <group string="Presentación y costo">
                             <field name="multiplier"/>
+                            <field name="cost_provider"/>
                             <field name="diff_pct"/>
                             <field name="confidence"/>
                         </group>

@@ -31,7 +31,10 @@ class ApihubProductLink(models.Model):
     match_reason = fields.Char(string="Cómo coincidió")
     review_reason = fields.Char(string="Por qué se pide revisar")
     confidence = fields.Selection([("alta", "Alta"), ("media", "Media"), ("baja", "Baja")], string="Confianza del costo")
-    cost_provider = fields.Float(string="Costo del proveedor", digits=(12, 2))
+    cost_provider_raw = fields.Float(string="Costo del proveedor (tal cual)", digits=(12, 2),
+                                     help="Lo que cobra el proveedor por SU presentación, en pesos, sin multiplicador.")
+    cost_provider = fields.Float(string="Costo en nuestra presentación", digits=(12, 2),
+                                 help="Costo del proveedor × multiplicador: lo que costaría una unidad como la vendemos nosotros.")
     cost_reference = fields.Float(string="Costo de referencia en Odoo", digits=(12, 2))
     diff_pct = fields.Float(string="% diferencia", digits=(12, 1))
     note = fields.Text(string="Notas")
@@ -80,11 +83,18 @@ class ApihubProductLink(models.Model):
             if not tmpl or not sku:
                 counts["no_product"] += 1
                 continue
+            state = row.get("state") or "review"
+            review_reason = row.get("review_reason")
+            if state == "auto" and abs((row.get("multiplier") or 1.0) - 1.0) > 1e-9:
+                # un multiplicador distinto de 1 nunca se da por seguro: lo confirma una persona
+                state = "review"
+                review_reason = "multiplicador distinto de 1 sin confirmar: verificar la presentacion (pieza/paquete) antes de aprobar"
             vals = {
                 "provider_ref": row.get("provider_ref"), "provider_description": row.get("provider_description"),
                 "brand": row.get("brand"), "multiplier": row.get("multiplier") or 1.0,
-                "match_reason": row.get("match_reason"), "review_reason": row.get("review_reason"),
+                "match_reason": row.get("match_reason"), "review_reason": review_reason,
                 "confidence": row.get("confidence") or False, "cost_provider": row.get("cost_provider") or 0.0,
+                "cost_provider_raw": row.get("cost_provider_raw") or 0.0,
                 "cost_reference": row.get("cost_reference") or 0.0, "diff_pct": row.get("diff_pct") or 0.0,
             }
             link = self.with_context(active_test=False).search(
@@ -93,11 +103,11 @@ class ApihubProductLink(models.Model):
                 if link.state in ("approved", "rejected"):
                     counts["kept"] += 1
                 else:
-                    link.write(dict(vals, state=row.get("state") or link.state))
+                    link.write(dict(vals, state=state))
                     counts["updated"] += 1
             else:
                 self.create(dict(vals, product_tmpl_id=tmpl.id, provider_id=provider.id, provider_sku=sku,
-                                 state=row.get("state") or "review"))
+                                 state=state))
                 counts["created"] += 1
         return counts
 
