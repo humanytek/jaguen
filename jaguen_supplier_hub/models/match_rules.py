@@ -42,8 +42,6 @@ def brand_ok(brand, our_name):
 def description_ok(our_texts, provider_description, brand="", code=""):
     ours = words(" ".join(t for t in our_texts if t))
     theirs = words(provider_description)
-    skip = words(brand) | words(code)
-    ours, theirs = ours - skip, theirs - skip
     if not ours or not theirs:
         return None, 0
     shared = len(ours & theirs)
