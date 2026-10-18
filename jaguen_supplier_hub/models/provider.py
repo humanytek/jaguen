@@ -68,6 +68,12 @@ class ApihubProvider(models.Model):
         usd = self.env.ref("base.USD")
         mxn = self.env.ref("base.MXN")
         date = date or fields.Date.context_today(self)
+        has_rate = self.env["res.currency.rate"].sudo().search_count(
+            [("currency_id", "=", usd.id), ("company_id", "in", (False, self.env.company.id))])
+        if not usd.active or not has_rate:
+            # sin esto Odoo devolvería 1.0 y los costos en dólares se tomarían como pesos
+            raise UserError(_("Odoo no tiene tipo de cambio para USD (moneda inactiva o sin tasas). "
+                              "Activa USD y la actualización automática de monedas (Banco de México)."))
         return self.env["res.currency"]._get_conversion_rate(usd, mxn, self.env.company, date)
 
     def to_mxn(self, amount, currency="MXN", provider_rate=None, date=None):
@@ -91,9 +97,9 @@ class ApihubProvider(models.Model):
     def action_test_fx(self):
         self.ensure_one()
         usd = self.env.ref("base.USD")
-        latest = self.env["res.currency.rate"].search([("currency_id", "=", usd.id)], order="name desc", limit=1)
-        rate = self.get_usd_mxn_rate()
-        if latest:
+        latest = self.env["res.currency.rate"].sudo().search([("currency_id", "=", usd.id)], order="name desc", limit=1)
+        if latest and usd.active:
+            rate = self.get_usd_mxn_rate()
             message = _("1 USD = %(rate).4f MXN. Último tipo de cambio cargado en Odoo: %(date)s.",
                         rate=rate, date=latest.name)
             kind = "success"

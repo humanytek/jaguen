@@ -28,7 +28,7 @@
             <field name="name">Grupo Loma</field>
             <field name="code">loma</field>
             <field name="sequence">30</field>
-            <field name="partner_pattern">loma</field>
+            <field name="partner_pattern">grupo loma</field>
             <field name="source_type">api</field>
             <field name="native_currency">MXN</field>
             <field name="min_stock">3</field>
