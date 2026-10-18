@@ -91,6 +91,25 @@ class ApihubProductLink(models.Model):
             prefix = ref[:-len(sku)] if sku and len(ref) > len(sku) and ref.upper().endswith(sku.upper()) else ""
             link.provider_code = (prefix + completed) if completed else sku
 
+    def _code_tier(self, tmpl, sku, description):
+        """Que tan bien coincide un codigo de proveedor con el producto: 4 idéntico, 3 completo en la descripción del
+        proveedor, 2 parcial, 1 distinto, 0 sin datos. Se compara en el idioma de referencia."""
+        lang = self.env["apihub.config"].get_config().main_lang or "es_MX"
+        tmpl = tmpl.with_context(lang=lang)
+        sku = self._norm(sku)
+        ours = {self._norm(tmpl.description_purchase), self._norm(tmpl.description_sale)}
+        ours.discard("")
+        if not sku or not ours:
+            return 0
+        if sku in ours:
+            return 4
+        desc = self._norm(description)
+        if any(len(o) >= 6 and o in desc for o in ours):
+            return 3
+        if len(sku) >= 4 and any(len(o) >= 4 and (sku in o or o in sku) for o in ours):
+            return 2
+        return 1
+
     @staticmethod
     def _norm(value):
         return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
@@ -234,6 +253,36 @@ class ApihubProductLink(models.Model):
                                  state=state))
                 counts["created"] += 1
         return counts
+
+    @api.model
+    def remove_unmatched_suppliers(self, provider_code, catalog_size, dry_run=True, min_catalog=100):
+        """Regla de Javier (2026-10-18): si un producto tiene a este proveedor en Compras y, tras el cruce y la ultima
+        opcion (buscar nuestra descripcion de compra en su catalogo), el proveedor no lo tiene, se quita el proveedor
+        de ese producto. Sin proveedor no queda el producto: si es el unico, se avisa y no se quita.
+
+        Solo 'dry_run=False' borra. Devuelve las lineas, con precio y codigo, para guardarlas como respaldo.
+        catalog_size: cuantos productos trajo la corrida del proveedor; si es muy poco (la API fallo) no se hace nada."""
+        provider = self.env["apihub.provider"].search([("code", "=", provider_code)], limit=1)
+        if not provider or not provider.partner_id:
+            raise UserError(_("El proveedor %s no esta ligado a un proveedor de Odoo.", provider_code))
+        if catalog_size < min_catalog:
+            raise UserError(_("La corrida de %(p)s trajo solo %(n)s productos: no se quita ningun proveedor.",
+                              p=provider.name, n=catalog_size))
+        matched = self.with_context(active_test=False).search(
+            [("provider_id", "=", provider.id), ("state", "!=", "rejected")]).mapped("product_tmpl_id")
+        lines = self.env["product.supplierinfo"].with_context(active_test=False).search(
+            [("partner_id", "=", provider.partner_id.id), ("product_tmpl_id", "not in", matched.ids)])
+        removed, kept = [], []
+        for line in lines:
+            info = {"default_code": line.product_tmpl_id.default_code, "line_id": line.id, "price": line.price,
+                    "sequence": line.sequence, "product_code": line.product_code}
+            if len(line.product_tmpl_id.seller_ids) <= 1:
+                kept.append(dict(info, reason="es su unico proveedor"))
+            else:
+                removed.append(info)
+        if not dry_run:
+            self.env["product.supplierinfo"].browse([r["line_id"] for r in removed]).unlink()
+        return {"dry_run": dry_run, "removed": removed, "kept": kept}
 
     @api.model
     def export_decisions(self):
