@@ -8,6 +8,7 @@
                   decoration-warning="state == 'review'">
                 <field name="default_code"/>
                 <field name="product_tmpl_id"/>
+                <field name="our_description_purchase" optional="show"/>
                 <field name="provider_id"/>
                 <field name="provider_sku"/>
                 <field name="provider_description" optional="show"/>
@@ -47,6 +48,8 @@
                         <group string="Producto en Odoo">
                             <field name="product_tmpl_id"/>
                             <field name="default_code"/>
+                            <field name="our_description_purchase"/>
+                            <field name="our_description_sale"/>
                             <field name="cost_reference"/>
                         </group>
                         <group string="En el proveedor">
@@ -84,6 +87,7 @@
             <search>
                 <field name="product_tmpl_id"/>
                 <field name="default_code"/>
+                <field name="our_description_purchase"/>
                 <field name="provider_sku"/>
                 <field name="provider_description"/>
                 <field name="provider_id"/>

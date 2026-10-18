@@ -10,6 +10,10 @@ class ApihubProductLink(models.Model):
 
     product_tmpl_id = fields.Many2one("product.template", string="Producto", required=True, ondelete="cascade", index=True)
     default_code = fields.Char(related="product_tmpl_id.default_code", string="Cód. interno", store=True)
+    our_description_purchase = fields.Text(
+        related="product_tmpl_id.description_purchase", string="Nuestra descripción de compra", readonly=True)
+    our_description_sale = fields.Text(
+        related="product_tmpl_id.description_sale", string="Nuestra descripción de venta", readonly=True)
     provider_id = fields.Many2one("apihub.provider", string="Proveedor", required=True, ondelete="cascade", index=True)
     provider_sku = fields.Char(string="Código del proveedor", required=True, index=True)
     provider_ref = fields.Char(string="ID interno del proveedor")
