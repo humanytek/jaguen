@@ -1,3 +1,5 @@
+import re
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -14,6 +16,13 @@ class ApihubProductLink(models.Model):
         related="product_tmpl_id.description_purchase", string="Nuestra descripción de compra", readonly=True)
     our_description_sale = fields.Text(
         related="product_tmpl_id.description_sale", string="Nuestra descripción de venta", readonly=True)
+    brand_in_name = fields.Selection(
+        [("si", "Sí"), ("no", "No")], string="¿Marca igual?", compute="_compute_checks",
+        help="Sí si la marca/fábrica del proveedor aparece en el nombre de nuestro producto.")
+    code_match = fields.Selection(
+        [("si", "Sí"), ("parcial", "Parcial"), ("no", "No")], string="¿Código igual?", compute="_compute_checks",
+        help="Compara el código del proveedor con nuestra descripción de compra y de venta, sin espacios ni guiones. "
+             "Sí = idéntico; Parcial = uno contiene al otro; No = distintos.")
     provider_id = fields.Many2one("apihub.provider", string="Proveedor", required=True, ondelete="cascade", index=True)
     provider_sku = fields.Char(string="Código del proveedor", required=True, index=True)
     provider_ref = fields.Char(string="ID interno del proveedor")
@@ -42,6 +51,29 @@ class ApihubProductLink(models.Model):
     approved_on = fields.Datetime(string="Fecha de decisión", readonly=True)
     active = fields.Boolean(default=True)
 
+    @staticmethod
+    def _norm(value):
+        return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
+
+    @api.depends("brand", "provider_sku", "product_tmpl_id.name", "product_tmpl_id.description_purchase",
+                 "product_tmpl_id.description_sale")
+    def _compute_checks(self):
+        for link in self:
+            name = link._norm(link.product_tmpl_id.name)
+            brand = link._norm(link.brand)
+            link.brand_in_name = False if not brand else ("si" if brand in name else "no")
+            sku = link._norm(link.provider_sku)
+            ours = [link._norm(link.product_tmpl_id.description_purchase), link._norm(link.product_tmpl_id.description_sale)]
+            ours = [o for o in ours if o]
+            if not sku or not ours:
+                link.code_match = False
+            elif sku in ours:
+                link.code_match = "si"
+            elif len(sku) >= 4 and any(len(o) >= 4 and (sku in o or o in sku) for o in ours):
+                link.code_match = "parcial"
+            else:
+                link.code_match = "no"
+
     _sql_constraints = [
         ("unique_link", "unique(product_tmpl_id, provider_id, provider_sku)",
          "Esa equivalencia ya existe para este producto y proveedor."),
@@ -53,6 +85,26 @@ class ApihubProductLink(models.Model):
 
     def action_approve(self):
         self._decide("approved")
+        self._write_vendor_code()
+
+    def _write_vendor_code(self):
+        """Escribe el codigo del proveedor en la linea de proveedor del producto (Compras), para que la orden de
+        compra salga con el codigo que ese proveedor usa. Solo llena si esta vacio: si ya hay otro codigo, no lo pisa
+        y lo deja anotado en la equivalencia."""
+        for link in self:
+            source = link.provider_id.order_code_source
+            code = link.provider_ref if source == "provider_ref" else link.provider_sku if source == "provider_sku" else False
+            partner = link.provider_id.partner_id
+            if not code or not partner:
+                continue
+            lines = self.env["product.supplierinfo"].search([
+                ("product_tmpl_id", "=", link.product_tmpl_id.id), ("partner_id", "=", partner.id)])
+            for line in lines:
+                if not line.product_code:
+                    line.product_code = code
+                elif line.product_code != code:
+                    link.note = ((link.note or "") + "\nLa línea de Compras ya tiene el código %s; el proveedor usa %s. "
+                                 "No se cambió." % (line.product_code, code)).strip()
 
     def action_reject(self):
         self._decide("rejected")

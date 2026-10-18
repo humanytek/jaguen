@@ -54,6 +54,7 @@
                             <field name="freight_only_tech"/>
                             <field name="avco_factor"/>
                             <field name="pricing_group"/>
+                            <field name="order_code_source"/>
                             <field name="price_freight_pct"/>
                             <field name="price_discount_pct"/>
                         </group>

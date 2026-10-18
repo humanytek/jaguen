@@ -61,6 +61,13 @@ class ApihubProvider(models.Model):
         help="Decide cómo se arma la regla de precio de venta de los productos cuyo Proveedor 1 es este. "
              "Nunca se infiere del nombre: lo confirma Javier (docs/DECISIONES.md, sección 7o).",
     )
+    order_code_source = fields.Selection(
+        [("provider_ref", "ID/clave interno del proveedor"), ("provider_sku", "Número de parte"), ("none", "No se escribe")],
+        string="Código en la orden de compra", default="none",
+        help="Qué código del proveedor se escribe en la línea de proveedor del producto (Código del producto del proveedor) "
+             "al aprobar una equivalencia, para que la orden de compra salga con el código que ese proveedor usa. "
+             "'No se escribe' = se deja lo que ya tiene Odoo (nuestra descripción y código).",
+    )
     price_freight_pct = fields.Float(
         string="Flete para el precio de venta (%)", default=0.0, digits=(12, 2),
         help="Solo Grupo Fábrica: precio = costo × (1 + flete) ÷ 0.75. En la Fase 1 (entrega local) es 0.",
