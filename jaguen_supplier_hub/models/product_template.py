@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import _, fields, models
 
 
 class ProductTemplate(models.Model):
@@ -11,3 +11,27 @@ class ProductTemplate(models.Model):
     apihub_out_since = fields.Date(
         string="Agotado desde (ApiHub)", copy=False,
         help="Primer día de la racha de días en que ningún proveedor lo tiene. A los días configurados se despublica.")
+
+    def _apihub_availability_info(self):
+        """(etiqueta, texto) para mostrar en la tienda, o False si el producto no se maneja o es de entrega rápida."""
+        self.ensure_one()
+        if self.apihub_state not in ("on_order", "out"):
+            return False
+        cfg = self.env["apihub.config"].sudo().get_config()
+        if self.apihub_state == "on_order":
+            return (_("Sobre pedido"), cfg.on_order_text or "")
+        return (_("Agotado"), cfg.out_text or "")
+
+    def _is_add_to_cart_possible(self, parent_combination=None):
+        """Un producto agotado (ningún proveedor lo tiene) no se puede agregar al carrito; se sigue viendo la página."""
+        if self.apihub_state == "out":
+            return False
+        return super()._is_add_to_cart_possible(parent_combination)
+
+
+class ProductProduct(models.Model):
+    _inherit = "product.product"
+
+    def _is_add_to_cart_allowed(self):
+        allowed = super()._is_add_to_cart_allowed()
+        return allowed and self.product_tmpl_id.apihub_state != "out"

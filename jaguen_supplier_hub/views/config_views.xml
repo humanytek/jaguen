@@ -23,6 +23,8 @@
                         <group string="Precios de venta">
                             <field name="sale_pricelist_ids" widget="many2many_tags"/>
                             <field name="public_pricelist_id"/>
+                            <field name="on_order_text"/>
+                            <field name="out_text"/>
                         </group>
                         <group string="Carrito">
                             <field name="min_margin_pct"/>

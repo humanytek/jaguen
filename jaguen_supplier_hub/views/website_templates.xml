@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ficha del producto: etiqueta Sobre pedido / Agotado debajo del precio -->
+    <template id="product_price_availability" inherit_id="website_sale.product_price" name="ApiHub: disponibilidad en la ficha">
+        <xpath expr="//div[@itemprop='offers']" position="inside">
+            <t t-set="apihub_info" t-value="product._apihub_availability_info() if product and product._name == 'product.template' else False"/>
+            <div t-if="apihub_info" class="apihub-availability mb-2">
+                <span t-attf-class="badge #{'text-bg-warning' if product.apihub_state == 'on_order' else 'text-bg-secondary'} fs-6" t-out="apihub_info[0]"/>
+                <div t-if="apihub_info[1]" class="small text-muted mt-1" t-out="apihub_info[1]"/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Lista de la tienda: etiqueta pequeña bajo el título -->
+    <template id="products_item_availability" inherit_id="website_sale.products_item" name="ApiHub: disponibilidad en la lista">
+        <xpath expr="//div[contains(@class,'o_wsale_product_information_text')]" position="inside">
+            <t t-set="apihub_info" t-value="product._apihub_availability_info()"/>
+            <div t-if="apihub_info" class="apihub-availability mb-1">
+                <span t-attf-class="badge #{'text-bg-warning' if product.apihub_state == 'on_order' else 'text-bg-secondary'}" t-out="apihub_info[0]"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>
