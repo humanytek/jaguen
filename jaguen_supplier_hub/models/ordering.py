@@ -229,7 +229,7 @@ class ApihubOrdering(models.AbstractModel):
             if not provider or not provider.api_order_enabled:
                 continue
             step = po.apihub_ct_step or "request"
-            entry = {"po_id": po.id, "name": po.name, "step": step, "folio": po.apihub_api_folio or ""}
+            entry = {"po_id": po.id, "name": po.name, "step": step, "folio": po.apihub_api_folio or "", "sandbox": bool(provider.order_sandbox)}
             try:
                 entry["body"] = self._ct_body(po, provider) if step == "request" else {"folio": po.apihub_api_folio}
             except UserError as exc:
@@ -239,8 +239,9 @@ class ApihubOrdering(models.AbstractModel):
         return out
 
     @api.model
-    def ct_result(self, po_id, step, ok, text, folio):
-        """Resultado que el programa del servidor reporta después de hablar con CT."""
+    def ct_result(self, po_id, step, ok, text, folio, sandbox=False):
+        """Resultado que el programa del servidor reporta después de hablar con CT. Con sandbox=True el pedido es de prueba: no se confirma
+        la orden de compra de Odoo."""
         if not self.env.user.has_group("base.group_system"):
             return False
         po = self.env["purchase.order"].sudo().browse(po_id).exists()
@@ -250,19 +251,22 @@ class ApihubOrdering(models.AbstractModel):
         if step == "request":
             if ok:
                 po.write({"apihub_api_state": "sent", "apihub_api_folio": folio, "apihub_api_log": text, "apihub_ct_step": False})
-                po.message_post(body=_("ApiHub (CT): pedido solicitado, folio %s. Queda PENDIENTE: si no lo confirmas en 48 horas, CT lo cancela solo. "
-                                       "Revísalo en el portal de CT y presiona 'Confirmar pedido en CT'.", folio), subtype_xmlid="mail.mt_note")
+                po.message_post(body=_("ApiHub (CT%(sb)s): pedido solicitado, folio %(f)s. Queda PENDIENTE: si no lo confirmas en 48 horas, CT lo cancela solo. "
+                                       "Presiona 'Confirmar pedido en CT' para cerrarlo.", sb=" SANDBOX" if sandbox else "", f=folio), subtype_xmlid="mail.mt_note")
             else:
                 po.write({"apihub_api_state": "error", "apihub_api_log": text, "apihub_ct_step": False})
                 po.message_post(body=_("ApiHub (CT): CT no aceptó la solicitud del pedido: %s", text[:400]), subtype_xmlid="mail.mt_note")
         else:
             if ok:
-                po.write({"apihub_api_state": "confirmed", "apihub_api_log": text, "apihub_ct_step": False, "partner_ref": po.apihub_api_folio})
-                po.message_post(body=_("ApiHub (CT): pedido %s confirmado en CT.", po.apihub_api_folio), subtype_xmlid="mail.mt_note")
-                try:
-                    po.button_confirm()
-                except Exception:   # noqa: BLE001
-                    _logger.exception("ApiHub: no se pudo confirmar la orden de compra %s", po.name)
+                po.write({"apihub_api_state": "confirmed", "apihub_api_log": text, "apihub_ct_step": False,
+                          "partner_ref": ("SANDBOX " if sandbox else "") + (po.apihub_api_folio or "")})
+                po.message_post(body=_("ApiHub (CT%(sb)s): pedido %(f)s confirmado en CT.", sb=" SANDBOX: es de prueba, no se confirmó la orden de compra de Odoo" if sandbox else "",
+                                       f=po.apihub_api_folio), subtype_xmlid="mail.mt_note")
+                if not sandbox:
+                    try:
+                        po.button_confirm()
+                    except Exception:   # noqa: BLE001
+                        _logger.exception("ApiHub: no se pudo confirmar la orden de compra %s", po.name)
             else:
                 po.write({"apihub_api_state": "sent", "apihub_api_log": text, "apihub_ct_step": False})
                 po.message_post(body=_("ApiHub (CT): CT no confirmó el pedido %(f)s: %(t)s", f=po.apihub_api_folio, t=text[:400]), subtype_xmlid="mail.mt_note")

@@ -61,6 +61,10 @@ class ApihubProvider(models.Model):
         help="Solo CT: arreglo JSON del objeto 'envio' de su API de pedidos (nombre, direccion, entreCalles, noExterior, noInterior, colonia, estado, "
              "ciudad, codigoPostal, telefono). Su documentación no trae un campo para 'recoger en sucursal': con [] se manda sin envío; por probar "
              "con la respuesta de CT.")
+    order_sandbox = fields.Boolean(
+        string="Pedidos en el sandbox (pruebas)", default=True,
+        help="Solo CT: mientras esté activo, las solicitudes y confirmaciones de pedidos van al ambiente de pruebas de CT "
+             "(http://sandbox.ctonline.mx), no a tu cuenta real. Se apaga solo cuando Javier lo apruebe.")
     api_order_enabled = fields.Boolean(
         string="Enviar pedidos por API",
         help="Candado: mientras esté apagado, el botón 'Enviar pedido' de la orden de compra no manda nada a este proveedor. "
