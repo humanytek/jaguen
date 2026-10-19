@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apihub_run_log_view_list" model="ir.ui.view">
+        <field name="name">apihub.run.log.list</field>
+        <field name="model">apihub.run.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="run_date"/>
+                <field name="provider_id"/>
+                <field name="dry_run"/>
+                <field name="approved_links"/>
+                <field name="cost_updated"/>
+                <field name="cost_same"/>
+                <field name="lines_created"/>
+                <field name="sanity_skipped"/>
+                <field name="not_in_feed"/>
+                <field name="reordered"/>
+                <field name="avco_updated"/>
+                <field name="rules_created"/>
+                <field name="below_min"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apihub_publish_log_view_list" model="ir.ui.view">
+        <field name="name">apihub.publish.log.list</field>
+        <field name="model">apihub.publish.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="run_date"/>
+                <field name="dry_run"/>
+                <field name="managed"/>
+                <field name="n_local"/>
+                <field name="n_on_order"/>
+                <field name="n_out"/>
+                <field name="published"/>
+                <field name="unpublished"/>
+                <field name="rules_created"/>
+                <field name="prices_raised"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_apihub_publish_log" model="ir.actions.act_window">
+        <field name="name">Publicación</field>
+        <field name="res_model">apihub.publish.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_apihub_run_log" model="ir.actions.act_window">
+        <field name="name">Corridas</field>
+        <field name="res_model">apihub.run.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="apihub_live_log_view_list" model="ir.ui.view">
+        <field name="name">apihub.live.log.list</field>
+        <field name="model">apihub.live.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date"/>
+                <field name="step"/>
+                <field name="mode"/>
+                <field name="product_tmpl_id"/>
+                <field name="qty"/>
+                <field name="outcome"/>
+                <field name="ms"/>
+                <field name="order_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apihub_live_log_view_form" model="ir.ui.view">
+        <field name="name">apihub.live.log.form</field>
+        <field name="model">apihub.live.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="create_date"/>
+                        <field name="step"/>
+                        <field name="mode"/>
+                        <field name="product_tmpl_id"/>
+                        <field name="qty"/>
+                        <field name="outcome"/>
+                        <field name="ms"/>
+                        <field name="order_id"/>
+                        <field name="detail"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_apihub_live_log" model="ir.actions.act_window">
+        <field name="name">Verificaciones en vivo</field>
+        <field name="res_model">apihub.live.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

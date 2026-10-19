@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apihub_config_view_form" model="ir.ui.view">
+        <field name="name">apihub.config.form</field>
+        <field name="model">apihub.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Seguridad de las corridas">
+                            <field name="dry_run"/>
+                        <field name="main_lang"/>
+                            <field name="max_failed_pct"/>
+                            <field name="daily_change_pct"/>
+                            <field name="peer_tolerance_pct"/>
+                            <field name="p1_change_pct"/>
+                            <field name="unpublish_days"/>
+                            <field name="max_unpublish_pct"/>
+                        </group>
+                        <group string="Precios de venta">
+                            <field name="sale_pricelist_ids" widget="many2many_tags"/>
+                            <field name="public_pricelist_id"/>
+                            <field name="on_order_text"/>
+                            <field name="out_text"/>
+                        </group>
+                        <group string="Carrito">
+                            <field name="min_margin_pct"/>
+                            <field name="live_mode"/>
+                            <field name="live_timeout"/>
+                            <field name="live_reserve_hours"/>
+                            <field name="live_hold_minutes"/>
+                            <field name="purchase_mode"/>
+                            <field name="purchase_user_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_apihub_config" model="ir.actions.server">
+        <field name="name">Configuración general</field>
+        <field name="model_id" ref="model_apihub_config"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_config()</field>
+    </record>
+</odoo>
