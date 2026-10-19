@@ -16,6 +16,7 @@
                             <field name="max_failed_pct"/>
                             <field name="daily_change_pct"/>
                             <field name="peer_tolerance_pct"/>
+                            <field name="p1_change_pct"/>
                             <field name="unpublish_days"/>
                             <field name="max_unpublish_pct"/>
                         </group>

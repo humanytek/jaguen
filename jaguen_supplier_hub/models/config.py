@@ -48,6 +48,10 @@ class ApihubConfig(models.Model):
         help="La lista que ve cualquiera sin iniciar sesión (Página). Con ella el motor revisa que el precio público no quede "
              "por debajo del precio mínimo que fija el proveedor (ej. Syscom, precio MAP).",
     )
+    p1_change_pct = fields.Float(
+        string="Ahorro mínimo para cambiar de Proveedor 1 (%)", default=2.0,
+        help="El Proveedor 1 actual se queda mientras su costo efectivo no sea más de este porcentaje mayor que el mejor. "
+             "Evita que cambie todos los días por centavos (propuesta 2 %, por confirmar).")
     unpublish_days = fields.Integer(
         string="Días agotado para despublicar", default=30,
         help="Un producto que ningún proveedor tiene durante estos días seguidos se despublica.")

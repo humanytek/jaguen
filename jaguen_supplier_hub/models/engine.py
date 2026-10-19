@@ -344,19 +344,63 @@ class ApihubEngine(models.AbstractModel):
 
     # ------------------------------------------------------------------ despues de los costos
     @api.model
+    def _stock_context(self):
+        """Datos para decidir existencia y flete: ultima fecha de dato por proveedor y reglas de almacén que cuentan."""
+        providers = self.env["apihub.provider"].search([])
+        last = {}
+        for link in self.env["apihub.product.link"].search([("state", "=", "approved"), ("stock_date", "!=", False)]):
+            if link.provider_id.id not in last or link.stock_date > last[link.provider_id.id]:
+                last[link.provider_id.id] = link.stock_date
+        rules_of = {}
+        for r in self.env["apihub.warehouse.rule"].search([("active", "=", True), ("counts_for_publication", "=", True)]):
+            rules_of.setdefault(r.provider_id.id, []).append(r)
+        return providers, last, rules_of
+
+    @api.model
+    def _effective_cost(self, tmpl, line, provider, link, last, rules_of):
+        """(tiene_existencia, costo efectivo) de una línea de proveedor. Costo efectivo = costo + flete cuando la existencia
+        no está en un almacén sin flete, solo en Cómputo y Tecnología (docs 3 y 4). Sin dato fresco no hay existencia."""
+        has_stock = bool(link and link.stock_date and link.stock_date == last.get(provider.id)
+                         and link.stock_national >= (provider.min_stock or 1))
+        freight = 0.0
+        tech = (tmpl.categ_id.complete_name or "").startswith("Computo y Tecnologia") if tmpl.categ_id else False
+        if has_stock and tech and provider.freight_only_tech:
+            prules = rules_of.get(provider.id, [])
+            threshold = (prules[0].min_stock_override if prules and prules[0].min_stock_override > 0 else provider.min_stock) or 1
+            free = any(r.free_shipping and (link.stock_national if r.code == "*" else link.stock_local) >= threshold for r in prules)
+            if not free:
+                freight = provider.freight_amount or 0.0
+        return has_stock, line.price + freight
+
+    @api.model
     def _after_costs(self, templates):
         """Orden de proveedores, AVCO (solo sin existencia) y reglas de precio que falten."""
-        providers = self.env["apihub.provider"].search([])
+        cfg = self.env["apihub.config"].get_config()
+        providers, last, rules_of = self._stock_context()
         group_of = {p.partner_id.id: p for p in providers if p.partner_id}
+        links = {}
+        for link in self.env["apihub.product.link"].search([("product_tmpl_id", "in", templates.ids), ("state", "=", "approved")]):
+            links.setdefault((link.product_tmpl_id.id, link.provider_id.id), link)
         reordered = avco = rules = 0
         for tmpl in templates:
             lines = tmpl.seller_ids.filtered(lambda s: s.partner_id)
             if not lines:
                 continue
-            # Proveedor 1 = el mas barato, solo cuando TODOS los proveedores del producto son de los 5 (los demas, como
-            # Amazon o compras directas, no tienen archivo y no se reordenan solos).
+            # Proveedor 1 = el de menor costo efectivo (con existencia primero), solo cuando TODOS los proveedores del
+            # producto son de los 5 (los demas, como Amazon o compras directas, no tienen archivo y no se reordenan solos).
             if all(s.partner_id.id in group_of for s in lines):
-                ordered = lines.sorted(lambda s: (s.price, s.id))
+                keyed = {}
+                for s in lines:
+                    prov = group_of[s.partner_id.id]
+                    has, eff = self._effective_cost(tmpl, s, prov, links.get((tmpl.id, prov.id)), last, rules_of)
+                    keyed[s.id] = (0 if has else 1, eff, s.id)
+                ordered = lines.sorted(lambda s: keyed[s.id])
+                current = lines.sorted(lambda s: (s.sequence, s.id))[0]
+                best = ordered[0]
+                # histeresis: el Proveedor 1 actual se queda si no es mas caro que el mejor por mas del umbral
+                if current != best and keyed[current.id][0] == keyed[best.id][0] and \
+                        keyed[current.id][1] <= keyed[best.id][1] * (1 + (cfg.p1_change_pct or 0.0) / 100.0):
+                    ordered = current | (ordered - current)
                 if [s.id for s in ordered] != [s.id for s in lines.sorted(lambda s: (s.sequence, s.id))]:
                     reordered += 1
                 for pos, s in enumerate(ordered, start=1):
