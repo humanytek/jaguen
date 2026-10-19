@@ -1,6 +1,7 @@
 import logging
 import math
 import time
+from datetime import timedelta
 
 import requests
 
@@ -167,7 +168,31 @@ class ApihubLive(models.AbstractModel):
 
     # ------------------------------------------------------------------ revisión de un producto
     @api.model
-    def check_product(self, tmpl, qty, pricelist=None):
+    def _reserved(self, tmpl, cfg, exclude_order_id=False):
+        """(piezas apartadas, de ellas las de entrega inmediata). Aún no se las compramos al proveedor, así que su existencia
+        todavía no refleja esas ventas. Apartan: (1) órdenes de venta confirmadas de las últimas `live_reserve_hours` horas que no se
+        han entregado; (2) compras del sitio que siguen como cotización pero llegaron a "Gracias por su orden" hace menos de
+        `live_hold_minutes` minutos (pasado el tiempo se liberan solas). Un carrito sin terminar no aparta nada."""
+        now = fields.Datetime.now()
+        domains = []
+        if cfg.live_reserve_hours:
+            domains.append([("order_id.state", "=", "sale"), ("order_id.date_order", ">=", now - timedelta(hours=cfg.live_reserve_hours))])
+        if cfg.live_hold_minutes:
+            domains.append([("order_id.state", "=", "sent"), ("order_id.website_id", "!=", False),
+                            ("order_id.apihub_held_at", ">=", now - timedelta(minutes=cfg.live_hold_minutes))])
+        pending = immediate = 0
+        for extra in domains:
+            domain = [("product_id.product_tmpl_id", "=", tmpl.id), ("is_delivery", "=", False)] + extra
+            if exclude_order_id:
+                domain.append(("order_id", "!=", exclude_order_id))
+            for line in self.env["sale.order.line"].sudo().search(domain):
+                left = max(int(line.product_uom_qty - line.qty_delivered), 0)
+                pending += left
+                immediate += left - min(line.apihub_on_order_qty, left)
+        return pending, immediate
+
+    @api.model
+    def check_product(self, tmpl, qty, pricelist=None, exclude_order_id=False):
         """Revisa si se pueden surtir `qty` piezas del producto. Devuelve un diccionario:
         managed (si ApiHub lo maneja), ok, max_qty, assigned [(proveedor, piezas)], unverified [proveedores], message, detail."""
         cfg = self.env["apihub.config"].sudo().get_config()
@@ -215,6 +240,7 @@ class ApihubLive(models.AbstractModel):
                     note += " - no cuenta: margen %.1f%% menor al mínimo" % margin
                     local = national = 0
             result["detail"].append(note)
+            result.setdefault("per_provider", []).append((provider.code, local, national))
             local_total += local
             national_total += national
             if basis_local and local > 0 and remaining > 0:
@@ -227,6 +253,11 @@ class ApihubLive(models.AbstractModel):
                 remaining_nat -= take
             if not basis_local and national > 0 and remaining_nat >= 0:
                 result["assigned"] = result["assigned_national"]
+        reserved_now, reserved_local = self._reserved(tmpl, cfg, exclude_order_id)
+        if reserved_now:
+            result["detail"].append("Apartadas por otras ventas: %s pieza(s), %s de entrega inmediata" % (reserved_now, reserved_local))
+            local_total = max(0, local_total - reserved_local)
+            national_total = max(0, national_total - reserved_now)
         total = local_total if basis_local else national_total
         result["local_total"], result["national_total"], result["basis_local"] = local_total, national_total, basis_local
         result["max_qty"] = min(qty, total)
@@ -265,7 +296,7 @@ class ApihubLive(models.AbstractModel):
         started = time.time()
         try:
             tmpl = self.env["product.product"].sudo().browse(product_id).product_tmpl_id
-            res = self.check_product(tmpl, qty, order.pricelist_id)
+            res = self.check_product(tmpl, qty, order.pricelist_id, order.id)
             self._log(cfg, order, tmpl, qty, res, int((time.time() - started) * 1000), "carrito")
             if cfg.live_mode == "on" and res["managed"]:
                 return self._apply_result(order, product_id, tmpl, qty, res)
@@ -280,7 +311,7 @@ class ApihubLive(models.AbstractModel):
             offers.filtered(lambda o: o.state == "pending").unlink()
             return qty, ""
         offer = res.get("offer")
-        if not offer or not offer["local"]:
+        if not offer:
             return res["max_qty"], res["message"]
         accepted = offers.filtered(lambda o: o.state == "accepted")[:1]
         if accepted:
@@ -321,7 +352,7 @@ class ApihubLive(models.AbstractModel):
             started = time.time()
             try:
                 tmpl = line.product_id.product_tmpl_id
-                res = self.check_product(tmpl, int(line.product_uom_qty), order.pricelist_id)
+                res = self.check_product(tmpl, int(line.product_uom_qty), order.pricelist_id, order.id)
                 self._log(cfg, order, tmpl, int(line.product_uom_qty), res, int((time.time() - started) * 1000), step)
             except Exception:   # noqa: BLE001
                 _logger.exception("ApiHub: verificación en vivo antes de pagar falló; se deja pasar")
@@ -330,9 +361,16 @@ class ApihubLive(models.AbstractModel):
                 continue
             accepted = order.sudo().apihub_offer_ids.filtered(lambda o: o.product_id == line.product_id and o.state == "accepted")[:1]
             if not res["ok"] and res.get("offer") and accepted and res["offer"]["target"] == int(line.product_uom_qty) <= accepted.requested_qty:
-                notes.append("%s: %s pieza(s) de entrega inmediata y %s sobre pedido (aceptado por el cliente): pedir a %s." % (
-                    tmpl.default_code, res["offer"]["local"], res["offer"]["extra"],
-                    ", ".join("%s %s" % (c, q) for c, q in res["assigned_national"])))
+                taken = dict(res["assigned"])
+                extra_left, extra_from = res["offer"]["extra"], []
+                for code, _local, national in res.get("per_provider", []):
+                    take = min(max(national - taken.get(code, 0), 0), extra_left)
+                    if take:
+                        extra_from.append("%s %s" % (code, take))
+                        extra_left -= take
+                notes.append("%s: %s de entrega inmediata (%s) y %s sobre pedido (%s), aceptado por el cliente." % (
+                    tmpl.default_code, res["offer"]["local"], ", ".join("%s %s" % (c, q) for c, q in res["assigned"]),
+                    res["offer"]["extra"], ", ".join(extra_from)))
                 continue
             if not res["ok"]:
                 # en este paso no se ajusta nada solo: el cliente debe volver al carrito
@@ -444,6 +482,7 @@ class SaleOrderLine(models.Model):
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    apihub_held_at = fields.Datetime(string="Piezas apartadas desde (ApiHub)", copy=False, readonly=True)
     apihub_offer_ids = fields.One2many("apihub.cart.offer", "order_id", string="Ofertas de piezas sobre pedido")
     apihub_live_note = fields.Text(string="Nota de verificación en vivo (ApiHub)", copy=False, readonly=True)
 
@@ -454,6 +493,42 @@ class SaleOrder(models.Model):
             if live_warning:
                 return live_qty, live_warning
         return new_qty, warning
+
+    def action_quotation_sent(self):
+        res = super().action_quotation_sent()
+        now = fields.Datetime.now()
+        for order in self.filtered("website_id"):
+            order.sudo().apihub_held_at = now   # la compra del sitio aparta sus piezas desde aquí (docs 7av)
+        return res
+
+    def action_confirm(self):
+        late = self.filtered(lambda o: o.website_id and o.state in ("draft", "sent"))
+        res = super().action_confirm()
+        for order in late:
+            try:
+                problems = self.env["apihub.live"].sudo().order_check(order, "confirmar-venta")
+                if problems:
+                    order.sudo().message_post(body=_("ApiHub: al confirmar esta orden ya no había existencia suficiente (las piezas "
+                                                     "apartadas se liberaron o el proveedor las agotó). Verifica antes de pedir:") +
+                                              "<br/>" + "<br/>".join("%s: %s" % (line.product_id.display_name, msg) for line, msg in problems),
+                                              subtype_xmlid="mail.mt_note")
+            except Exception:   # noqa: BLE001 - nunca debe impedir confirmar la orden
+                _logger.exception("ApiHub: revisión al confirmar la orden falló")
+        return res
+
+    def _apihub_hold_minutes(self):
+        """Minutos que se apartan las piezas de esta compra del sitio (para el aviso de 'Gracias por su orden'), 0 si no aplica."""
+        self.ensure_one()
+        cfg = self.env["apihub.config"].sudo().get_config()
+        return cfg.live_hold_minutes if (cfg.live_mode == "on" and self.state == "sent" and self.apihub_held_at) else 0
+
+    def _apihub_hold_seconds_left(self):
+        """Segundos que le quedan al apartado de esta compra del sitio (0 si ya venció o no aplica)."""
+        self.ensure_one()
+        minutes = self._apihub_hold_minutes()
+        if not minutes:
+            return 0
+        return max(int(minutes * 60 - (fields.Datetime.now() - self.apihub_held_at).total_seconds()), 0)
 
     def _apihub_on_order_text(self):
         return self.env["apihub.config"].sudo().get_config().on_order_text or ""

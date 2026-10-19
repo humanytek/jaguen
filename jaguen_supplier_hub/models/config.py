@@ -76,6 +76,15 @@ class ApihubConfig(models.Model):
         string="Verificación en vivo en el carrito", default="off", required=True,
         help="Al agregar al carrito y antes de pagar consulta la existencia a Syscom, Loma y CT (Exel e Ingram siguen con el "
              "archivo del día). 'Solo observar' deja el registro en ApiHub -> Verificaciones en vivo sin cambiar la compra.")
+    live_reserve_hours = fields.Integer(
+        string="Horas que cuentan las piezas ya vendidas", default=24,
+        help="Las piezas de órdenes de venta confirmadas (no cotizaciones) de las últimas horas que todavía no se entregan se descuentan de la existencia del "
+             "proveedor (aún no se las has comprado). Pasado ese tiempo se asume que ya se compraron y la existencia del proveedor ya bajó. "
+             "0 = no descontar.")
+    live_hold_minutes = fields.Integer(
+        string="Minutos que se apartan las piezas de una compra del sitio", default=30,
+        help="Cuando el cliente termina su compra en el sitio (queda como cotización) se apartan sus piezas durante este tiempo, para que "
+             "otro cliente no las pida. Si no se firma/acepta o se paga a tiempo, las piezas se liberan solas. 0 = no apartar.")
     live_timeout = fields.Integer(
         string="Tiempo máximo de espera al proveedor (segundos)", default=6,
         help="Si el proveedor no responde en este tiempo, la compra sigue con el dato del archivo y el pedido queda con la "

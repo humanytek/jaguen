@@ -30,6 +30,8 @@
                             <field name="min_margin_pct"/>
                             <field name="live_mode"/>
                             <field name="live_timeout"/>
+                            <field name="live_reserve_hours"/>
+                            <field name="live_hold_minutes"/>
                         </group>
                     </group>
                 </sheet>
