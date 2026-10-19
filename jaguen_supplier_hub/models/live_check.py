@@ -144,7 +144,7 @@ class ApihubLive(models.AbstractModel):
                 return local, national, "vivo"
             except Exception as exc:   # noqa: BLE001
                 _logger.warning("ApiHub: consulta en vivo a %s falló (%s); se usa el dato del archivo.", provider.code, exc)
-                origin = "archivo (sin respuesta del proveedor)"
+                origin = "archivo (sin respuesta del proveedor: %s)" % str(exc)[:150]
         else:
             origin = "archivo"
         today = fields.Date.context_today(self)
