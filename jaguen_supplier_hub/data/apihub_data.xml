@@ -69,6 +69,48 @@
             <field name="notes">Sin API. Robot en el servidor de Oracle (CSV por marca para costo, buscarJSON para existencia).</field>
         </record>
 
+        <!-- Proveedores de tienda: solo dan precio (se lee de la pagina de cada producto). Docs 7ao. -->
+        <record id="provider_costco" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Costco</field>
+            <field name="code">costco</field>
+            <field name="sequence">60</field>
+            <field name="partner_pattern">costco</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="card_fee_pct">2.0</field>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Precio de la página con IVA (según el producto) más 2 % de cargo de tarjeta. Sin flete.</field>
+        </record>
+        <record id="provider_electronisonora" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Electronisonora (Steren)</field>
+            <field name="code">electronisonora</field>
+            <field name="sequence">70</field>
+            <field name="partner_pattern">electronisonora</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Precio de steren.com.mx con IVA. Sin flete ni descuentos.</field>
+        </record>
+        <record id="provider_homedepot" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Home Depot</field>
+            <field name="code">homedepot</field>
+            <field name="sequence">80</field>
+            <field name="partner_pattern">home depot</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Precio de homedepot.com.mx con IVA. Sin flete ni descuentos.</field>
+        </record>
+
         <!-- Almacenes que cuentan para publicar en la Fase 1 -->
         <record id="rule_ct_hmo" model="apihub.warehouse.rule">
             <field name="provider_id" ref="provider_ct"/>

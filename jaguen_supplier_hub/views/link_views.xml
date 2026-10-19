@@ -17,6 +17,7 @@
                 <field name="code_match" widget="badge" decoration-success="code_match in ('si', 'desc')"
                        decoration-warning="code_match == 'parcial'" decoration-danger="code_match == 'no'"/>
                 <field name="multiplier"/>
+                <field name="price_has_tax" optional="show"/>
                 <field name="cost_reference"/>
                 <field name="cost_provider_raw"/>
                 <field name="state" column_invisible="True"/>
@@ -66,6 +67,7 @@
                     <group>
                         <group string="Presentación y costo">
                             <field name="multiplier"/>
+                            <field name="price_has_tax"/>
                             <field name="cost_provider"/>
                             <field name="diff_pct"/>
                             <field name="confidence"/>

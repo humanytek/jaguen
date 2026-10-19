@@ -9,7 +9,8 @@ class ApihubProvider(models.Model):
 
     name = fields.Char(string="Nombre", required=True)
     code = fields.Selection(
-        [("ct", "CT"), ("ingram", "Ingram"), ("loma", "Loma"), ("syscom", "Syscom"), ("exel", "Exel")],
+        [("ct", "CT"), ("ingram", "Ingram"), ("loma", "Loma"), ("syscom", "Syscom"), ("exel", "Exel"),
+         ("costco", "Costco"), ("electronisonora", "Electronisonora (Steren)"), ("homedepot", "Home Depot")],
         string="Clave", required=True,
     )
     sequence = fields.Integer(default=10)
@@ -20,7 +21,7 @@ class ApihubProvider(models.Model):
         help="Parte del nombre del proveedor en Odoo; se usa para ligarlo automáticamente al instalar.",
     )
     source_type = fields.Selection(
-        [("file", "Archivo (FTP/SFTP)"), ("api", "API"), ("robot", "Robot del portal")],
+        [("file", "Archivo (FTP/SFTP)"), ("api", "API"), ("robot", "Robot del portal"), ("web", "Páginas de la tienda")],
         string="Fuente de datos", default="api",
     )
     native_currency = fields.Selection(
@@ -85,6 +86,17 @@ class ApihubProvider(models.Model):
         string="Descuento del proveedor (%)", default=0.0, digits=(12, 2),
         help="Descuento que aplica el proveedor sobre su lista. En la Fase 1 es 0.",
     )
+    has_stock_data = fields.Boolean(
+        string="Da existencia", default=True,
+        help="Los proveedores de tienda (Costco, Home Depot, Steren) solo dan precio: sin existencia confiable, así que los "
+             "productos cuyo proveedor es uno de estos no se publican ni se despublican solos (siguen a mano).")
+    card_fee_pct = fields.Float(
+        string="Cargo de tarjeta (%)", default=0.0, digits=(12, 2),
+        help="Solo proveedores de tienda: se suma al precio de la página (Costco 2 %).")
+    tax_pct = fields.Float(
+        string="IVA (%)", default=16.0, digits=(12, 2),
+        help="Solo proveedores de tienda: el precio de la página trae IVA en los productos marcados 'El precio trae IVA'; "
+             "el costo se guarda sin IVA.")
     last_sync_at = fields.Datetime(string="Última corrida", readonly=True)
     last_data_date = fields.Datetime(string="Fecha del dato del proveedor", readonly=True)
     notes = fields.Text(string="Notas")

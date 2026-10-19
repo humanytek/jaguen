@@ -122,7 +122,7 @@ class ApihubEngine(models.AbstractModel):
         provider = self.env["apihub.provider"].search([("code", "=", provider_code)], limit=1)
         if not provider or not provider.partner_id:
             raise UserError(_("El proveedor %s no está ligado a un proveedor de Odoo.", provider_code))
-        if len(records) < 100:
+        if len(records) < (1 if provider.source_type == "web" else 100):
             raise UserError(_("El archivo de %(p)s trae solo %(n)s productos: no se aplica nada.", p=provider.name, n=len(records)))
         by_sku = {norm_code(r.get("sku")): r for r in records if r.get("sku")}
         by_ref = {norm_code(r.get("provider_id")): r for r in records if r.get("provider_id")}
@@ -139,10 +139,13 @@ class ApihubEngine(models.AbstractModel):
             minimum = 0.0
             if rec.get("map_usd"):
                 minimum = rec["map_usd"] * (rec.get("exchange_rate") or 1.0) if (rec.get("currency") or "").upper() == "USD" else rec["map_usd"]
-            if not dry:
+            if not dry and provider.has_stock_data:
                 link.write({"stock_local": int(rec.get("stock_hermosillo") or 0), "stock_national": int(rec.get("stock_national") or 0),
                             "stock_date": stock_date, "min_price": round(minimum, 2)})
             raw = special.get(norm_code(rec.get("sku"))) or (self._cost_mxn(provider, rec) or 0.0) * (provider.cost_factor or 1.0)
+            if provider.source_type == "web":
+                # precio de la pagina de una tienda: + cargo de tarjeta, y sin IVA si la pagina lo trae (docs 7ao)
+                raw = raw * (1 + (provider.card_fee_pct or 0.0) / 100.0) / (1 + (provider.tax_pct or 0.0) / 100.0 if link.price_has_tax else 1.0)
             cost = round((raw or 0.0) * (link.multiplier or 1.0), 2)
             if cost <= 0:
                 counts["not_in_feed"] += 1
@@ -271,6 +274,8 @@ class ApihubEngine(models.AbstractModel):
             lines = tmpl.seller_ids.filtered(lambda s: s.partner_id)
             if not tmpl.active or not tmpl.sale_ok or not lines or not all(s.partner_id.id in group_of for s in lines):
                 continue
+            if not all(group_of[s.partner_id.id].has_stock_data for s in lines):
+                continue   # algun proveedor de tienda (sin existencia): la publicacion de este producto sigue a mano
             counts["managed"] += 1
             local = national = any_stale = False
             for link in tlinks:
@@ -360,8 +365,8 @@ class ApihubEngine(models.AbstractModel):
     def _effective_cost(self, tmpl, line, provider, link, last, rules_of):
         """(tiene_existencia, costo efectivo) de una línea de proveedor. Costo efectivo = costo + flete cuando la existencia
         no está en un almacén sin flete, solo en Cómputo y Tecnología (docs 3 y 4). Sin dato fresco no hay existencia."""
-        has_stock = bool(link and link.stock_date and link.stock_date == last.get(provider.id)
-                         and link.stock_national >= (provider.min_stock or 1))
+        has_stock = (not provider.has_stock_data) or bool(link and link.stock_date and link.stock_date == last.get(provider.id)
+                                                          and link.stock_national >= (provider.min_stock or 1))
         freight = 0.0
         tech = (tmpl.categ_id.complete_name or "").startswith("Computo y Tecnologia") if tmpl.categ_id else False
         if has_stock and tech and provider.freight_only_tech:

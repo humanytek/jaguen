@@ -35,6 +35,8 @@ class ApihubProductLink(models.Model):
         help="Código del proveedor lo más completo posible, como se ve en su página. Si la API lo entrega cortado, se "
              "completa con el código al final de su descripción y con el prefijo de marca del ID (KIN-, ADA-...).")
     provider_ref = fields.Char(string="ID interno del proveedor")
+    price_has_tax = fields.Boolean(
+        string="El precio trae IVA", help="Proveedores de tienda: el precio de la página ya incluye IVA; el costo se guarda sin IVA.")
     stock_local = fields.Integer(string="Existencia local", help="Existencia en el almacén local del proveedor, del último archivo.")
     stock_national = fields.Integer(string="Existencia nacional", help="Existencia total del proveedor, del último archivo.")
     stock_date = fields.Date(string="Fecha del dato de existencia", help="Fecha del archivo del proveedor que trajo esta existencia.")

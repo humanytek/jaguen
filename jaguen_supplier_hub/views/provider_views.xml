@@ -52,6 +52,9 @@
                             <field name="min_stock"/>
                             <field name="freight_amount"/>
                             <field name="on_order_fee"/>
+                            <field name="has_stock_data"/>
+                            <field name="card_fee_pct"/>
+                            <field name="tax_pct"/>
                             <field name="freight_only_tech"/>
                             <field name="cost_factor"/>
                             <field name="avco_factor"/>
