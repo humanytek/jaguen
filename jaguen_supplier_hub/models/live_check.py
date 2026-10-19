@@ -475,7 +475,8 @@ class ApihubCartOffer(models.Model):
             order, product, local = offer.order_id, offer.product_id, offer.local_qty
             offer.unlink()
             if order.state == "draft":
-                order._cart_update(product_id=product.id, set_qty=local)
+                # add_qty=None: con el valor por defecto (0) Odoo ignora set_qty=0 y la línea no se quita
+                order._cart_update(product_id=product.id, set_qty=local, add_qty=None)
         return True
 
 
@@ -543,6 +544,9 @@ class SaleOrder(models.Model):
 
     def _cart_update_order_line(self, product_id, quantity, order_line, **kwargs):
         line = super()._cart_update_order_line(product_id, quantity, order_line, **kwargs)
+        if not line:
+            # se quitó la línea: ya no tiene sentido la oferta de ese producto
+            self.sudo().apihub_offer_ids.filtered(lambda o: o.product_id.id == product_id).unlink()
         if line:
             offer = self.sudo().apihub_offer_ids.filtered(lambda o: o.product_id.id == line.product_id.id and o.state == "accepted")[:1]
             extra = max(0, int(line.product_uom_qty) - offer.local_qty) if offer else 0
