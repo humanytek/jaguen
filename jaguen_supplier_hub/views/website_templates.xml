@@ -11,6 +11,13 @@
         </xpath>
     </template>
 
+    <!-- Agotado: se ve la ficha, el precio y la etiqueta, pero sin controles de compra -->
+    <template id="product_hide_buy_when_out" inherit_id="website_sale.product" name="ApiHub: sin botón de compra si está agotado">
+        <xpath expr="//*[@id='o_wsale_cta_wrapper']" position="attributes">
+            <attribute name="t-if">product.apihub_state != 'out'</attribute>
+        </xpath>
+    </template>
+
     <!-- Lista de la tienda: etiqueta pequeña bajo el título -->
     <template id="products_item_availability" inherit_id="website_sale.products_item" name="ApiHub: disponibilidad en la lista">
         <xpath expr="//div[hasclass('o_wsale_product_information_text')]" position="inside">

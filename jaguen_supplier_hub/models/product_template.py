@@ -22,12 +22,6 @@ class ProductTemplate(models.Model):
             return (_("Sobre pedido"), cfg.on_order_text or "")
         return (_("Agotado"), cfg.out_text or "")
 
-    def _is_add_to_cart_possible(self, parent_combination=None):
-        """Un producto agotado (ningún proveedor lo tiene) no se puede agregar al carrito; se sigue viendo la página."""
-        if self.apihub_state == "out":
-            return False
-        return super()._is_add_to_cart_possible(parent_combination)
-
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
