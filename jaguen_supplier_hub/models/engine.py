@@ -310,6 +310,9 @@ class ApihubEngine(models.AbstractModel):
                 continue   # algun proveedor de tienda (sin existencia): la publicacion de este producto sigue a mano
             counts["managed"] += 1
             local = national = any_stale = False
+            first = lines.sorted(lambda s: (s.sequence, s.id))[0]
+            first_provider = group_of[first.partner_id.id]
+            price = None   # precio público sin IVA; se calcula solo si hace falta (un proveedor que no es el 1 tiene existencia local)
             for link in tlinks:
                 p = link.provider_id
                 if p.id in stale:
@@ -321,7 +324,21 @@ class ApihubEngine(models.AbstractModel):
                 threshold = (prules[0].min_stock_override if prules and prules[0].min_stock_override > 0 else p.min_stock) or 1
                 star = any(r.code == "*" for r in prules)
                 if prules and (link.stock_national if star else link.stock_local) >= threshold:
-                    local = True
+                    if p == first_provider:
+                        local = True
+                    else:
+                        # un proveedor que no es el 1 solo cuenta como entrega rápida si vender con su costo deja el margen mínimo
+                        # (docs 7e / 7as); si no, el producto cae a "sobre pedido" y se surte con el Proveedor 1
+                        if price is None:
+                            price = self._public_price(tmpl, cfg, first.price)
+                        free = any(r.free_shipping for r in prules)
+                        cost = link.cost_provider + (0.0 if free else (p.freight_amount or 0.0))
+                        if not price or not cost or (price - cost) / price * 100.0 >= (cfg.min_margin_pct or 0.0):
+                            local = True
+                        else:
+                            counts["margin_blocked"] += 1
+                            notes.append("%s: %s tiene existencia local pero deja %.1f %% de margen (mínimo %.1f %%): no cuenta como entrega rápida" % (
+                                tmpl.default_code, p.code, (price - cost) / price * 100.0, cfg.min_margin_pct or 0.0))
                 if link.stock_national >= (p.min_stock or 1):
                     national = True
             state = "local" if local else "on_order" if national else "out"
@@ -378,6 +395,19 @@ class ApihubEngine(models.AbstractModel):
         })
         stale_names = [p.code for p in providers if p.id in stale]
         return dict(counts, log_id=log.id, dry_run=dry, proveedores_sin_dato_fresco=stale_names)
+
+    @api.model
+    def _public_price(self, tmpl, cfg, first_cost):
+        """Precio de venta público sin IVA (lista de precio público) o 0 si no es confiable: sin lista, sin regla de precio
+        (queda el precio de lista 1.0) o por debajo del costo del Proveedor 1."""
+        pricelist = cfg.public_pricelist_id
+        if not pricelist or not tmpl.product_variant_id:
+            return 0.0
+        try:
+            price = pricelist._get_product_price(tmpl.product_variant_id, 1.0)
+        except Exception:   # noqa: BLE001
+            return 0.0
+        return price if price and price > (first_cost or 0.0) else 0.0
 
     # ------------------------------------------------------------------ despues de los costos
     @api.model
