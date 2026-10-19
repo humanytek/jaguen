@@ -85,6 +85,14 @@ class ApihubConfig(models.Model):
         string="Minutos que se apartan las piezas de una compra del sitio", default=30,
         help="Cuando el cliente termina su compra en el sitio (queda como cotización) se apartan sus piezas durante este tiempo, para que "
              "otro cliente no las pida. Si no se firma/acepta o se paga a tiempo, las piezas se liberan solas. 0 = no apartar.")
+    purchase_mode = fields.Selection(
+        [("off", "Apagado"), ("draft", "Crear órdenes de compra en borrador")],
+        string="Compras al confirmar una venta", default="off", required=True,
+        help="Cuando se confirma una orden de venta, ApiHub reparte lo que falta (lo que no cubre tu inventario propio) entre los proveedores "
+             "y crea una orden de compra en BORRADOR por proveedor, con un aviso para revisarla y enviarla. No envía nada al proveedor.")
+    purchase_user_id = fields.Many2one(
+        "res.users", string="Quién revisa las compras",
+        help="Recibe la actividad 'revisar y enviar' de cada orden de compra en borrador. Si está vacío, el vendedor de la orden o el administrador.")
     live_timeout = fields.Integer(
         string="Tiempo máximo de espera al proveedor (segundos)", default=6,
         help="Si el proveedor no responde en este tiempo, la compra sigue con el dato del archivo y el pedido queda con la "

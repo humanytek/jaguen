@@ -341,6 +341,8 @@ class ApihubEngine(models.AbstractModel):
                                 tmpl.default_code, p.code, (price - cost) / price * 100.0, cfg.min_margin_pct or 0.0))
                 if link.stock_national >= (p.min_stock or 1):
                     national = True
+            if tmpl.free_qty > 0:
+                local = True   # inventario propio disponible: entrega inmediata (Javier, 2026-10-19)
             state = "local" if local else "on_order" if national else "out"
             counts["n_" + state] += 1
             if any_stale and state == "out":

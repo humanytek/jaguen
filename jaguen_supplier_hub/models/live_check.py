@@ -192,7 +192,7 @@ class ApihubLive(models.AbstractModel):
         return pending, immediate
 
     @api.model
-    def check_product(self, tmpl, qty, pricelist=None, exclude_order_id=False):
+    def check_product(self, tmpl, qty, pricelist=None, exclude_order_id=False, include_own=True):
         """Revisa si se pueden surtir `qty` piezas del producto. Devuelve un diccionario:
         managed (si ApiHub lo maneja), ok, max_qty, assigned [(proveedor, piezas)], unverified [proveedores], message, detail."""
         cfg = self.env["apihub.config"].sudo().get_config()
@@ -221,8 +221,15 @@ class ApihubLive(models.AbstractModel):
         for idx, line in enumerate(lines):
             order_of.setdefault(group_of[line.partner_id.id].id, idx)
         first_provider = group_of[lines[0].partner_id.id]
-        remaining, remaining_nat, local_total, national_total = qty, qty, 0, 0
+        # inventario propio (disponible = lo que hay menos lo ya apartado por otras órdenes): cuenta como entrega inmediata y se usa primero
+        own = int(max(tmpl.free_qty, 0)) if include_own else 0
+        result["own"] = own
+        remaining, remaining_nat, local_total, national_total = max(qty - own, 0), max(qty - own, 0), 0, 0
         result["assigned_national"] = []
+        if own > 0:
+            result["assigned"].append(("inventario propio", min(own, qty)))
+            result["assigned_national"].append(("inventario propio", min(own, qty)))
+            result["detail"].append("inventario propio: %s pieza(s) disponibles" % own)
         for link in sorted(links, key=lambda l: order_of.get(l.provider_id.id, 99)):
             provider = link.provider_id
             rules = rules_of.get(provider.id, [])
@@ -258,6 +265,8 @@ class ApihubLive(models.AbstractModel):
             result["detail"].append("Apartadas por otras ventas: %s pieza(s), %s de entrega inmediata" % (reserved_now, reserved_local))
             local_total = max(0, local_total - reserved_local)
             national_total = max(0, national_total - reserved_now)
+        local_total += own
+        national_total += own
         total = local_total if basis_local else national_total
         result["local_total"], result["national_total"], result["basis_local"] = local_total, national_total, basis_local
         result["max_qty"] = min(qty, total)
@@ -272,6 +281,23 @@ class ApihubLive(models.AbstractModel):
             else:
                 result["message"] = _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", total)
         return result
+
+    @api.model
+    def allocate(self, res, qty):
+        """Reparte `qty` piezas entre los proveedores con el resultado de check_product(include_own=False): primero lo que hay local, por el
+        orden de proveedores; el resto de la existencia total que queda. Devuelve ({proveedor: piezas}, piezas sin proveedor)."""
+        taken, left = {}, qty
+        for code, local, _national in res.get("per_provider", []):
+            take = min(local, left)
+            if take > 0:
+                taken[code] = taken.get(code, 0) + take
+                left -= take
+        for code, _local, national in res.get("per_provider", []):
+            take = min(max(national - taken.get(code, 0), 0), left)
+            if take > 0:
+                taken[code] = taken.get(code, 0) + take
+                left -= take
+        return taken, left
 
     @api.model
     def _log(self, cfg, order, tmpl, qty, res, ms, step):
@@ -512,7 +538,18 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         late = self.filtered(lambda o: o.website_id and o.state in ("draft", "sent"))
+        # inventario propio disponible ANTES de confirmar (al confirmar se reserva y baja): sirve para saber qué hay que comprar
+        own_before = {}
+        for order in self:
+            own_before[order.id] = {l.product_id.product_tmpl_id.id: l.product_id.product_tmpl_id.free_qty
+                                    for l in order.order_line if l.product_id and not l.is_delivery}
         res = super().action_confirm()
+        for order in self:
+            try:
+                self.env["apihub.purchase"].sudo().create_drafts(order, own_before.get(order.id, {}))
+            except Exception:   # noqa: BLE001 - nunca debe impedir confirmar la orden
+                _logger.exception("ApiHub: no se pudieron crear las compras de la orden %s", order.name)
+                order.sudo().message_post(body=_("ApiHub: no se pudieron crear las órdenes de compra de esta venta; hazlas a mano."), subtype_xmlid="mail.mt_note")
         for order in late:
             try:
                 problems = self.env["apihub.live"].sudo().order_check(order, "confirmar-venta")

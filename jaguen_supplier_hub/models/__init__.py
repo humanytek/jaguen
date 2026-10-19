@@ -6,3 +6,4 @@ from . import product_template
 from . import delivery
 from . import engine
 from . import live_check
+from . import purchasing
