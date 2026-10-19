@@ -18,8 +18,10 @@ class PurchaseOrder(models.Model):
 
     apihub_api_kind = fields.Char(string="Proveedor con API (ApiHub)", compute="_compute_apihub_api_kind")
     apihub_api_state = fields.Selection(
-        [("none", "Sin enviar"), ("quoted", "Cotizada"), ("sent", "Enviada"), ("error", "Con error")],
+        [("none", "Sin enviar"), ("queued", "En cola (el servidor lo manda en 1-2 minutos)"), ("quoted", "Cotizada"),
+         ("sent", "Enviada"), ("confirmed", "Confirmada"), ("error", "Con error")],
         string="Estado del pedido por API", default="none", copy=False, readonly=True)
+    apihub_ct_step = fields.Selection([("request", "Solicitar"), ("confirm", "Confirmar")], string="Paso pendiente en CT", copy=False, readonly=True)
     apihub_api_folio = fields.Char(string="Folio del proveedor", copy=False, readonly=True)
     apihub_api_log = fields.Text(string="Última respuesta del proveedor", copy=False, readonly=True)
 
@@ -51,9 +53,22 @@ class PurchaseOrder(models.Model):
             raise UserError(_("Los pedidos por API a %s están apagados. Se encienden en ApiHub → Proveedores, con la aprobación de Javier.", provider.name))
         if self.state not in ("draft", "sent"):
             raise UserError(_("Solo se puede enviar una orden de compra en borrador."))
-        if self.apihub_api_folio or self.apihub_api_state == "sent":
-            raise UserError(_("Esta orden ya se envió al proveedor (folio %s).", self.apihub_api_folio or "-"))
+        if self.apihub_api_folio or self.apihub_api_state in ("sent", "confirmed", "queued"):
+            raise UserError(_("Esta orden ya se envió o está en cola (folio %s).", self.apihub_api_folio or "-"))
         self.env["apihub.ordering"].send(self, provider, test=False)
+        return True
+
+    def action_apihub_ct_confirm(self):
+        """CT: segundo paso. El pedido solicitado queda pendiente y CT lo cancela solo a las 48 horas si no se confirma."""
+        self.ensure_one()
+        provider = self._apihub_provider()
+        if provider.code != "ct" or not provider.api_order_enabled:
+            raise UserError(_("Solo para CT y con el envío por API encendido."))
+        if self.apihub_api_state != "sent" or not self.apihub_api_folio:
+            raise UserError(_("Primero hay que solicitar el pedido a CT y esperar su folio."))
+        self.write({"apihub_api_state": "queued", "apihub_ct_step": "confirm"})
+        self.message_post(body=_("ApiHub: se pidió confirmar el pedido %s en CT; el servidor lo manda en 1-2 minutos.", self.apihub_api_folio),
+                          subtype_xmlid="mail.mt_note")
         return True
 
 
@@ -92,8 +107,15 @@ class ApihubOrdering(models.AbstractModel):
                 if test:
                     raise UserError(_("Loma no tiene modo de prueba: solo se puede enviar el pedido real."))
                 state, folio, text, note = self._loma(po, provider, items)
+            elif provider.code == "ct":
+                if test:
+                    raise UserError(_("CT no tiene modo de prueba. 'Enviar pedido por API' solicita el pedido (queda pendiente 48 horas) y después se confirma."))
+                po.write({"apihub_api_state": "queued", "apihub_ct_step": "request"})
+                po.message_post(body=_("ApiHub: el pedido a CT quedó en cola; el servidor lo solicita en 1-2 minutos (CT lo deja pendiente hasta confirmarlo)."),
+                                subtype_xmlid="mail.mt_note")
+                return True
             else:
-                raise UserError(_("El envío a %s por API todavía no está programado (falta definir el objeto 'envio' de su documentación).", provider.name))
+                raise UserError(_("El proveedor %s no tiene envío por API.", provider.name))
         except UserError:
             raise
         except Exception as exc:   # noqa: BLE001
@@ -181,3 +203,67 @@ class ApihubOrdering(models.AbstractModel):
         for part in row.get("partidas") or []:
             note.append("%s × %s a $%s" % (part.get("sku"), part.get("cantidad"), part.get("precio")))
         return "sent", folio, json.dumps(data, ensure_ascii=False), note
+
+    # ---------------------------------------------------------------- CT (lo ejecuta el servidor de Oracle: Odoo.sh no llega a la API de CT)
+    @api.model
+    def _ct_body(self, po, provider):
+        items = self._items(po, provider)
+        try:
+            envio = json.loads(provider.order_ct_envio or "[]")
+        except ValueError:
+            raise UserError(_("El 'Envío para CT' del proveedor no es un JSON válido."))
+        return {
+            "idPedido": po.id, "almacen": provider.order_warehouse or "01A", "tipoPago": provider.order_payment or "99",
+            "cfdi": provider.order_cfdi or "G01", "envio": envio,
+            "producto": [{"cantidad": qty, "clave": ref, "precio": round(line.price_unit, 2), "moneda": "MXN"} for line, ref, qty in items],
+        }
+
+    @api.model
+    def ct_pending(self):
+        """Pedidos a CT en cola, para el programa del servidor: [{po_id, name, step, folio, body}]. Solo administradores."""
+        if not self.env.user.has_group("base.group_system"):
+            return []
+        out = []
+        for po in self.env["purchase.order"].sudo().search([("apihub_api_state", "=", "queued")]):
+            provider = self.env["apihub.provider"].sudo().search([("partner_id", "=", po.partner_id.id), ("code", "=", "ct")], limit=1)
+            if not provider or not provider.api_order_enabled:
+                continue
+            step = po.apihub_ct_step or "request"
+            entry = {"po_id": po.id, "name": po.name, "step": step, "folio": po.apihub_api_folio or ""}
+            try:
+                entry["body"] = self._ct_body(po, provider) if step == "request" else {"folio": po.apihub_api_folio}
+            except UserError as exc:
+                self.ct_result(po.id, step, False, str(exc), "")
+                continue
+            out.append(entry)
+        return out
+
+    @api.model
+    def ct_result(self, po_id, step, ok, text, folio):
+        """Resultado que el programa del servidor reporta después de hablar con CT."""
+        if not self.env.user.has_group("base.group_system"):
+            return False
+        po = self.env["purchase.order"].sudo().browse(po_id).exists()
+        if not po:
+            return False
+        text = (text or "")[:6000]
+        if step == "request":
+            if ok:
+                po.write({"apihub_api_state": "sent", "apihub_api_folio": folio, "apihub_api_log": text, "apihub_ct_step": False})
+                po.message_post(body=_("ApiHub (CT): pedido solicitado, folio %s. Queda PENDIENTE: si no lo confirmas en 48 horas, CT lo cancela solo. "
+                                       "Revísalo en el portal de CT y presiona 'Confirmar pedido en CT'.", folio), subtype_xmlid="mail.mt_note")
+            else:
+                po.write({"apihub_api_state": "error", "apihub_api_log": text, "apihub_ct_step": False})
+                po.message_post(body=_("ApiHub (CT): CT no aceptó la solicitud del pedido: %s", text[:400]), subtype_xmlid="mail.mt_note")
+        else:
+            if ok:
+                po.write({"apihub_api_state": "confirmed", "apihub_api_log": text, "apihub_ct_step": False, "partner_ref": po.apihub_api_folio})
+                po.message_post(body=_("ApiHub (CT): pedido %s confirmado en CT.", po.apihub_api_folio), subtype_xmlid="mail.mt_note")
+                try:
+                    po.button_confirm()
+                except Exception:   # noqa: BLE001
+                    _logger.exception("ApiHub: no se pudo confirmar la orden de compra %s", po.name)
+            else:
+                po.write({"apihub_api_state": "sent", "apihub_api_log": text, "apihub_ct_step": False})
+                po.message_post(body=_("ApiHub (CT): CT no confirmó el pedido %(f)s: %(t)s", f=po.apihub_api_folio, t=text[:400]), subtype_xmlid="mail.mt_note")
+        return True

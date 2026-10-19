@@ -56,6 +56,11 @@ class ApihubProvider(models.Model):
         help="Syscom: transferencia (o sucursal-credito para tarjeta). Loma: PUE o PPD. CT: 99 = crédito CT. Por definir con Javier para Loma y CT.")
     order_cfdi = fields.Char(string="Uso de CFDI del pedido", default="G01", help="Javier (2026-10-19): siempre G01.")
     order_comment = fields.Char(string="Comentario del pedido", default="Recoger en sucursal Hermosillo")
+    order_ct_envio = fields.Text(
+        string="Envío para CT (JSON)", default="[]",
+        help="Solo CT: arreglo JSON del objeto 'envio' de su API de pedidos (nombre, direccion, entreCalles, noExterior, noInterior, colonia, estado, "
+             "ciudad, codigoPostal, telefono). Su documentación no trae un campo para 'recoger en sucursal': con [] se manda sin envío; por probar "
+             "con la respuesta de CT.")
     api_order_enabled = fields.Boolean(
         string="Enviar pedidos por API",
         help="Candado: mientras esté apagado, el botón 'Enviar pedido' de la orden de compra no manda nada a este proveedor. "

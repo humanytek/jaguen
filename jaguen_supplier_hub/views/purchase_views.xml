@@ -12,14 +12,18 @@
                         invisible="apihub_api_kind != 'syscom' or state not in ('draft', 'sent')" groups="base.group_system"
                         help="Solo cotiza con Syscom en modo de prueba: no genera ningún pedido."/>
                 <button name="action_apihub_send" type="object" string="Enviar pedido por API" class="btn-primary"
-                        invisible="not apihub_api_kind or state not in ('draft', 'sent') or apihub_api_state == 'sent'" groups="base.group_system"
-                        confirm="¿Mandar este pedido de verdad al proveedor? Se genera un pedido real."/>
+                        invisible="not apihub_api_kind or state not in ('draft', 'sent') or apihub_api_state in ('sent', 'confirmed', 'queued')" groups="base.group_system"
+                        confirm="¿Mandar este pedido de verdad al proveedor? Se genera un pedido real (en CT queda pendiente 48 horas hasta confirmarlo)."/>
+                <button name="action_apihub_ct_confirm" type="object" string="Confirmar pedido en CT" class="btn-primary"
+                        invisible="apihub_api_kind != 'ct' or apihub_api_state != 'sent'" groups="base.group_system"
+                        confirm="¿Confirmar este pedido en CT? Ya no se cancela solo."/>
             </xpath>
             <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
                 <page string="ApiHub (API)" name="apihub_api" invisible="not apihub_api_kind">
                     <group>
                         <field name="apihub_api_state"/>
                         <field name="apihub_api_folio"/>
+                        <field name="apihub_ct_step" invisible="not apihub_ct_step"/>
                         <field name="apihub_api_log"/>
                     </group>
                 </page>

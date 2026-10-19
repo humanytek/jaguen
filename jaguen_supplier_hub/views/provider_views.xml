@@ -60,6 +60,7 @@
                             <field name="order_cfdi"/>
                             <field name="order_comment"/>
                             <field name="api_order_enabled"/>
+                            <field name="order_ct_envio" invisible="code != 'ct'"/>
                             <field name="card_fee_pct"/>
                             <field name="tax_pct"/>
                             <field name="freight_only_tech"/>
