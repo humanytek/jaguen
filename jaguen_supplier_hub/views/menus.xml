@@ -7,5 +7,6 @@
     <menuitem id="menu_apihub_warehouse_rule" name="Almacenes y reglas" parent="menu_apihub_root" action="action_apihub_warehouse_rule" sequence="20"/>
     <menuitem id="menu_apihub_run_log" name="Corridas" parent="menu_apihub_root" action="action_apihub_run_log" sequence="30"/>
     <menuitem id="menu_apihub_publish_log" name="Publicación" parent="menu_apihub_root" action="action_apihub_publish_log" sequence="35"/>
+    <menuitem id="menu_apihub_live_log" name="Verificaciones en vivo" parent="menu_apihub_root" action="action_apihub_live_log" sequence="36"/>
     <menuitem id="menu_apihub_config" name="Configuración general" parent="menu_apihub_root" action="action_apihub_config" sequence="90"/>
 </odoo>

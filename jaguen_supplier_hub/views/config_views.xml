@@ -28,6 +28,8 @@
                         </group>
                         <group string="Carrito">
                             <field name="min_margin_pct"/>
+                            <field name="live_mode"/>
+                            <field name="live_timeout"/>
                         </group>
                     </group>
                 </sheet>

@@ -7,3 +7,4 @@ access_apihub_product_link_system,apihub.product.link system,model_apihub_produc
 access_apihub_special_price_system,apihub.special.price system,model_apihub_special_price,base.group_system,1,1,1,1
 access_apihub_run_log_system,apihub.run.log system,model_apihub_run_log,base.group_system,1,1,1,1
 access_apihub_publish_log_system,apihub.publish.log system,model_apihub_publish_log,base.group_system,1,1,1,1
+access_apihub_live_log_system,apihub.live.log system,model_apihub_live_log,base.group_system,1,1,1,1

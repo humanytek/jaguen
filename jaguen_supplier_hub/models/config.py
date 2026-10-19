@@ -71,6 +71,16 @@ class ApihubConfig(models.Model):
         help="Si falla más de este porcentaje en una corrida, no se aplica nada.",
     )
 
+    live_mode = fields.Selection(
+        [("off", "Apagada"), ("observe", "Solo observar (registra, no bloquea)"), ("on", "Activa")],
+        string="Verificación en vivo en el carrito", default="off", required=True,
+        help="Al agregar al carrito y antes de pagar consulta la existencia a Syscom, Loma y CT (Exel e Ingram siguen con el "
+             "archivo del día). 'Solo observar' deja el registro en ApiHub -> Verificaciones en vivo sin cambiar la compra.")
+    live_timeout = fields.Integer(
+        string="Tiempo máximo de espera al proveedor (segundos)", default=6,
+        help="Si el proveedor no responde en este tiempo, la compra sigue con el dato del archivo y el pedido queda con la "
+             "nota 'verificar disponibilidad'.")
+
     @api.model
     def get_config(self):
         """Devuelve el registro único de configuración; lo crea si no existe."""

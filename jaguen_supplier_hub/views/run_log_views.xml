@@ -52,4 +52,49 @@
         <field name="res_model">apihub.run.log</field>
         <field name="view_mode">list,form</field>
     </record>
+
+    <record id="apihub_live_log_view_list" model="ir.ui.view">
+        <field name="name">apihub.live.log.list</field>
+        <field name="model">apihub.live.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date"/>
+                <field name="step"/>
+                <field name="mode"/>
+                <field name="product_tmpl_id"/>
+                <field name="qty"/>
+                <field name="outcome"/>
+                <field name="ms"/>
+                <field name="order_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apihub_live_log_view_form" model="ir.ui.view">
+        <field name="name">apihub.live.log.form</field>
+        <field name="model">apihub.live.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="create_date"/>
+                        <field name="step"/>
+                        <field name="mode"/>
+                        <field name="product_tmpl_id"/>
+                        <field name="qty"/>
+                        <field name="outcome"/>
+                        <field name="ms"/>
+                        <field name="order_id"/>
+                        <field name="detail"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_apihub_live_log" model="ir.actions.act_window">
+        <field name="name">Verificaciones en vivo</field>
+        <field name="res_model">apihub.live.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
 </odoo>
