@@ -18,6 +18,12 @@ CT_BASE = "http://connect.ctonline.mx:3001"
 NEAR_LIVE_SECONDS = 5400   # existencia revisada por el robot hace menos de hora y media (CT y Exel se revisan cada hora)
 
 
+def own_free(tmpl):
+    """Inventario propio disponible de un producto (lo que hay menos lo ya apartado). En Odoo 18 `free_qty` existe en la variante,
+    no en la plantilla."""
+    return int(sum(max(v.free_qty, 0) for v in tmpl.sudo().product_variant_ids))
+
+
 def _cached(key, ttl, loader):
     """Resultado en memoria por `ttl` segundos. Un fallo se recuerda 3 minutos para no esperar el tiempo límite en cada paso."""
     now = time.time()
@@ -222,7 +228,7 @@ class ApihubLive(models.AbstractModel):
             order_of.setdefault(group_of[line.partner_id.id].id, idx)
         first_provider = group_of[lines[0].partner_id.id]
         # inventario propio (disponible = lo que hay menos lo ya apartado por otras órdenes): cuenta como entrega inmediata y se usa primero
-        own = int(max(tmpl.free_qty, 0)) if include_own else 0
+        own = own_free(tmpl) if include_own else 0
         result["own"] = own
         remaining, remaining_nat, local_total, national_total = max(qty - own, 0), max(qty - own, 0), 0, 0
         result["assigned_national"] = []
@@ -281,6 +287,10 @@ class ApihubLive(models.AbstractModel):
             else:
                 result["message"] = _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", total)
         return result
+
+    @api.model
+    def _own_free(self, tmpl):
+        return own_free(tmpl)
 
     @api.model
     def allocate(self, res, qty):
@@ -541,7 +551,7 @@ class SaleOrder(models.Model):
         # inventario propio disponible ANTES de confirmar (al confirmar se reserva y baja): sirve para saber qué hay que comprar
         own_before = {}
         for order in self:
-            own_before[order.id] = {l.product_id.product_tmpl_id.id: l.product_id.product_tmpl_id.free_qty
+            own_before[order.id] = {l.product_id.product_tmpl_id.id: own_free(l.product_id.product_tmpl_id)
                                     for l in order.order_line if l.product_id and not l.is_delivery}
         res = super().action_confirm()
         for order in self:

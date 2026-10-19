@@ -91,5 +91,5 @@ class ApihubPurchase(models.AbstractModel):
         own_before = {}
         for line in order.order_line.filtered(lambda l: l.product_id and not l.is_delivery):
             tmpl = line.product_id.product_tmpl_id
-            own_before[tmpl.id] = tmpl.free_qty + sum(order.order_line.filtered(lambda l: l.product_id.product_tmpl_id == tmpl).mapped("product_uom_qty")) * 0
+            own_before[tmpl.id] = self.env["apihub.live"].sudo()._own_free(tmpl)
         return self.create_drafts(order, own_before).mapped("name")
