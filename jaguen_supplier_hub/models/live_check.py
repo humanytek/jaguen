@@ -196,16 +196,16 @@ class ApihubLive(models.AbstractModel):
         for idx, line in enumerate(lines):
             order_of.setdefault(group_of[line.partner_id.id].id, idx)
         first_provider = group_of[lines[0].partner_id.id]
-        remaining, total = qty, 0
+        remaining, remaining_nat, local_total, national_total = qty, qty, 0, 0
+        result["assigned_national"] = []
         for link in sorted(links, key=lambda l: order_of.get(l.provider_id.id, 99)):
             provider = link.provider_id
             rules = rules_of.get(provider.id, [])
             local, national, origin = self._provider_stock(provider, link, rules, cfg)
-            avail = local if basis_local else national
-            note = "%s: %s pieza(s) %s [%s]" % (provider.code, avail, "locales" if basis_local else "en total", origin)
+            note = "%s: %s pieza(s) locales y %s en total [%s]" % (provider.code, local, national, origin)
             if "sin respuesta" in origin:
                 result["unverified"].append(provider.code)
-            if avail > 0 and provider != first_provider and price:
+            if (local > 0 or national > 0) and provider != first_provider and price:
                 cost = link.cost_provider or 0.0
                 free = any(r.free_shipping for r in rules) and local > 0
                 if tech and provider.freight_only_tech and not free:
@@ -213,20 +213,33 @@ class ApihubLive(models.AbstractModel):
                 margin = (price - cost) / price * 100.0 if cost else 100.0
                 if margin < (cfg.min_margin_pct or 0.0):
                     note += " - no cuenta: margen %.1f%% menor al mínimo" % margin
-                    avail = 0
+                    local = national = 0
             result["detail"].append(note)
-            if avail > 0:
-                take = min(avail, remaining)
-                if take > 0:
-                    result["assigned"].append((provider.code, take))
-                    remaining -= take
-                total += avail
+            local_total += local
+            national_total += national
+            if basis_local and local > 0 and remaining > 0:
+                take = min(local, remaining)
+                result["assigned"].append((provider.code, take))
+                remaining -= take
+            if national > 0 and remaining_nat > 0:
+                take = min(national, remaining_nat)
+                result["assigned_national"].append((provider.code, take))
+                remaining_nat -= take
+            if not basis_local and national > 0 and remaining_nat >= 0:
+                result["assigned"] = result["assigned_national"]
+        total = local_total if basis_local else national_total
+        result["local_total"], result["national_total"], result["basis_local"] = local_total, national_total, basis_local
         result["max_qty"] = min(qty, total)
-        if total <= 0:
+        if total <= 0 and national_total <= 0:
             result["ok"], result["message"] = False, _("Este producto ya no está disponible.")
         elif total < qty:
             result["ok"] = False
-            result["message"] = _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", total)
+            if basis_local and national_total > local_total:
+                target = min(qty, national_total)
+                result["offer"] = {"local": local_total, "target": target, "extra": target - local_total}
+                result["message"] = _("Solo hay %s pieza(s) para entrega inmediata; hay más disponibles sobre pedido.", local_total)
+            else:
+                result["message"] = _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", total)
         return result
 
     @api.model
@@ -243,7 +256,9 @@ class ApihubLive(models.AbstractModel):
     # ------------------------------------------------------------------ puntos de entrada
     @api.model
     def cart_update_check(self, order, product_id, qty):
-        """Al agregar o subir cantidad. Devuelve (cantidad, aviso); sin cambios si el modo está apagado o en observación."""
+        """Al agregar o subir cantidad. Devuelve (cantidad, aviso); sin cambios si el modo está apagado o en observación.
+        Si piden más de lo que hay para entrega inmediata y el resto está sobre pedido, no lo agrega: deja una oferta para
+        que el cliente la acepte o la rechace en el carrito (docs 7au)."""
         cfg = self.env["apihub.config"].sudo().get_config()
         if cfg.live_mode == "off":
             return qty, ""
@@ -252,12 +267,47 @@ class ApihubLive(models.AbstractModel):
             tmpl = self.env["product.product"].sudo().browse(product_id).product_tmpl_id
             res = self.check_product(tmpl, qty, order.pricelist_id)
             self._log(cfg, order, tmpl, qty, res, int((time.time() - started) * 1000), "carrito")
+            if cfg.live_mode == "on" and res["managed"]:
+                return self._apply_result(order, product_id, tmpl, qty, res)
         except Exception:   # noqa: BLE001 - ante cualquier error la compra sigue
             _logger.exception("ApiHub: verificación en vivo del carrito falló; se deja pasar")
-            return qty, ""
-        if cfg.live_mode == "on" and res["managed"] and not res["ok"]:
-            return res["max_qty"], res["message"]
         return qty, ""
+
+    @api.model
+    def _apply_result(self, order, product_id, tmpl, qty, res):
+        offers = order.sudo().apihub_offer_ids.filtered(lambda o: o.product_id.id == product_id)
+        if res["ok"]:
+            offers.filtered(lambda o: o.state == "pending").unlink()
+            return qty, ""
+        offer = res.get("offer")
+        if not offer or not offer["local"]:
+            return res["max_qty"], res["message"]
+        accepted = offers.filtered(lambda o: o.state == "accepted")[:1]
+        if accepted:
+            # el cliente ya aceptó las condiciones de "sobre pedido" para este producto: si sube la cantidad no se le vuelve a preguntar
+            if offer["target"] > accepted.requested_qty:
+                accepted.write({"requested_qty": offer["target"], "extra_qty": offer["target"] - accepted.local_qty})
+            if offer["target"] < qty:
+                return offer["target"], _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", offer["target"])
+            return qty, ""
+        first = tmpl.sudo().seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[:1]
+        provider = next((p for p in self.env["apihub.provider"].sudo().search([]) if first and p.partner_id == first.partner_id), None)
+        unit = 0.0
+        try:
+            product = self.env["product.product"].sudo().browse(product_id)
+            base = order.pricelist_id.sudo()._get_product_price(product, 1.0)
+            taxes = order.fiscal_position_id.sudo().map_tax(product.taxes_id.filtered(lambda t: t.company_id == order.company_id))
+            unit = taxes.compute_all(base, order.currency_id, 1.0, product=product, partner=order.partner_shipping_id)["total_included"]
+        except Exception:   # noqa: BLE001 - sin precio el aviso sale igual, sin el importe
+            _logger.exception("ApiHub: no se pudo calcular el precio por pieza de la oferta")
+        vals = {"requested_qty": offer["target"], "local_qty": offer["local"], "extra_qty": offer["extra"],
+                "fee": provider.on_order_fee if provider else 0.0, "unit_price_incl": unit, "state": "pending"}
+        pending = offers.filtered(lambda o: o.state == "pending")[:1]
+        if pending:
+            pending.write(vals)
+        else:
+            self.env["apihub.cart.offer"].sudo().create(dict(vals, order_id=order.id, product_id=product_id))
+        return offer["local"], _("Hay piezas disponibles sobre pedido: revisa la opción que aparece en tu carrito.")
 
     @api.model
     def order_check(self, order, step="pago"):
@@ -278,8 +328,21 @@ class ApihubLive(models.AbstractModel):
                 continue
             if not res["managed"]:
                 continue
+            accepted = order.sudo().apihub_offer_ids.filtered(lambda o: o.product_id == line.product_id and o.state == "accepted")[:1]
+            if not res["ok"] and res.get("offer") and accepted and res["offer"]["target"] == int(line.product_uom_qty) <= accepted.requested_qty:
+                notes.append("%s: %s pieza(s) de entrega inmediata y %s sobre pedido (aceptado por el cliente): pedir a %s." % (
+                    tmpl.default_code, res["offer"]["local"], res["offer"]["extra"],
+                    ", ".join("%s %s" % (c, q) for c, q in res["assigned_national"])))
+                continue
             if not res["ok"]:
-                problems.append((line, res["message"]))
+                # en este paso no se ajusta nada solo: el cliente debe volver al carrito
+                if res.get("offer"):
+                    message = _("Tu pedido incluye piezas sobre pedido que aún no aceptas. Regresa al carrito para revisarlo.")
+                elif res["max_qty"] > 0:
+                    message = _("Solo hay %s pieza(s) disponibles de este producto. Regresa al carrito y ajusta la cantidad.", res["max_qty"])
+                else:
+                    message = _("Este producto ya no está disponible. Regresa al carrito y quítalo.")
+                problems.append((line, message))
             else:
                 first = tmpl.sudo().seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[:1]
                 p1 = next((p for p in self.env["apihub.provider"].sudo().search([]) if first and p.partner_id == first.partner_id), None)
@@ -332,9 +395,56 @@ class ApihubLiveLog(models.Model):
     detail = fields.Text(string="Detalle")
 
 
+class ApihubCartOffer(models.Model):
+    """Oferta al cliente cuando pide más piezas de las que hay para entrega inmediata y el resto está sobre pedido."""
+    _name = "apihub.cart.offer"
+    _description = "Oferta de piezas sobre pedido en el carrito"
+
+    order_id = fields.Many2one("sale.order", string="Pedido", required=True, ondelete="cascade", index=True)
+    product_id = fields.Many2one("product.product", string="Producto", required=True, ondelete="cascade")
+    requested_qty = fields.Integer(string="Cantidad total pedida")
+    local_qty = fields.Integer(string="Entrega inmediata")
+    extra_qty = fields.Integer(string="Sobre pedido")
+    fee = fields.Float(string="Cargo de envío sobre pedido (sin IVA)")
+    unit_price_incl = fields.Float(string="Precio por pieza con IVA", digits=(12, 2))
+    state = fields.Selection([("pending", "Pendiente"), ("accepted", "Aceptada")], default="pending", required=True)
+
+    def action_accept(self):
+        """El cliente acepta recibir en dos partes: se sube la línea a la cantidad pedida (ya con la oferta aceptada)."""
+        for offer in self:
+            order = offer.order_id
+            if order.state != "draft":
+                continue
+            offer.state = "accepted"
+            order._cart_update(product_id=offer.product_id.id, set_qty=offer.requested_qty)
+        return True
+
+    def action_decline(self):
+        self.unlink()
+        return True
+
+    def action_remove(self):
+        """El cliente quita las piezas sobre pedido que había aceptado: la línea vuelve a la cantidad de entrega inmediata."""
+        for offer in self:
+            order, product, local = offer.order_id, offer.product_id, offer.local_qty
+            offer.unlink()
+            if order.state == "draft":
+                order._cart_update(product_id=product.id, set_qty=local)
+        return True
+
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    apihub_on_order_qty = fields.Integer(
+        string="Piezas sobre pedido (ApiHub)", copy=False,
+        help="Piezas de esta línea que el cliente aceptó recibir sobre pedido (el resto es de entrega inmediata).")
+
+
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    apihub_offer_ids = fields.One2many("apihub.cart.offer", "order_id", string="Ofertas de piezas sobre pedido")
     apihub_live_note = fields.Text(string="Nota de verificación en vivo (ApiHub)", copy=False, readonly=True)
 
     def _verify_updated_quantity(self, order_line, product_id, new_qty, **kwargs):
@@ -344,6 +454,18 @@ class SaleOrder(models.Model):
             if live_warning:
                 return live_qty, live_warning
         return new_qty, warning
+
+    def _apihub_on_order_text(self):
+        return self.env["apihub.config"].sudo().get_config().on_order_text or ""
+
+    def _cart_update_order_line(self, product_id, quantity, order_line, **kwargs):
+        line = super()._cart_update_order_line(product_id, quantity, order_line, **kwargs)
+        if line:
+            offer = self.sudo().apihub_offer_ids.filtered(lambda o: o.product_id.id == line.product_id.id and o.state == "accepted")[:1]
+            extra = max(0, int(line.product_uom_qty) - offer.local_qty) if offer else 0
+            if line.apihub_on_order_qty != extra:
+                line.sudo().apihub_on_order_qty = extra
+        return line
 
     def _check_cart_is_ready_to_be_paid(self):
         super()._check_cart_is_ready_to_be_paid()

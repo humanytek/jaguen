@@ -13,7 +13,7 @@ class SaleOrder(models.Model):
         fee = 0.0
         for line in self.order_line.filtered(lambda l: not l.is_delivery and l.product_id):
             tmpl = line.product_id.product_tmpl_id
-            if tmpl.apihub_state != "on_order":
+            if tmpl.apihub_state != "on_order" and not line.apihub_on_order_qty:
                 continue
             first = tmpl.sudo().seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[:1]
             provider = group_of.get(first.partner_id.id) if first else None

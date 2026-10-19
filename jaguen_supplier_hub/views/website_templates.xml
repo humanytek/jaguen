@@ -27,4 +27,58 @@
             </div>
         </xpath>
     </template>
+
+    <!-- Oferta al cliente, opción A (docs 7au): sección "Entrega inmediata" y tarjeta "Sobre pedido" con Aceptar / No, gracias -->
+    <template id="cart_lines_apihub_offer" inherit_id="website_sale.cart_lines" name="ApiHub: oferta de piezas sobre pedido">
+        <xpath expr="//div[@id='cart_products']//div[@t-foreach='website_sale_order.website_order_line']" position="before">
+            <t t-set="apihub_offers" t-value="website_sale_order.sudo().apihub_offer_ids"/>
+            <div t-if="apihub_offers.filtered(lambda o: o.state == 'pending')" class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge rounded-pill" style="background:#e3f6ec;color:#17794a;font-weight:600">Entrega inmediata</span>
+                <span class="text-muted small">Disponible en Hermosillo, al precio indicado</span>
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='cart_products']//div[@t-foreach='website_sale_order.website_order_line']" position="after">
+            <div t-foreach="apihub_offers" t-as="offer" class="mt-4 mb-2 p-3 p-md-4" style="background:#fffaf0;border:1px solid #f1d49b;border-radius:12px;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill" style="background:#fff1d6;color:#9a5b00;font-weight:600">Sobre pedido</span>
+                        <span class="text-muted small">Entrega en <t t-out="website_sale_order._apihub_on_order_text()"/></span>
+                    </div>
+                    <span class="text-muted small">Un único cargo de envío de
+                        <strong t-out="offer.fee" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/> + IVA por orden</span>
+                </div>
+                <t t-if="offer.state == 'pending'">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 64px"><span t-field="offer.product_id.image_128" t-options="{'widget': 'image', 'qweb_img_responsive': False, 'class': 'o_image_64_max rounded'}"/></div>
+                        <div class="flex-grow-1"><strong t-out="offer.product_id.name"/></div>
+                        <div class="text-end">
+                            <div class="text-muted small"><t t-out="offer.extra_qty"/> pieza(s)</div>
+                            <strong t-if="offer.unit_price_incl" t-out="offer.unit_price_incl * offer.extra_qty" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mt-3">
+                        <span class="text-muted small me-auto">Estas <t t-out="offer.extra_qty"/> pieza(s) completan tu solicitud de <t t-out="offer.requested_qty"/>.</span>
+                        <form method="post" t-attf-action="/shop/apihub/offer/#{offer.id}/decline">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-link text-decoration-none text-muted fw-semibold">No, gracias</button>
+                        </form>
+                        <form method="post" t-attf-action="/shop/apihub/offer/#{offer.id}/accept">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-primary">Agregar a mi orden</button>
+                        </form>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <span>Tu orden incluye <strong t-out="offer.requested_qty"/> piezas de <strong t-out="offer.product_id.name"/>:
+                            <t t-out="offer.local_qty"/> de entrega inmediata y <strong t-out="offer.extra_qty"/> sobre pedido.</span>
+                        <form method="post" t-attf-action="/shop/apihub/offer/#{offer.id}/remove">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-link text-decoration-none text-muted">Quitar las piezas sobre pedido</button>
+                        </form>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </template>
 </odoo>
