@@ -135,7 +135,7 @@ class ApihubLive(models.AbstractModel):
     def _provider_stock(self, provider, link, rules, cfg):
         """(local, nacional, origen) donde origen es 'vivo', 'archivo' o 'archivo (sin respuesta del proveedor)'."""
         adapter = self.LIVE_ADAPTERS.get(provider.code)
-        if adapter and link.provider_ref and self._credential(provider, {"syscom": "SYSCOM_CLIENT_ID", "loma": "LOMA_API_KEY", "ct": "CT_API_EMAIL"}[provider.code]):
+        if adapter and provider.live_check and link.provider_ref and self._credential(provider, {"syscom": "SYSCOM_CLIENT_ID", "loma": "LOMA_API_KEY", "ct": "CT_API_EMAIL"}[provider.code]):
             try:
                 ref, timeout = str(link.provider_ref).strip(), cfg.live_timeout or 6
                 by_wh, national = _cached(("stock", provider.id, ref), 60, lambda: getattr(self, adapter)(provider, ref, timeout))
@@ -279,6 +279,14 @@ class ApihubLive(models.AbstractModel):
                 order.sudo().write({"apihub_live_note": text})
                 order.sudo().message_post(body=_("ApiHub, verificación en vivo:") + "<br/>" + "<br/>".join(notes), subtype_xmlid="mail.mt_note")
         return problems if cfg.live_mode == "on" else []
+
+    @api.model
+    def test_order(self, order_id, step="pago"):
+        """Prueba manual: qué problemas daría la verificación antes de pagar para un pedido (solo administradores)."""
+        if not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("Solo los administradores pueden probar la verificación en vivo."))
+        order = self.env["sale.order"].browse(order_id)
+        return [[line.product_id.display_name, message] for line, message in self.order_check(order, step)]
 
     @api.model
     def test_product(self, tmpl_id, qty=1):

@@ -53,6 +53,7 @@
                             <field name="freight_amount"/>
                             <field name="on_order_fee"/>
                             <field name="has_stock_data"/>
+                            <field name="live_check"/>
                             <field name="card_fee_pct"/>
                             <field name="tax_pct"/>
                             <field name="freight_only_tech"/>

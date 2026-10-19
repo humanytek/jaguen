@@ -34,6 +34,7 @@
             <field name="pricing_group">distribuidor</field>
             <field name="name">Grupo Loma</field>
             <field name="code">loma</field>
+            <field name="live_check" eval="True"/>
             <field name="sequence">30</field>
             <field name="partner_pattern">grupo loma</field>
             <field name="source_type">api</field>
@@ -47,6 +48,7 @@
             <field name="pricing_group">distribuidor</field>
             <field name="name">Syscom</field>
             <field name="code">syscom</field>
+            <field name="live_check" eval="True"/>
             <field name="sequence">40</field>
             <field name="partner_pattern">sistemas y servicios de comunicacion</field>
             <field name="source_type">api</field>

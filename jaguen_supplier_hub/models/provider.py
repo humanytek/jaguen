@@ -43,6 +43,10 @@ class ApihubProvider(models.Model):
         string="Antigüedad máxima del dato (horas)", default=36,
         help="Si el archivo o la respuesta del proveedor es más viejo, el proveedor se trata como 'sin dato confiable'.",
     )
+    live_check = fields.Boolean(
+        string="Verificar en vivo en el carrito", default=False,
+        help="Si está activo, al agregar al carrito y antes de pagar se consulta la existencia a este proveedor (solo Syscom, Loma y CT "
+             "tienen consulta; requiere sus credenciales). Apagado = se usa el archivo del día. CT está apagado: Odoo.sh no llega a su API.")
     on_order_fee = fields.Float(
         string="Cargo de envío sobre pedido ($, sin IVA)", default=100.0,
         help="Se suma al envío del cliente, una sola vez por pedido, cuando el carrito trae productos 'Sobre pedido' cuyo "
