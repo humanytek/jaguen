@@ -48,6 +48,13 @@ class ApihubConfig(models.Model):
         help="La lista que ve cualquiera sin iniciar sesión (Página). Con ella el motor revisa que el precio público no quede "
              "por debajo del precio mínimo que fija el proveedor (ej. Syscom, precio MAP).",
     )
+    unpublish_days = fields.Integer(
+        string="Días agotado para despublicar", default=30,
+        help="Un producto que ningún proveedor tiene durante estos días seguidos se despublica.")
+    max_unpublish_pct = fields.Float(
+        string="Freno: máximo de despublicaciones en una corrida (%)", default=10.0,
+        help="Si una corrida fuera a despublicar más que este porcentaje de los productos que maneja (mínimo 5), no despublica "
+             "ninguno: algo raro pasó con los datos.")
     max_failed_pct = fields.Float(
         string="Máximo de marcas/proveedores con error (%)", default=20.0,
         help="Si falla más de este porcentaje en una corrida, no se aplica nada.",

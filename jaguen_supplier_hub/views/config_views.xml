@@ -16,6 +16,8 @@
                             <field name="max_failed_pct"/>
                             <field name="daily_change_pct"/>
                             <field name="peer_tolerance_pct"/>
+                            <field name="unpublish_days"/>
+                            <field name="max_unpublish_pct"/>
                         </group>
                         <group string="Precios de venta">
                             <field name="sale_pricelist_ids" widget="many2many_tags"/>
