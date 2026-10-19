@@ -52,6 +52,7 @@
                             <field name="min_stock"/>
                             <field name="freight_amount"/>
                             <field name="freight_only_tech"/>
+                            <field name="cost_factor"/>
                             <field name="avco_factor"/>
                             <field name="pricing_group"/>
                             <field name="order_code_source"/>

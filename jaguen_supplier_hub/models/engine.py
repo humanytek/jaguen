@@ -114,7 +114,7 @@ class ApihubEngine(models.AbstractModel):
             if not rec:
                 counts["not_in_feed"] += 1
                 continue
-            raw = special.get(norm_code(rec.get("sku"))) or self._cost_mxn(provider, rec)
+            raw = special.get(norm_code(rec.get("sku"))) or (self._cost_mxn(provider, rec) or 0.0) * (provider.cost_factor or 1.0)
             cost = round((raw or 0.0) * (link.multiplier or 1.0), 2)
             if cost <= 0:
                 counts["not_in_feed"] += 1

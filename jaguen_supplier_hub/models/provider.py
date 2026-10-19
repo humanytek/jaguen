@@ -50,6 +50,11 @@ class ApihubProvider(models.Model):
         string="Flete solo en Cómputo y Tecnología", default=True,
         help="Si está activo, el flete solo se suma en productos de esa categoría; en lo demás se compara el precio tal cual.",
     )
+    cost_factor = fields.Float(
+        string="Factor sobre el costo del archivo", default=1.0, digits=(12, 4),
+        help="Se multiplica al costo que trae el archivo o la API del proveedor (no a los precios especiales cargados aparte). "
+             "Sirve para un descuento que el portal aplica y la API no muestra (ej. 0.96 = 4 % menos). 1 = sin cambio.",
+    )
     avco_factor = fields.Float(
         string="Factor de flete del AVCO", default=1.0, digits=(12, 4),
         help="El AVCO de un producto sin existencia es el costo de su Proveedor 1 por este factor.",
