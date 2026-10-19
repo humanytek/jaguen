@@ -3,6 +3,8 @@ import math
 import time
 from datetime import timedelta
 
+from markupsafe import Markup
+
 import requests
 
 from odoo import _, api, fields, models
@@ -436,7 +438,8 @@ class ApihubLive(models.AbstractModel):
             text = "\n".join(notes)
             if order.sudo().apihub_live_note != text:
                 order.sudo().write({"apihub_live_note": text})
-                order.sudo().message_post(body=_("ApiHub, verificación en vivo:") + "<br/>" + "<br/>".join(notes), subtype_xmlid="mail.mt_note")
+                order.sudo().message_post(body=Markup("%s<br/>%s") % (_("ApiHub, verificación en vivo:"), Markup("<br/>").join(Markup("%s") % n for n in notes)),
+                                          subtype_xmlid="mail.mt_note")
         return problems if cfg.live_mode == "on" else []
 
     @api.model
@@ -564,10 +567,11 @@ class SaleOrder(models.Model):
             try:
                 problems = self.env["apihub.live"].sudo().order_check(order, "confirmar-venta")
                 if problems:
-                    order.sudo().message_post(body=_("ApiHub: al confirmar esta orden ya no había existencia suficiente (las piezas "
-                                                     "apartadas se liberaron o el proveedor las agotó). Verifica antes de pedir:") +
-                                              "<br/>" + "<br/>".join("%s: %s" % (line.product_id.display_name, msg) for line, msg in problems),
-                                              subtype_xmlid="mail.mt_note")
+                    order.sudo().message_post(body=Markup("%s<br/>%s") % (
+                        _("ApiHub: al confirmar esta orden ya no había existencia suficiente (las piezas apartadas se liberaron o el proveedor "
+                          "las agotó). Verifica antes de pedir:"),
+                        Markup("<br/>").join(Markup("%s: %s") % (line.product_id.display_name, msg) for line, msg in problems)),
+                        subtype_xmlid="mail.mt_note")
             except Exception:   # noqa: BLE001 - nunca debe impedir confirmar la orden
                 _logger.exception("ApiHub: revisión al confirmar la orden falló")
         return res

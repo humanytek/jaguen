@@ -1,6 +1,8 @@
 import logging
 from collections import OrderedDict
 
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
 from odoo.tools import html_escape
 
@@ -77,7 +79,8 @@ class ApihubPurchase(models.AbstractModel):
             notes.append(_("%(po)s (%(p)s): %(l)s", po=po.name, p=provider.name,
                            l=", ".join("%s × %s" % (product.default_code or product.name, pieces) for product, pieces in lines)))
         if notes or created:
-            body = _("ApiHub: compras por esta venta (borradores, no se envió nada al proveedor):") + "<br/>" + "<br/>".join(html_escape(n) for n in notes)
+            body = Markup("%s<br/>%s") % (_("ApiHub: compras por esta venta (borradores, no se envió nada al proveedor):"),
+                                           Markup("<br/>").join(Markup("%s") % n for n in notes))
             order.message_post(body=body, subtype_xmlid="mail.mt_note")
         return created
 
