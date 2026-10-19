@@ -13,7 +13,7 @@
 
     <!-- Lista de la tienda: etiqueta pequeña bajo el título -->
     <template id="products_item_availability" inherit_id="website_sale.products_item" name="ApiHub: disponibilidad en la lista">
-        <xpath expr="//div[contains(@class,'o_wsale_product_information_text')]" position="inside">
+        <xpath expr="//div[hasclass('o_wsale_product_information_text')]" position="inside">
             <t t-set="apihub_info" t-value="product._apihub_availability_info()"/>
             <div t-if="apihub_info" class="apihub-availability mb-1">
                 <span t-attf-class="badge #{'text-bg-warning' if product.apihub_state == 'on_order' else 'text-bg-secondary'}" t-out="apihub_info[0]"/>

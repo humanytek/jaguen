@@ -54,11 +54,11 @@ class ApihubConfig(models.Model):
              "Evita que cambie todos los días por centavos (propuesta 2 %, por confirmar).")
     on_order_text = fields.Char(
         string="Texto de 'Sobre pedido' en la página", translate=True,
-        default="Lo pedimos a nuestro proveedor. Se agrega un cargo de envío al finalizar tu compra.",
-        help="Se muestra junto a la etiqueta 'Sobre pedido' en la ficha del producto. Aquí se puede poner el plazo de entrega.")
+        default="2 - 4 días hábiles",
+        help="Se muestra junto a la etiqueta 'Sobre pedido' en la ficha del producto (plazo de entrega).")
     out_text = fields.Char(
         string="Texto de 'Agotado' en la página", translate=True,
-        default="Por el momento no tenemos existencia de este producto.")
+        default="")
     unpublish_days = fields.Integer(
         string="Días agotado para despublicar", default=30,
         help="Un producto que ningún proveedor tiene durante estos días seguidos se despublica.")
