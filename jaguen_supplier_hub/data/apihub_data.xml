@@ -111,6 +111,21 @@
             <field name="notes">Precio de homedepot.com.mx con IVA. Sin flete ni descuentos.</field>
         </record>
 
+        <record id="provider_sablon" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">fabrica</field>
+            <field name="name">Acrílicos Sablon</field>
+            <field name="code">sablon</field>
+            <field name="sequence">90</field>
+            <field name="partner_pattern">sablon</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="avco_factor">1.12</field>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Portal de distribuidores (requiere login). El precio de la página trae IVA; el AVCO lleva flete (x 1.12). Grupo Fábrica: no mueve las reglas de precio de venta.</field>
+        </record>
+
         <!-- Almacenes que cuentan para publicar en la Fase 1 -->
         <record id="rule_ct_hmo" model="apihub.warehouse.rule">
             <field name="provider_id" ref="provider_ct"/>
