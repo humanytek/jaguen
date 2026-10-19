@@ -14,6 +14,7 @@ _FAILED = object()
 SYSCOM_BASE = "https://developers.syscom.mx"
 LOMA_BASE = "https://apigloma.xentra.com.mx"
 CT_BASE = "http://connect.ctonline.mx:3001"
+NEAR_LIVE_SECONDS = 5400   # existencia revisada por el robot hace menos de hora y media (CT y Exel se revisan cada hora)
 
 
 def _cached(key, ttl, loader):
@@ -147,9 +148,22 @@ class ApihubLive(models.AbstractModel):
                 origin = "archivo (sin respuesta del proveedor: %s)" % str(exc)[:150]
         else:
             origin = "archivo"
+        near = link.stock_at and (fields.Datetime.now() - link.stock_at).total_seconds() <= NEAR_LIVE_SECONDS
+        if near:
+            # el robot de existencia (CT, Exel) lo revisó hace menos de hora y media: se confía igual que en vivo (sin mínimo)
+            minutes = int((fields.Datetime.now() - link.stock_at).total_seconds() // 60)
+            local = link.stock_national if any(r.code == "*" for r in rules) else link.stock_local
+            return local, link.stock_national, "casi en vivo, hace %d min" % minutes
         today = fields.Date.context_today(self)
         fresh = link.stock_date and (today - link.stock_date).days <= math.ceil((provider.max_data_age_hours or 24) / 24.0)
-        return (link.stock_local, link.stock_national, origin) if fresh else (0, 0, origin + ", dato viejo")
+        if not fresh:
+            return 0, 0, origin + ", dato viejo"
+        # Dato del archivo: se aplica el mismo mínimo que la publicación (docs 7e: sin consulta en vivo el mínimo se queda alto)
+        # y "*" (Ingram) significa que cualquier almacén cuenta como local.
+        threshold = (rules[0].min_stock_override if rules and rules[0].min_stock_override > 0 else provider.min_stock) or 1
+        local = link.stock_national if any(r.code == "*" for r in rules) else link.stock_local
+        national = link.stock_national
+        return (local if local >= threshold else 0), (national if national >= (provider.min_stock or 1) else 0), origin
 
     # ------------------------------------------------------------------ revisión de un producto
     @api.model

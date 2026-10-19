@@ -195,6 +195,38 @@ class ApihubEngine(models.AbstractModel):
         _logger.info("ApiHub %s: %s", provider.code, dict(counts))
         return dict(counts, log_id=log.id, dry_run=dry)
 
+    @api.model
+    def update_stock(self, provider_code, records, zero_missing=False):
+        """Solo existencia (robots cada hora, docs 7as): actualiza `stock_local`, `stock_national` y `stock_at` de las
+        equivalencias aprobadas. No toca costos, orden de proveedores, AVCO, precios ni la fecha del dato (`stock_date`), que sigue
+        siendo la del archivo diario, para no alterar la publicación. Con zero_missing, un producto que el proveedor ya no lista
+        se deja en 0 (CT solo lista lo que tiene existencia)."""
+        provider = self.env["apihub.provider"].search([("code", "=", provider_code)], limit=1)
+        if not provider or not provider.has_stock_data:
+            raise UserError(_("El proveedor %s no maneja existencia.", provider_code))
+        if len(records) < 100:
+            raise UserError(_("La lista de existencia de %(p)s trae solo %(n)s productos: no se aplica nada.", p=provider.name, n=len(records)))
+        by_sku = {norm_code(r.get("sku")): r for r in records if r.get("sku")}
+        by_ref = {norm_code(r.get("provider_id")): r for r in records if r.get("provider_id")}
+        links = self.env["apihub.product.link"].search([("provider_id", "=", provider.id), ("state", "=", "approved")])
+        now, counts, checked = fields.Datetime.now(), Counter(), self.env["apihub.product.link"]
+        for link in links:
+            rec = by_ref.get(norm_code(link.provider_ref)) or by_sku.get(norm_code(link.provider_sku))
+            if rec is None and not zero_missing:
+                counts["not_in_feed"] += 1
+                continue
+            local = int((rec or {}).get("stock_hermosillo") or 0)
+            national = int((rec or {}).get("stock_national") or 0)
+            if (link.stock_local, link.stock_national) != (local, national):
+                link.write({"stock_local": local, "stock_national": national})
+                counts["changed"] += 1
+            else:
+                counts["same"] += 1
+            checked |= link
+        checked.write({"stock_at": now})
+        _logger.info("ApiHub existencia %s: %s", provider.code, dict(counts))
+        return dict(counts, links=len(links))
+
     # ------------------------------------------------------------------ precio minimo del proveedor
     @api.model
     def _rule_params(self, pricelist):

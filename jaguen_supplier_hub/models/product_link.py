@@ -39,6 +39,9 @@ class ApihubProductLink(models.Model):
         string="El precio trae IVA", help="Proveedores de tienda: el precio de la página ya incluye IVA; el costo se guarda sin IVA.")
     stock_local = fields.Integer(string="Existencia local", help="Existencia en el almacén local del proveedor, del último archivo.")
     stock_national = fields.Integer(string="Existencia nacional", help="Existencia total del proveedor, del último archivo.")
+    stock_at = fields.Datetime(
+        string="Existencia revisada a las", help="Última vez que el robot de existencia (CT y Exel, cada hora) revisó este producto. "
+        "La verificación del carrito lo trata como casi en vivo si fue hace menos de hora y media.")
     stock_date = fields.Date(string="Fecha del dato de existencia", help="Fecha del archivo del proveedor que trajo esta existencia.")
     min_price = fields.Float(string="Precio mínimo del proveedor (MXN)", digits=(12, 2),
                              help="Precio mínimo de venta que fija el proveedor (Syscom: MAP), sin IVA, en pesos.")
