@@ -80,7 +80,12 @@ class ApihubProvider(models.Model):
     )
     price_freight_pct = fields.Float(
         string="Flete para el precio de venta (%)", default=0.0, digits=(12, 2),
-        help="Solo Grupo Fábrica: precio = costo × (1 + flete) ÷ 0.75. En la Fase 1 (entrega local) es 0.",
+        help="Solo Grupo Fábrica: se suma al AVCO antes de aplicar el margen. En la Fase 1 (entrega local) es 0.",
+    )
+    price_margin_pct = fields.Float(
+        string="Margen de Fábrica sobre el precio (%)", default=30.0, digits=(12, 2),
+        help="Solo Grupo Fábrica: precio fijo SOLO en la lista Página = AVCO × (1 + flete) ÷ (1 − margen), redondeado a 0.25. "
+             "Javier (2026-10-19): 'Fábrica es el 30 % de margen siempre, en Página solamente'.",
     )
     price_discount_pct = fields.Float(
         string="Descuento del proveedor (%)", default=0.0, digits=(12, 2),

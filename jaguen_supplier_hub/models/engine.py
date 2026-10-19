@@ -424,9 +424,38 @@ class ApihubEngine(models.AbstractModel):
         return reordered, avco, rules
 
     @api.model
+    def _update_fabrica_price(self, tmpl, provider, create=False):
+        """Grupo Fábrica: precio FIJO solo en la lista Página = AVCO x (1 + flete) / (1 - margen), redondeado a 0.25
+        (Javier: 30 % de margen siempre, en Página solamente; las demás listas van encadenadas a Página). Solo cuando el AVCO
+        sigue al proveedor (sin existencia). Devuelve 1 si cambió o creó la regla."""
+        pricelist = self.env["apihub.config"].get_config().public_pricelist_id
+        if not pricelist or tmpl.standard_price <= 0:
+            return 0
+        item = self.env["product.pricelist.item"].search([
+            ("pricelist_id", "=", pricelist.id), ("product_tmpl_id", "=", tmpl.id), ("applied_on", "=", "1_product")], limit=1)
+        if item and (item.compute_price != "fixed" or tmpl.qty_available != 0):
+            return 0
+        margin = (provider.price_margin_pct or 0.0) / 100.0
+        price = tmpl.standard_price * (1 + (provider.price_freight_pct or 0.0) / 100.0) / (1 - margin)
+        price = round(price / 0.25) * 0.25
+        if item:
+            if abs(item.fixed_price - price) <= 0.005:
+                return 0
+            item.write({"fixed_price": price})
+            return 1
+        if create:
+            self.env["product.pricelist.item"].create({
+                "pricelist_id": pricelist.id, "applied_on": "1_product", "product_tmpl_id": tmpl.id,
+                "compute_price": "fixed", "fixed_price": price})
+            return 1
+        return 0
+
+    @api.model
     def _ensure_rules(self, tmpl, provider):
         """Crea la regla de precio de venta que falte (solo grupo Distribuidor y producto publicado). Los porcentajes se
-        copian de las reglas que ya existen en cada lista: no viven en el código."""
+        copian de las reglas que ya existen en cada lista: no viven en el código. Fábrica: mantiene el precio fijo de Página."""
+        if provider.pricing_group == "fabrica":
+            return self._update_fabrica_price(tmpl, provider, create=tmpl.is_published)
         if provider.pricing_group != "distribuidor" or not tmpl.is_published:
             return 0
         lists = self.env["apihub.config"].get_config().sale_pricelist_ids

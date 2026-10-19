@@ -59,6 +59,7 @@
                             <field name="cost_factor"/>
                             <field name="avco_factor"/>
                             <field name="pricing_group"/>
+                            <field name="price_margin_pct"/>
                             <field name="order_code_source"/>
                             <field name="price_freight_pct"/>
                             <field name="price_discount_pct"/>
