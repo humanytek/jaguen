@@ -17,6 +17,7 @@
                 <field name="reordered"/>
                 <field name="avco_updated"/>
                 <field name="rules_created"/>
+                <field name="below_min"/>
             </list>
         </field>
     </record>

@@ -43,6 +43,11 @@ class ApihubConfig(models.Model):
         help="Las listas en las que el motor crea la regla de precio que falte (una regla de fórmula por producto y lista). "
              "Los porcentajes se copian de las reglas que ya existen en esas listas, nunca están en el código.",
     )
+    public_pricelist_id = fields.Many2one(
+        "product.pricelist", string="Lista de precio público",
+        help="La lista que ve cualquiera sin iniciar sesión (Página). Con ella el motor revisa que el precio público no quede "
+             "por debajo del precio mínimo que fija el proveedor (ej. Syscom, precio MAP).",
+    )
     max_failed_pct = fields.Float(
         string="Máximo de marcas/proveedores con error (%)", default=20.0,
         help="Si falla más de este porcentaje en una corrida, no se aplica nada.",

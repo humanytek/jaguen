@@ -26,6 +26,7 @@ class ApihubRunLog(models.Model):
     reordered = fields.Integer(string="Productos reordenados")
     avco_updated = fields.Integer(string="AVCO actualizados")
     rules_created = fields.Integer(string="Reglas de precio creadas")
+    below_min = fields.Integer(string="Bajo el precio mínimo del proveedor")
     notes = fields.Text(string="Detalle")
 
 
@@ -109,6 +110,7 @@ class ApihubEngine(models.AbstractModel):
         special = self._special_costs(provider)
         links = self.env["apihub.product.link"].search([("provider_id", "=", provider.id), ("state", "=", "approved")])
         counts, touched, notes = Counter(), self.env["product.template"], []
+        mins = {}   # producto -> (producto, precio minimo en pesos): solo proveedores que publican un minimo (Syscom MAP)
         for link in links:
             rec = by_ref.get(norm_code(link.provider_ref)) or by_sku.get(norm_code(link.provider_sku))
             if not rec:
@@ -150,16 +152,64 @@ class ApihubEngine(models.AbstractModel):
                     link.write({"cost_previous": link.cost_provider, "cost_changed_on": fields.Date.context_today(self)})
                 link.write({"cost_provider": cost, "pending_cost": 0.0, "pending_on": False})
             touched |= tmpl
+            if rec.get("map_usd"):
+                minimum = rec["map_usd"] * (rec.get("exchange_rate") or 1.0) if (rec.get("currency") or "").upper() == "USD" else rec["map_usd"]
+                mins[tmpl.id] = (tmpl, max(minimum, mins.get(tmpl.id, (None, 0.0))[1]), link.default_code)
         if not dry:
             counts["reordered"], counts["avco"], counts["rules"] = self._after_costs(touched)
+            counts["below_min"] = self._check_min_price(mins, notes)
         log = self.env["apihub.run.log"].create({
             "provider_id": provider.id, "dry_run": dry, "approved_links": len(links), "cost_updated": counts["updated"],
             "cost_same": counts["same"], "lines_created": counts["created"], "sanity_skipped": counts["held"],
             "not_in_feed": counts["not_in_feed"], "reordered": counts["reordered"], "avco_updated": counts["avco"],
-            "rules_created": counts["rules"], "notes": "\n".join(notes[:200]) or False,
+            "rules_created": counts["rules"], "below_min": counts["below_min"], "notes": "\n".join(notes[:200]) or False,
         })
         _logger.info("ApiHub %s: %s", provider.code, dict(counts))
         return dict(counts, log_id=log.id, dry_run=dry)
+
+    # ------------------------------------------------------------------ precio minimo del proveedor
+    @api.model
+    def _rule_params(self, pricelist):
+        """Descuento y redondeo que mas se repiten en las reglas de fórmula de la lista (los mismos que usa _ensure_rules)."""
+        existing = self.env["product.pricelist.item"].search([
+            ("pricelist_id", "=", pricelist.id), ("applied_on", "=", "1_product"),
+            ("compute_price", "=", "formula"), ("base", "=", "standard_price")], limit=400)
+        if not existing:
+            return None
+        return Counter((r.price_discount, r.price_round) for r in existing).most_common(1)[0][0]
+
+    @api.model
+    def _check_min_price(self, mins, notes):
+        """Cuantos productos quedarian con el precio público por debajo del mínimo del proveedor. Solo avisa en el detalle de
+        la corrida: no cambia precios ni publica. Si el producto aún no tiene regla en la lista pública, calcula el precio
+        que tendría con la regla más común (así se ve antes de publicarlo)."""
+        pricelist = self.env["apihub.config"].get_config().public_pricelist_id
+        if not mins:
+            return 0
+        if not pricelist:
+            notes.append("No hay lista de precio público en Configuración: no se revisó el precio mínimo del proveedor.")
+            return 0
+        params = self._rule_params(pricelist)
+        below = 0
+        for tmpl, minimum, code in mins.values():
+            has_rule = self.env["product.pricelist.item"].search_count([("pricelist_id", "=", pricelist.id), ("product_tmpl_id", "=", tmpl.id)])
+            try:
+                if has_rule:
+                    price = pricelist._get_product_price(tmpl.product_variant_id, 1.0)
+                elif params:
+                    price = tmpl.standard_price * (1 - params[0] / 100.0)
+                    if params[1]:
+                        price = round(price / params[1]) * params[1]
+                else:
+                    continue
+            except Exception as exc:  # noqa: BLE001
+                notes.append("%s: no se pudo calcular el precio público (%s)" % (code, exc))
+                continue
+            if price + 0.005 < minimum:
+                below += 1
+                notes.append("%s: precio público %.2f por debajo del mínimo %.2f%s" % (
+                    code, price, minimum, "" if has_rule else " (si se publica con la regla más común)"))
+        return below
 
     # ------------------------------------------------------------------ despues de los costos
     @api.model
