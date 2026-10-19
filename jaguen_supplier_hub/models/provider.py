@@ -42,6 +42,10 @@ class ApihubProvider(models.Model):
         string="Antigüedad máxima del dato (horas)", default=36,
         help="Si el archivo o la respuesta del proveedor es más viejo, el proveedor se trata como 'sin dato confiable'.",
     )
+    on_order_fee = fields.Float(
+        string="Cargo de envío sobre pedido ($, sin IVA)", default=100.0,
+        help="Se suma al envío del cliente, una sola vez por pedido, cuando el carrito trae productos 'Sobre pedido' cuyo "
+             "Proveedor 1 es este. Si hay varios proveedores en el carrito se cobra el mayor. El IVA lo pone el método de envío.")
     freight_amount = fields.Float(
         string="Flete por producto ($)", default=100.0,
         help="Se suma al costo cuando la existencia no está en un almacén sin flete.",

@@ -8,9 +8,9 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
 """,
     "author": "JAGUEN",
     "category": "Inventory/Purchase",
-    "version": "18.0.1.2.28",
+    "version": "18.0.1.2.29",
     "license": "LGPL-3",
-    "depends": ["product", "website_sale"],
+    "depends": ["product", "website_sale", "delivery"],
     "data": [
         "security/ir.model.access.csv",
         "views/provider_views.xml",

@@ -51,6 +51,7 @@
                         <group string="Existencia, flete y AVCO">
                             <field name="min_stock"/>
                             <field name="freight_amount"/>
+                            <field name="on_order_fee"/>
                             <field name="freight_only_tech"/>
                             <field name="cost_factor"/>
                             <field name="avco_factor"/>
