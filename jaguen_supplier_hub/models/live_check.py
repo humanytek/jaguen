@@ -333,11 +333,19 @@ class ApihubLive(models.AbstractModel):
             _logger.exception("ApiHub: no se pudo calcular el precio por pieza de la oferta")
         vals = {"requested_qty": offer["target"], "local_qty": offer["local"], "extra_qty": offer["extra"],
                 "fee": provider.on_order_fee if provider else 0.0, "unit_price_incl": unit, "state": "pending"}
+        if not offer["local"]:
+            # sin piezas de entrega inmediata el producto se vende como cualquiera "sobre pedido": se agrega directo y se avisa
+            # (sin renglón en el carrito no habría dónde mostrar la oferta y Odoo descartaría el carrito)
+            vals["state"] = "accepted"
         pending = offers.filtered(lambda o: o.state == "pending")[:1]
         if pending:
             pending.write(vals)
         else:
             self.env["apihub.cart.offer"].sudo().create(dict(vals, order_id=order.id, product_id=product_id))
+        if not offer["local"]:
+            cfg = self.env["apihub.config"].sudo().get_config()
+            return offer["target"], _("Por el momento no hay piezas para entrega inmediata; este producto se surte sobre pedido: entrega en %(plazo)s "
+                                      "y un único cargo de envío de $%(fee).2f + IVA por orden.", plazo=cfg.on_order_text or "", fee=vals["fee"])
         return offer["local"], _("Hay piezas disponibles sobre pedido: revisa la opción que aparece en tu carrito.")
 
     @api.model
