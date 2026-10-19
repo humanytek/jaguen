@@ -17,7 +17,7 @@ CT_BASE = "http://connect.ctonline.mx:3001"
 
 
 def _cached(key, ttl, loader):
-    """Resultado en memoria por `ttl` segundos. Un fallo se recuerda 60 s para no esperar el tiempo límite en cada paso."""
+    """Resultado en memoria por `ttl` segundos. Un fallo se recuerda 3 minutos para no esperar el tiempo límite en cada paso."""
     now = time.time()
     hit = _CACHE.get(key)
     if hit and hit[0] > now:
@@ -27,7 +27,7 @@ def _cached(key, ttl, loader):
     try:
         value = loader()
     except Exception as exc:   # noqa: BLE001 - cualquier fallo del proveedor se trata igual
-        _CACHE[key] = (now + 60, _FAILED, str(exc)[:200])
+        _CACHE[key] = (now + 180, _FAILED, str(exc)[:200])
         raise
     _CACHE[key] = (now + ttl, value)
     return value
