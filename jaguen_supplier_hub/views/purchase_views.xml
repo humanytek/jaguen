@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Botones de ApiHub en la orden de compra: cotizar y enviar el pedido al proveedor por API (docs 7ay) -->
+    <record id="purchase_order_form_apihub" model="ir.ui.view">
+        <field name="name">purchase.order.form.apihub</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="apihub_api_kind" invisible="1"/>
+                <button name="action_apihub_quote" type="object" string="Cotizar con el proveedor (API)"
+                        invisible="apihub_api_kind != 'syscom' or state not in ('draft', 'sent')" groups="base.group_system"
+                        help="Solo cotiza con Syscom en modo de prueba: no genera ningún pedido."/>
+                <button name="action_apihub_send" type="object" string="Enviar pedido por API" class="btn-primary"
+                        invisible="not apihub_api_kind or state not in ('draft', 'sent') or apihub_api_state == 'sent'" groups="base.group_system"
+                        confirm="¿Mandar este pedido de verdad al proveedor? Se genera un pedido real."/>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
+                <page string="ApiHub (API)" name="apihub_api" invisible="not apihub_api_kind">
+                    <group>
+                        <field name="apihub_api_state"/>
+                        <field name="apihub_api_folio"/>
+                        <field name="apihub_api_log"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

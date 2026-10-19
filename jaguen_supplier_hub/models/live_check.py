@@ -67,16 +67,20 @@ class ApihubLive(models.AbstractModel):
         return resp.json()
 
     @api.model
+    def _syscom_token(self, provider, timeout):
+        def load():
+            data = requests.post(SYSCOM_BASE + "/oauth/token", data={
+                "grant_type": "client_credentials", "client_id": self._credential(provider, "SYSCOM_CLIENT_ID"),
+                "client_secret": self._credential(provider, "SYSCOM_CLIENT_SECRET")},
+                headers={"User-Agent": "Mozilla/5.0 (apihub)"}, timeout=timeout)
+            data.raise_for_status()
+            return data.json()["access_token"]
+        return _cached(("syscom_token", provider.id), 3000, load)
+
+    @api.model
     def _syscom_stock(self, provider, ref, timeout):
         def token():
-            def load():
-                data = requests.post(SYSCOM_BASE + "/oauth/token", data={
-                    "grant_type": "client_credentials", "client_id": self._credential(provider, "SYSCOM_CLIENT_ID"),
-                    "client_secret": self._credential(provider, "SYSCOM_CLIENT_SECRET")},
-                    headers={"User-Agent": "Mozilla/5.0 (apihub)"}, timeout=timeout)
-                data.raise_for_status()
-                return data.json()["access_token"]
-            return _cached(("syscom_token", provider.id), 3000, load)
+            return self._syscom_token(provider, timeout)
 
         for attempt in (0, 1):
             try:

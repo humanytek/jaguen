@@ -47,6 +47,19 @@ class ApihubProvider(models.Model):
         string="Nota de entrega en la orden de compra",
         help="Se escribe en los términos de la orden de compra que ApiHub crea al confirmar una venta (por ejemplo, dónde se recoge). "
              "Javier (2026-10-19): por ahora todo se recoge en la sucursal de Hermosillo.")
+    order_warehouse = fields.Char(
+        string="Sucursal / almacén de entrega del pedido",
+        help="Dónde se recoge lo que se compra por API: Syscom = código de la sucursal (hermosillo), Loma = clave del almacén (1006), "
+             "CT = código del almacén (01A). Javier (2026-10-19): todo se recoge en Hermosillo.")
+    order_payment = fields.Char(
+        string="Forma de pago del pedido",
+        help="Syscom: transferencia (o sucursal-credito para tarjeta). Loma: PUE o PPD. CT: 99 = crédito CT. Por definir con Javier para Loma y CT.")
+    order_cfdi = fields.Char(string="Uso de CFDI del pedido", default="G01", help="Javier (2026-10-19): siempre G01.")
+    order_comment = fields.Char(string="Comentario del pedido", default="Recoger en sucursal Hermosillo")
+    api_order_enabled = fields.Boolean(
+        string="Enviar pedidos por API",
+        help="Candado: mientras esté apagado, el botón 'Enviar pedido' de la orden de compra no manda nada a este proveedor. "
+             "Se enciende solo con la aprobación de Javier, proveedor por proveedor.")
     live_check = fields.Boolean(
         string="Verificar en vivo en el carrito", default=False,
         help="Si está activo, al agregar al carrito y antes de pagar se consulta la existencia a este proveedor (solo Syscom, Loma y CT "

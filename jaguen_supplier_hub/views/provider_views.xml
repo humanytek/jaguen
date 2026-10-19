@@ -55,6 +55,11 @@
                             <field name="has_stock_data"/>
                             <field name="live_check"/>
                             <field name="purchase_delivery_note"/>
+                            <field name="order_warehouse"/>
+                            <field name="order_payment"/>
+                            <field name="order_cfdi"/>
+                            <field name="order_comment"/>
+                            <field name="api_order_enabled"/>
                             <field name="card_fee_pct"/>
                             <field name="tax_pct"/>
                             <field name="freight_only_tech"/>
