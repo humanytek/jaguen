@@ -34,21 +34,34 @@ def words(text):
 
 BRAND_ALIASES = {"HEWLETTPACKARD": "HP", "HEWLETTPACKARDENTERPRISE": "HPE"}
 GENERIC_BRAND_WORDS = {"PLUS", "PAPER", "PEN", "MAX", "PRO", "TECH", "DIGITAL", "SYSTEMS", "GROUP", "MEXICO", "INTERNATIONAL"}
+# Ingram y otros ponen en "marca" la razon social del fabricante o su distribuidor oficial, no la marca
+CORPORATE_WORDS = {"SA", "DE", "CV", "RL", "SAPI", "S", "Y", "AND", "EN", "MEXICO", "MAYOREO", "RETAIL", "PARTES", "PROCESADORES",
+                   "COMPUTING", "PRINTING", "COMPONENTS", "DATA", "TECHNOLOGIES", "TECHNOLOGY", "ELECTRONICS", "VALOR", "OPS", "IC"}
+CORPORATE_ALIASES = {"INTRACOM": ("MANHATTAN", "INTELLINET"), "COMPUTINGANDPRINTING": ("HP",), "HPVALOR": ("HP",),
+                     "PROCESADORESYPARTES": ("KINGSTON", "FURY", "HYPERX"), "DATACOMPONENTS": ("BROBOTIX", "BROBOTIX"),
+                     "TPLINKTECHNOLOGIES": ("MERCUSYS", "TPLINK")}
 
 
 def brand_candidates(brand):
     """Formas en que nuestro nombre puede escribir la marca de un proveedor: 'HEWLETT PACKARD' = HP; en 'MANHATTAN
-    (INTRACOM)' o 'MAPASA (ARPAPEL)' la marca es lo de antes del paréntesis y lo de dentro es el grupo."""
+    (INTRACOM)' o 'MAPASA (ARPAPEL)' la marca es lo de antes del paréntesis y lo de dentro es el grupo; si el campo trae
+    una razon social ('IC INTRACOM MEXICO SAPI DE CV') se quitan las palabras de empresa y se usan los alias conocidos."""
     text = str(brand or "")
     outer = re.sub(r"\(.*?\)", " ", text)
     inner = re.findall(r"\((.*?)\)", text)
     cands = {norm_code(outer)}
-    cands |= {norm_code(w) for w in re.split(r"[^A-Za-z0-9]+", outer) if len(w) >= 4}
+    tokens = [t for t in re.split(r"[^A-Za-z0-9]+", outer) if t]
+    cands |= {norm_code(w) for w in tokens if len(w) >= 4 and norm_code(w) not in CORPORATE_WORDS}
+    cands |= {norm_code(w) for w in tokens if len(w) == 2 and norm_code(w) not in CORPORATE_WORDS}
     cands |= {norm_code(i) for i in inner}
+    whole = norm_code(outer)
     for full, alias in BRAND_ALIASES.items():
-        if full in norm_code(outer):
+        if full in whole:
             cands.add(alias)
-    return {c for c in cands if len(c) >= 2 and c not in GENERIC_BRAND_WORDS}
+    for key, aliases in CORPORATE_ALIASES.items():
+        if key in whole or any(norm_code(t) == key for t in tokens):
+            cands |= set(aliases)
+    return {c for c in cands if len(c) >= 2 and c not in GENERIC_BRAND_WORDS and c not in CORPORATE_WORDS}
 
 
 def brand_ok(brand, our_name, provider_description="", brands=()):
@@ -63,7 +76,7 @@ def brand_ok(brand, our_name, provider_description="", brands=()):
         return True
     our_words = [norm_code(w) for w in re.split(r"[^A-Za-z0-9]+", str(our_name or "")) if len(w) >= 5]
     for c in cands:
-        if len(c) >= 6 and any(difflib.SequenceMatcher(None, c, w).ratio() >= 0.88 for w in our_words):
+        if len(c) >= 6 and any(difflib.SequenceMatcher(None, c, w).ratio() >= 0.88 or c.startswith(w) for w in our_words):
             return True
     shared = words(our_name) & words(provider_description)
     return any(w in brands for w in shared)

@@ -4,7 +4,7 @@
         <!-- Proveedores. Los valores de arranque salen de docs/DECISIONES.md y se editan desde Odoo. -->
         <record id="provider_ct" model="apihub.provider">
             <field name="order_code_source">provider_ref</field>
-            <field name="pricing_group">fabrica</field>
+            <field name="pricing_group">distribuidor</field>
             <field name="name">CT Internacional</field>
             <field name="code">ct</field>
             <field name="sequence">10</field>
@@ -17,7 +17,7 @@
         </record>
         <record id="provider_ingram" model="apihub.provider">
             <field name="order_code_source">none</field>
-            <field name="pricing_group">fabrica</field>
+            <field name="pricing_group">distribuidor</field>
             <field name="name">Ingram Micro</field>
             <field name="code">ingram</field>
             <field name="sequence">20</field>
@@ -31,7 +31,7 @@
         <record id="provider_loma" model="apihub.provider">
             <field name="order_code_source">provider_ref</field>
             <field name="fx_source">provider</field>
-            <field name="pricing_group">fabrica</field>
+            <field name="pricing_group">distribuidor</field>
             <field name="name">Grupo Loma</field>
             <field name="code">loma</field>
             <field name="sequence">30</field>
