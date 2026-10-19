@@ -21,7 +21,7 @@ class ApihubRunLog(models.Model):
     cost_updated = fields.Integer(string="Costos actualizados")
     cost_same = fields.Integer(string="Costos sin cambio")
     lines_created = fields.Integer(string="Líneas de proveedor creadas")
-    sanity_skipped = fields.Integer(string="Saltados por el sanity check")
+    sanity_skipped = fields.Integer(string="En espera por cambio grande")
     not_in_feed = fields.Integer(string="No vienen en el archivo")
     reordered = fields.Integer(string="Productos reordenados")
     avco_updated = fields.Integer(string="AVCO actualizados")
@@ -56,6 +56,41 @@ class ApihubEngine(models.AbstractModel):
         rows = self.env["apihub.special.price"].search([("provider_id", "=", provider.id)])
         return {norm_code(r.provider_sku): r.cost for r in rows}
 
+    # ------------------------------------------------------------------ cambios grandes
+    @api.model
+    def _recent_move(self, link, today):
+        """Cuanto se movio (o esta en espera de moverse) el costo de otro proveedor del mismo producto, o None."""
+        days = lambda d: (today - d).days if d else 99
+        if link.pending_cost and link.cost_provider and days(link.pending_on) <= 1:
+            return link.pending_cost / link.cost_provider - 1
+        if link.cost_previous and link.cost_provider and days(link.cost_changed_on) <= 2:
+            return link.cost_provider / link.cost_previous - 1
+        return None
+
+    @api.model
+    def _decide(self, link, cost, cfg, dry):
+        """'apply' o 'hold'. Un cambio de mas de +-10 % de un dia a otro solo se aplica si los demas proveedores del
+        producto se movieron igual (+-3 puntos) o si el mismo precio llega otra vez al dia siguiente."""
+        base = link.cost_provider
+        if not base:
+            return "apply"
+        change = cost / base - 1
+        if abs(change) <= cfg.daily_change_pct / 100.0:
+            return "apply"
+        today = fields.Date.context_today(self)
+        if link.pending_cost and link.pending_on and link.pending_on < today and abs(cost / link.pending_cost - 1) <= 0.005:
+            return "apply"
+        others = self.env["apihub.product.link"].search([
+            ("product_tmpl_id", "=", link.product_tmpl_id.id), ("provider_id", "!=", link.provider_id.id), ("state", "=", "approved")])
+        tol = cfg.peer_tolerance_pct / 100.0
+        for other in others:
+            move = self._recent_move(other, today)
+            if move is not None and move * change > 0 and abs(move - change) <= tol:
+                return "apply"
+        if not dry and not (link.pending_cost and abs(cost / link.pending_cost - 1) <= 0.005 and link.pending_on == today):
+            link.write({"pending_cost": cost, "pending_on": today})
+        return "hold"
+
     # ------------------------------------------------------------------ corrida
     @api.model
     def run_costs(self, provider_code, records, dry_run=None):
@@ -84,10 +119,10 @@ class ApihubEngine(models.AbstractModel):
             if cost <= 0:
                 counts["not_in_feed"] += 1
                 continue
-            baseline = link.cost_provider
-            if baseline and not (cfg.price_ratio_min <= cost / baseline <= cfg.price_ratio_max):
-                counts["sanity"] += 1
-                notes.append("%s: costo %.2f contra %.2f anterior" % (link.default_code, cost, baseline))
+            decision = self._decide(link, cost, cfg, dry)
+            if decision == "hold":
+                counts["held"] += 1
+                notes.append("%s: costo %.2f en espera (anterior %.2f)" % (link.default_code, cost, link.cost_provider))
                 continue
             tmpl = link.product_tmpl_id
             line = tmpl.seller_ids.filtered(lambda s: s.partner_id == provider.partner_id)[:1]
@@ -111,13 +146,15 @@ class ApihubEngine(models.AbstractModel):
                 if line and not line.product_code:
                     line.product_code = code
             if not dry:
-                link.cost_provider = cost
+                if abs((link.cost_provider or 0.0) - cost) > 0.005:
+                    link.write({"cost_previous": link.cost_provider, "cost_changed_on": fields.Date.context_today(self)})
+                link.write({"cost_provider": cost, "pending_cost": 0.0, "pending_on": False})
             touched |= tmpl
         if not dry:
             counts["reordered"], counts["avco"], counts["rules"] = self._after_costs(touched)
         log = self.env["apihub.run.log"].create({
             "provider_id": provider.id, "dry_run": dry, "approved_links": len(links), "cost_updated": counts["updated"],
-            "cost_same": counts["same"], "lines_created": counts["created"], "sanity_skipped": counts["sanity"],
+            "cost_same": counts["same"], "lines_created": counts["created"], "sanity_skipped": counts["held"],
             "not_in_feed": counts["not_in_feed"], "reordered": counts["reordered"], "avco_updated": counts["avco"],
             "rules_created": counts["rules"], "notes": "\n".join(notes[:200]) or False,
         })

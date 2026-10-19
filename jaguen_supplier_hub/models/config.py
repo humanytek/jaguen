@@ -32,6 +32,12 @@ class ApihubConfig(models.Model):
         string="Costo nuevo / histórico: máximo", default=2.0,
         help="Si el costo nuevo de un proveedor es mayor que este múltiplo de su costo anterior, no se acepta solo.",
     )
+    daily_change_pct = fields.Float(
+        string="Cambio de un día a otro que se frena (±%)", default=10.0,
+        help="Si el costo de un proveedor cambia más que esto de un día a otro, no se aplica el primer día (puede ser un error).")
+    peer_tolerance_pct = fields.Float(
+        string="Tolerancia para confirmar con otros proveedores (puntos)", default=3.0,
+        help="El cambio se aplica de inmediato si los demás proveedores del producto se movieron igual, con esta diferencia.")
     sale_pricelist_ids = fields.Many2many(
         "product.pricelist", "apihub_config_pricelist_rel", "config_id", "pricelist_id", string="Listas de precios de venta",
         help="Las listas en las que el motor crea la regla de precio que falte (una regla de fórmula por producto y lista). "

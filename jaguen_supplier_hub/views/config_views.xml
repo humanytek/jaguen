@@ -14,8 +14,8 @@
                             <field name="dry_run"/>
                         <field name="main_lang"/>
                             <field name="max_failed_pct"/>
-                            <field name="price_ratio_min"/>
-                            <field name="price_ratio_max"/>
+                            <field name="daily_change_pct"/>
+                            <field name="peer_tolerance_pct"/>
                         </group>
                         <group string="Precios de venta">
                             <field name="sale_pricelist_ids" widget="many2many_tags"/>

@@ -58,6 +58,11 @@ class ApihubProductLink(models.Model):
         help="Lo que Odoo ya tiene como costo de este producto, en este orden: 1) la línea de este proveedor en la "
              "pestaña Compras del producto; 2) el costo (AVCO) de la ficha del producto; 3) la línea de Compras del "
              "primer proveedor del producto. Se calcula al abrir la pantalla; 0 solo si Odoo no tiene ningún costo.")
+    cost_previous = fields.Float(string="Costo anterior", digits=(12, 2), help="Costo aplicado antes del último cambio (lo usa el motor).")
+    cost_changed_on = fields.Date(string="Último cambio de costo")
+    pending_cost = fields.Float(string="Costo en espera", digits=(12, 2),
+                                help="Cambio de más de ±10 % que llegó y todavía no se aplica (el motor espera confirmación).")
+    pending_on = fields.Date(string="En espera desde")
     diff_pct = fields.Float(string="% diferencia", digits=(12, 1))
     note = fields.Text(string="Notas")
     approved_by = fields.Many2one("res.users", string="Aprobado por", readonly=True)
