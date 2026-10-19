@@ -32,6 +32,11 @@ class ApihubConfig(models.Model):
         string="Costo nuevo / histórico: máximo", default=2.0,
         help="Si el costo nuevo de un proveedor es mayor que este múltiplo de su costo anterior, no se acepta solo.",
     )
+    sale_pricelist_ids = fields.Many2many(
+        "product.pricelist", "apihub_config_pricelist_rel", "config_id", "pricelist_id", string="Listas de precios de venta",
+        help="Las listas en las que el motor crea la regla de precio que falte (una regla de fórmula por producto y lista). "
+             "Los porcentajes se copian de las reglas que ya existen en esas listas, nunca están en el código.",
+    )
     max_failed_pct = fields.Float(
         string="Máximo de marcas/proveedores con error (%)", default=20.0,
         help="Si falla más de este porcentaje en una corrida, no se aplica nada.",
