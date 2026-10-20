@@ -20,6 +20,12 @@
                             <field name="unpublish_days"/>
                             <field name="max_unpublish_pct"/>
                         </group>
+                        <group string="Tecnología: precio por mercado">
+                            <field name="tech_market_mode"/>
+                            <field name="tech_categ_id"/>
+                            <field name="tech_floor_pct"/>
+                            <field name="tech_step_pct"/>
+                        </group>
                         <group string="Precios de venta">
                             <field name="sale_pricelist_ids" widget="many2many_tags"/>
                             <field name="public_pricelist_id"/>
