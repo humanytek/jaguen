@@ -1,4 +1,5 @@
 import logging
+import re
 import math
 from collections import Counter
 
@@ -518,15 +519,50 @@ class ApihubEngine(models.AbstractModel):
         return 0
 
     @api.model
+    def _exact_margin_rules(self, tmpl):
+        """Margen exacto (Javier, 2026-10-20, papel bond): cada lista de venta toma el margen de su nombre ("... 30%", "... 25%"...) y el
+        precio es costo ÷ (1 - margen), con redondeo propio del producto (cajas: $5). Crea o corrige la regla de fórmula sobre el AVCO."""
+        cfg = self.env["apihub.config"].get_config()
+        item = self.env["product.pricelist.item"]
+        rnd = tmpl.apihub_price_round or 0.25
+        changed = 0
+        for pl in cfg.sale_pricelist_ids:
+            m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", pl.name or "")
+            if not m:
+                continue
+            margin = float(m.group(1).replace(",", "."))
+            if not 0 < margin < 95:
+                continue
+            markup = round((1.0 / (1.0 - margin / 100.0) - 1.0) * 100.0, 2)
+            vals = {"compute_price": "formula", "base": "standard_price", "price_markup": markup, "price_discount": -markup,
+                    "price_round": rnd, "price_surcharge": 0.0}
+            rule = item.search([("pricelist_id", "=", pl.id), ("product_tmpl_id", "=", tmpl.id), ("applied_on", "=", "1_product")], limit=1)
+            if rule:
+                if (rule.compute_price == "formula" and rule.base == "standard_price" and abs(rule.price_markup - markup) < 0.005
+                        and abs(rule.price_round - rnd) < 0.005):
+                    continue
+                rule.write(vals)
+            else:
+                item.create(dict(vals, pricelist_id=pl.id, applied_on="1_product", product_tmpl_id=tmpl.id))
+            changed += 1
+        return changed
+
+    @api.model
     def _ensure_rules(self, tmpl, provider):
         """Crea la regla de precio de venta que falte (solo grupo Distribuidor y producto publicado). Los porcentajes se
         copian de las reglas que ya existen en cada lista: no viven en el código. Fábrica: mantiene el precio fijo de Página."""
         if provider.pricing_group == "fabrica":
             return self._update_fabrica_price(tmpl, provider, create=tmpl.is_published)
-        if provider.pricing_group != "distribuidor" or not tmpl.is_published:
+        if tmpl.apihub_exact_margin:
+            return self._exact_margin_rules(tmpl)
+        if provider.pricing_group != "distribuidor" or not (tmpl.is_published or tmpl.apihub_no_publish):
             return 0
-        lists = self.env["apihub.config"].get_config().sale_pricelist_ids
+        cfg = self.env["apihub.config"].get_config()
+        lists = cfg.sale_pricelist_ids
         item = self.env["product.pricelist.item"]
+        if cfg.public_pricelist_id and item.search_count([
+                ("pricelist_id", "=", cfg.public_pricelist_id.id), ("product_tmpl_id", "=", tmpl.id), ("compute_price", "=", "fixed")]):
+            return 0   # precio fijo puesto a mano en Página: las demás listas siguen encadenadas a Página (no se les crea regla por costo)
         made = 0
         for pl in lists:
             if item.search_count([("pricelist_id", "=", pl.id), ("product_tmpl_id", "=", tmpl.id)]):
