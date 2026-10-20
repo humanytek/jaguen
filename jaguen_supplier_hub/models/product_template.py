@@ -17,6 +17,31 @@ class ProductTemplate(models.Model):
         help="ApiHub sigue actualizando costo, proveedor y AVCO de este producto, pero nunca lo publica por su cuenta "
              "(ej. papel bond: solo se publican las cajas de 5,000 hojas, las demás presentaciones no).")
 
+    def write(self, vals):
+        before = {tmpl.id: tmpl.is_published for tmpl in self} if "is_published" in vals else {}
+        res = super().write(vals)
+        if before:
+            self._apihub_sync_redirects(before)
+        return res
+
+    def _apihub_sync_redirects(self, before):
+        """Al despublicar un producto (ApiHub o a mano) su página deja de dar 404: se redirige a la página de inicio (302, porque
+        el producto puede volver). Al publicarlo otra vez se borra la redirección (Javier, 2026-10-20)."""
+        Rewrite = self.env["website.rewrite"].sudo().with_context(active_test=False)
+        for tmpl in self.sudo():
+            if before.get(tmpl.id) is None or before[tmpl.id] == tmpl.is_published:
+                continue
+            url = tmpl.website_url
+            if not url or not url.startswith("/shop/"):
+                continue
+            mine = Rewrite.search([("url_from", "=", url), ("name", "=like", "ApiHub:%")])
+            if tmpl.is_published:
+                mine.unlink()
+            elif not mine:
+                Rewrite.create({
+                    "name": "ApiHub: %s despublicado" % (tmpl.default_code or tmpl.id), "url_from": url, "url_to": "/",
+                    "redirect_type": "302", "website_id": tmpl.website_id.id or False})
+
     def _apihub_availability_info(self):
         """(etiqueta, texto) para mostrar en la tienda, o False si el producto no se maneja o es de entrega rápida."""
         self.ensure_one()
