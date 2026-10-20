@@ -8,7 +8,7 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
 """,
     "author": "JAGUEN",
     "category": "Inventory/Purchase",
-    "version": "18.0.1.6.7",
+    "version": "18.0.1.6.8",
     "license": "LGPL-3",
     "depends": ["product", "stock", "purchase", "website_sale", "delivery"],
     "data": [
@@ -16,6 +16,7 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
         "views/provider_views.xml",
         "views/link_views.xml",
         "views/special_price_views.xml",
+        "views/market_margin_views.xml",
         "views/run_log_views.xml",
         "views/config_views.xml",
         "views/website_templates.xml",

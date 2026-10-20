@@ -3,6 +3,7 @@
     <menuitem id="menu_apihub_root" name="ApiHub" sequence="90" groups="base.group_system"/>
     <menuitem id="menu_apihub_link" name="Equivalencias de productos" parent="menu_apihub_root" action="action_apihub_product_link" sequence="5"/>
     <menuitem id="menu_apihub_special_price" name="Precios especiales" parent="menu_apihub_root" action="action_apihub_special_price" sequence="15"/>
+    <menuitem id="menu_apihub_market_margin" name="Margen de mercado (tecnología)" parent="menu_apihub_root" action="action_apihub_market_margin" sequence="17"/>
     <menuitem id="menu_apihub_provider" name="Proveedores" parent="menu_apihub_root" action="action_apihub_provider" sequence="10"/>
     <menuitem id="menu_apihub_warehouse_rule" name="Almacenes y reglas" parent="menu_apihub_root" action="action_apihub_warehouse_rule" sequence="20"/>
     <menuitem id="menu_apihub_run_log" name="Corridas" parent="menu_apihub_root" action="action_apihub_run_log" sequence="30"/>

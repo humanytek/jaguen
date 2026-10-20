@@ -38,6 +38,19 @@ class ApihubConfig(models.Model):
     peer_tolerance_pct = fields.Float(
         string="Tolerancia para confirmar con otros proveedores (puntos)", default=3.0,
         help="El cambio se aplica de inmediato si los demás proveedores del producto se movieron igual, con esta diferencia.")
+    tech_categ_id = fields.Many2one(
+        "product.category", string="Categoría de tecnología (precio por mercado)",
+        help="Los productos de esta categoría (y sus subcategorías) no siguen las reglas normales de margen: las 4 listas salen de la tabla "
+             "'Margen de mercado' con un piso y un escalón entre listas.")
+    tech_floor_pct = fields.Float(
+        string="Piso de margen en tecnología (%)", digits=(12, 2),
+        help="Margen mínimo de la lista más barata. Si el mercado deja menos (o pierde), se usa este.")
+    tech_step_pct = fields.Float(
+        string="Escalón entre listas (puntos)", digits=(12, 2),
+        help="Cada lista más cara suma estos puntos de margen sobre la anterior (de la más barata a la más cara).")
+    tech_market_mode = fields.Selection(
+        [("off", "Apagado (reglas normales)"), ("on", "Encendido")], string="Precio por mercado en tecnología", default="off", required=True,
+        help="Con 'Apagado' ApiHub no toca los precios de tecnología. Antes de encender, revisar la vista previa.")
     sale_pricelist_ids = fields.Many2many(
         "product.pricelist", "apihub_config_pricelist_rel", "config_id", "pricelist_id", string="Listas de precios de venta",
         help="Las listas en las que el motor crea la regla de precio que falte (una regla de fórmula por producto y lista). "

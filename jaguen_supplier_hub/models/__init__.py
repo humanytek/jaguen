@@ -2,6 +2,7 @@ from . import config
 from . import provider
 from . import product_link
 from . import special_price
+from . import market_margin
 from . import product_template
 from . import delivery
 from . import engine

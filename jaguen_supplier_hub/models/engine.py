@@ -518,20 +518,19 @@ class ApihubEngine(models.AbstractModel):
             return 1
         return 0
 
+    @staticmethod
+    def _list_number(pricelist):
+        """Número del nombre de la lista ("... 30%", "... 15%"): sirve para ordenar de la más barata a la más cara y como margen exacto."""
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", pricelist.name or "")
+        return float(m.group(1).replace(",", ".")) if m else None
+
     @api.model
-    def _exact_margin_rules(self, tmpl):
-        """Margen exacto (Javier, 2026-10-20, papel bond): cada lista de venta toma el margen de su nombre ("... 30%", "... 25%"...) y el
-        precio es costo ÷ (1 - margen), con redondeo propio del producto (cajas: $5). Crea o corrige la regla de fórmula sobre el AVCO."""
-        cfg = self.env["apihub.config"].get_config()
+    def _apply_margin_rules(self, tmpl, pairs, rnd):
+        """Crea o corrige, por cada (lista, margen %), la regla de fórmula sobre el AVCO: precio = costo ÷ (1 − margen). Devuelve cuántas cambió."""
         item = self.env["product.pricelist.item"]
-        rnd = tmpl.apihub_price_round or 0.25
         changed = 0
-        for pl in cfg.sale_pricelist_ids:
-            m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", pl.name or "")
-            if not m:
-                continue
-            margin = float(m.group(1).replace(",", "."))
-            if not 0 < margin < 95:
+        for pl, margin in pairs:
+            if not -50 < margin < 95:
                 continue
             markup = round((1.0 / (1.0 - margin / 100.0) - 1.0) * 100.0, 2)
             vals = {"compute_price": "formula", "base": "standard_price", "price_markup": markup, "price_discount": -markup,
@@ -548,6 +547,88 @@ class ApihubEngine(models.AbstractModel):
         return changed
 
     @api.model
+    def _exact_margin_rules(self, tmpl):
+        """Margen exacto (Javier, 2026-10-20, papel bond): cada lista de venta toma el margen de su nombre ("... 30%", "... 25%"...) y el
+        precio es costo ÷ (1 - margen), con redondeo propio del producto (cajas: $5)."""
+        cfg = self.env["apihub.config"].get_config()
+        pairs = [(pl, self._list_number(pl)) for pl in cfg.sale_pricelist_ids if self._list_number(pl)]
+        return self._apply_margin_rules(tmpl, pairs, tmpl.apihub_price_round or 0.25)
+
+    @api.model
+    def _tech_margins(self, tmpl, cfg=None, force=False):
+        """[(lista, margen %)] de un producto de Cómputo y Tecnología (Javier, 2026-10-20): la lista más barata = el mayor entre el piso y el
+        margen que deja el mercado en su subcategoría; cada lista más cara suma un escalón. [] si no aplica o está apagado."""
+        cfg = cfg or self.env["apihub.config"].get_config()
+        root = cfg.tech_categ_id
+        if (cfg.tech_market_mode != "on" and not force) or not root or not tmpl.categ_id:
+            return []
+        if root.id not in [int(x) for x in (tmpl.categ_id.parent_path or "").split("/") if x]:
+            return []
+        market, categ = None, tmpl.categ_id
+        while categ and market is None:
+            rec = self.env["apihub.market.margin"].search([("categ_id", "=", categ.id)], limit=1)
+            if rec:
+                market = rec.margin_pct
+            categ = categ.parent_id if categ.id != root.id else False
+        base = max(cfg.tech_floor_pct, market if market is not None else cfg.tech_floor_pct)
+        lists = sorted([pl for pl in cfg.sale_pricelist_ids if self._list_number(pl)], key=self._list_number)
+        return [(pl, base + i * cfg.tech_step_pct) for i, pl in enumerate(lists)]
+
+    @api.model
+    def market_pricing_preview(self):
+        """Vista previa (no escribe): qué cambiaría en la lista Página y en la más barata si se enciende el precio por mercado.
+        Devuelve {total, por subcategoría, mayores bajas}. Se calcula con el estado 'encendido' sin cambiar la configuración."""
+        cfg = self.env["apihub.config"].get_config()
+        if not cfg.tech_categ_id:
+            return {"error": "Falta la categoría de tecnología en la configuración."}
+        tech = self.env["product.template"].search([("categ_id", "child_of", cfg.tech_categ_id.id), ("sale_ok", "=", True)])
+        lists = sorted([pl for pl in cfg.sale_pricelist_ids if self._list_number(pl)], key=self._list_number)
+        if not lists:
+            return {"error": "No hay listas de venta configuradas."}
+        cheap, top = lists[0], lists[-1]
+        item = self.env["product.pricelist.item"]
+        rows, bycat = [], {}
+        if True:
+            for t in tech:
+                if not (t.is_published or t.apihub_no_publish) or t.standard_price <= 0:
+                    continue
+                pairs = dict(self._tech_margins(t, cfg, force=True))
+                if not pairs:
+                    continue
+                out = {}
+                for pl in (cheap, top):
+                    new_factor = 1.0 / (1.0 - pairs[pl] / 100.0)
+                    old = item.search([("pricelist_id", "=", pl.id), ("product_tmpl_id", "=", t.id), ("applied_on", "=", "1_product")], limit=1)
+                    if old and old.compute_price == "formula" and old.base == "standard_price":
+                        old_factor = 1.0 + (old.price_markup or 0.0) / 100.0
+                    elif old and old.compute_price == "fixed":
+                        old_factor = old.fixed_price / t.standard_price
+                    else:
+                        old_factor = None
+                    out[pl.id] = (new_factor, old_factor)
+                nf, of = out[top.id]
+                chg = (nf / of - 1.0) if of else None
+                rows.append((chg, t.default_code, t.name[:40], t.categ_id.name, pairs[cheap], pairs[top]))
+                d = bycat.setdefault(t.categ_id.complete_name, {"n": 0, "base": pairs[cheap], "chg": []})
+                d["n"] += 1
+                if chg is not None:
+                    d["chg"].append(chg)
+        chgs = sorted(r[0] for r in rows if r[0] is not None)
+        return {
+            "productos": len(rows), "con_regla_actual": len(chgs),
+            "cambio_mediano_pagina": chgs[len(chgs) // 2] if chgs else None,
+            "listas": [pl.name for pl in lists],
+            "por_subcategoria": {k: {"n": v["n"], "margen_lista_barata": v["base"],
+                                     "cambio_mediano_pagina": sorted(v["chg"])[len(v["chg"]) // 2] if v["chg"] else None} for k, v in bycat.items()},
+            "mayores_bajas": [list(r) for r in sorted((r for r in rows if r[0] is not None), key=lambda r: r[0])[:10]],
+            "mayores_alzas": [list(r) for r in sorted((r for r in rows if r[0] is not None), key=lambda r: -r[0])[:5]],
+        }
+
+    @api.model
+    def _market_rules(self, tmpl):
+        return self._apply_margin_rules(tmpl, self._tech_margins(tmpl), 0.25)
+
+    @api.model
     def _ensure_rules(self, tmpl, provider):
         """Crea la regla de precio de venta que falte (solo grupo Distribuidor y producto publicado). Los porcentajes se
         copian de las reglas que ya existen en cada lista: no viven en el código. Fábrica: mantiene el precio fijo de Página."""
@@ -555,6 +636,9 @@ class ApihubEngine(models.AbstractModel):
             return self._update_fabrica_price(tmpl, provider, create=tmpl.is_published)
         if tmpl.apihub_exact_margin:
             return self._exact_margin_rules(tmpl)
+        if tmpl.is_published or tmpl.apihub_no_publish:
+            if self._tech_margins(tmpl):
+                return self._market_rules(tmpl)
         if provider.pricing_group != "distribuidor" or not (tmpl.is_published or tmpl.apihub_no_publish):
             return 0
         cfg = self.env["apihub.config"].get_config()

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apihub_market_margin_view_list" model="ir.ui.view">
+        <field name="name">apihub.market.margin.list</field>
+        <field name="model">apihub.market.margin</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="categ_id"/>
+                <field name="margin_pct"/>
+                <field name="note"/>
+                <field name="updated_on"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_apihub_market_margin" model="ir.actions.act_window">
+        <field name="name">Margen de mercado (tecnología)</field>
+        <field name="res_model">apihub.market.margin</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>
