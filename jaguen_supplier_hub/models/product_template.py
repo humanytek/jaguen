@@ -12,6 +12,11 @@ class ProductTemplate(models.Model):
         string="Agotado desde (ApiHub)", copy=False,
         help="Primer día de la racha de días en que ningún proveedor lo tiene. A los días configurados se despublica.")
 
+    apihub_no_publish = fields.Boolean(
+        string="No publicar solo (ApiHub)", copy=False,
+        help="ApiHub sigue actualizando costo, proveedor y AVCO de este producto, pero nunca lo publica por su cuenta "
+             "(ej. papel bond: solo se publican las cajas de 5,000 hojas, las demás presentaciones no).")
+
     def _apihub_availability_info(self):
         """(etiqueta, texto) para mostrar en la tienda, o False si el producto no se maneja o es de entrega rápida."""
         self.ensure_one()
