@@ -53,6 +53,7 @@
                             <field name="freight_amount"/>
                             <field name="on_order_fee"/>
                             <field name="has_stock_data"/>
+                            <field name="unlimited_stock"/>
                             <field name="live_check"/>
                             <field name="purchase_delivery_note"/>
                             <field name="order_warehouse"/>

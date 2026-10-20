@@ -125,6 +125,10 @@ class ApihubProvider(models.Model):
         string="Da existencia", default=True,
         help="Los proveedores de tienda (Costco, Home Depot, Steren) solo dan precio: sin existencia confiable, así que los "
              "productos cuyo proveedor es uno de estos no se publican ni se despublican solos (siguen a mano).")
+    unlimited_stock = fields.Boolean(
+        string="Existencia ilimitada (tienda)", default=False,
+        help="Tiendas donde se compra al momento (Costco, Home Depot, Steren, Amazon, Walmart...): siempre se considera que hay "
+             "existencia local. Un producto con un proveedor así queda como entrega rápida y se publica solo (si tiene foto).")
     card_fee_pct = fields.Float(
         string="Cargo de tarjeta (%)", default=0.0, digits=(12, 2),
         help="Solo proveedores de tienda: se suma al precio de la página (Costco 2 %).")

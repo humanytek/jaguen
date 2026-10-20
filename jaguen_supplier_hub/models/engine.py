@@ -306,8 +306,8 @@ class ApihubEngine(models.AbstractModel):
             lines = tmpl.seller_ids.filtered(lambda s: s.partner_id)
             if not tmpl.active or not tmpl.sale_ok or not lines or not all(s.partner_id.id in group_of for s in lines):
                 continue
-            if not all(group_of[s.partner_id.id].has_stock_data for s in lines):
-                continue   # algun proveedor de tienda (sin existencia): la publicacion de este producto sigue a mano
+            if not all(group_of[s.partner_id.id].has_stock_data or group_of[s.partner_id.id].unlimited_stock for s in lines):
+                continue   # algun proveedor sin existencia y sin ser tienda de existencia ilimitada: la publicacion sigue a mano
             counts["managed"] += 1
             local = national = any_stale = False
             first = lines.sorted(lambda s: (s.sequence, s.id))[0]
@@ -315,6 +315,9 @@ class ApihubEngine(models.AbstractModel):
             price = None   # precio público sin IVA; se calcula solo si hace falta (un proveedor que no es el 1 tiene existencia local)
             for link in tlinks:
                 p = link.provider_id
+                if p.unlimited_stock:
+                    local = True   # tienda: se compra al momento, existencia ilimitada (Javier, 2026-10-20)
+                    continue
                 if p.id in stale:
                     any_stale = True
                     continue
