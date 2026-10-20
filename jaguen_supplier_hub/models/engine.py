@@ -354,7 +354,7 @@ class ApihubEngine(models.AbstractModel):
             if state == "out":
                 if tmpl.apihub_out_since and tmpl.is_published and (today - tmpl.apihub_out_since).days >= cfg.unpublish_days:
                     unpublish.append(tmpl)
-            elif not tmpl.is_published:
+            elif not tmpl.is_published and not tmpl.apihub_no_publish:
                 if tmpl.image_1920:
                     publish.append(tmpl)
                 else:
