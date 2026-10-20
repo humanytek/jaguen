@@ -17,6 +17,14 @@ class ProductTemplate(models.Model):
         help="ApiHub sigue actualizando costo, proveedor y AVCO de este producto, pero nunca lo publica por su cuenta "
              "(ej. papel bond: solo se publican las cajas de 5,000 hojas, las demás presentaciones no).")
 
+    apihub_exact_margin = fields.Boolean(
+        string="Precio por margen exacto (ApiHub)", copy=False,
+        help="Las 4 listas (Página, Clientes, Grandes, Competencia) toman el margen del nombre de la lista: precio = costo ÷ (1 − margen). "
+             "ApiHub crea y mantiene estas reglas de precio sobre el costo (AVCO), aunque el producto no esté publicado.")
+    apihub_price_round = fields.Float(
+        string="Redondeo del precio (ApiHub)", copy=False, default=0.0, digits=(12, 2),
+        help="Solo con margen exacto: redondeo de las reglas (ej. 5 para cajas de papel). 0 = 0.25.")
+
     def write(self, vals):
         before = {tmpl.id: tmpl.is_published for tmpl in self} if "is_published" in vals else {}
         res = super().write(vals)
