@@ -106,6 +106,9 @@ class ApihubConfig(models.Model):
     purchase_user_id = fields.Many2one(
         "res.users", string="Quién revisa las compras",
         help="Recibe la actividad 'revisar y enviar' de cada orden de compra en borrador. Si está vacío, el vendedor de la orden o el administrador.")
+    purchase_web_only = fields.Boolean(
+        string="Compras automáticas solo de pedidos del sitio web", default=True,
+        help="Si está activo, los pedidos capturados a mano en Odoo no generan compras de ApiHub (las haces tú); solo los del sitio web.")
     live_timeout = fields.Integer(
         string="Tiempo máximo de espera al proveedor (segundos)", default=6,
         help="Si el proveedor no responde en este tiempo, la compra sigue con el dato del archivo y el pedido queda con la "

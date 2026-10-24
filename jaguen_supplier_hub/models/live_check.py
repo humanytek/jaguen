@@ -212,7 +212,7 @@ class ApihubLive(models.AbstractModel):
         providers = self.env["apihub.provider"].sudo().search([])
         group_of = {p.partner_id.id: p for p in providers if p.partner_id}
         links = self.env["apihub.product.link"].sudo().search([("product_tmpl_id", "=", tmpl.id), ("state", "=", "approved")])
-        lines = tmpl.seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))
+        lines = tmpl._apihub_lines().sorted(lambda s: (s.sequence, s.id))
         result = {"managed": False, "ok": True, "max_qty": qty, "assigned": [], "unverified": [], "message": "", "detail": []}
         if (not links or not lines or tmpl.apihub_state not in ("local", "on_order")
                 or not all(s.partner_id.id in group_of and group_of[s.partner_id.id].has_stock_data for s in lines)):
@@ -363,7 +363,7 @@ class ApihubLive(models.AbstractModel):
             if offer["target"] < qty:
                 return offer["target"], _("Solo hay %s pieza(s) disponibles de este producto; ajustamos la cantidad.", offer["target"])
             return qty, ""
-        first = tmpl.sudo().seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[:1]
+        first = tmpl.sudo()._apihub_lines().sorted(lambda s: (s.sequence, s.id))[:1]
         provider = next((p for p in self.env["apihub.provider"].sudo().search([]) if first and p.partner_id == first.partner_id), None)
         unit = 0.0
         try:
@@ -432,7 +432,7 @@ class ApihubLive(models.AbstractModel):
                     message = _("Este producto ya no está disponible. Regresa al carrito y quítalo.")
                 problems.append((line, message))
             else:
-                first = tmpl.sudo().seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[:1]
+                first = tmpl.sudo()._apihub_lines().sorted(lambda s: (s.sequence, s.id))[:1]
                 p1 = next((p for p in self.env["apihub.provider"].sudo().search([]) if first and p.partner_id == first.partner_id), None)
                 if res["assigned"] and p1 and res["assigned"][0][0] != p1.code:
                     notes.append("%s: pedir a %s (el Proveedor 1, %s, no tiene)." % (tmpl.default_code, res["assigned"][0][0], p1.code))
@@ -561,7 +561,10 @@ class SaleOrder(models.Model):
             own_before[order.id] = {l.product_id.product_tmpl_id.id: own_free(l.product_id.product_tmpl_id)
                                     for l in order.order_line if l.product_id and not l.is_delivery}
         res = super().action_confirm()
+        web_only = self.env["apihub.config"].sudo().get_config().purchase_web_only
         for order in self:
+            if web_only and not order.website_id:
+                continue   # pedido hecho a mano en Odoo: las compras (ej. a Compuproveedores) las hace Javier
             try:
                 self.env["apihub.purchase"].sudo().create_drafts(order, own_before.get(order.id, {}))
             except Exception:   # noqa: BLE001 - nunca debe impedir confirmar la orden
