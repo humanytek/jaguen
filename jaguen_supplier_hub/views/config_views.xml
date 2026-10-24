@@ -39,6 +39,7 @@
                             <field name="live_reserve_hours"/>
                             <field name="live_hold_minutes"/>
                             <field name="purchase_mode"/>
+                            <field name="purchase_web_only"/>
                             <field name="purchase_user_id"/>
                         </group>
                     </group>

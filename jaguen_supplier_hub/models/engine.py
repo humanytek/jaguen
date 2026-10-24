@@ -304,7 +304,7 @@ class ApihubEngine(models.AbstractModel):
         for tmpl_id, link_ids in by_tmpl.items():
             tlinks = Link.browse(link_ids)
             tmpl = tlinks[0].product_tmpl_id
-            lines = tmpl.seller_ids.filtered(lambda s: s.partner_id)
+            lines = tmpl._apihub_lines()
             if not tmpl.active or not tmpl.sale_ok or not lines or not all(s.partner_id.id in group_of for s in lines):
                 continue
             if not all(group_of[s.partner_id.id].has_stock_data or group_of[s.partner_id.id].unlimited_stock for s in lines):
@@ -381,7 +381,7 @@ class ApihubEngine(models.AbstractModel):
                 tmpl.write({"is_published": False})
             raised = 0
             for tmpl in publish:
-                first = tmpl.seller_ids.filtered(lambda s: s.partner_id).sorted(lambda s: (s.sequence, s.id))[0]
+                first = tmpl._apihub_lines().sorted(lambda s: (s.sequence, s.id))[0]
                 provider = group_of.get(first.partner_id.id)
                 if provider:
                     counts["rules"] += self._ensure_rules(tmpl, provider)
@@ -456,7 +456,7 @@ class ApihubEngine(models.AbstractModel):
             links.setdefault((link.product_tmpl_id.id, link.provider_id.id), link)
         reordered = avco = rules = 0
         for tmpl in templates:
-            lines = tmpl.seller_ids.filtered(lambda s: s.partner_id)
+            lines = tmpl._apihub_lines()
             if not lines:
                 continue
             # Proveedor 1 = el de menor costo efectivo (con existencia primero), solo cuando TODOS los proveedores del
@@ -476,7 +476,11 @@ class ApihubEngine(models.AbstractModel):
                     ordered = current | (ordered - current)
                 if [s.id for s in ordered] != [s.id for s in lines.sorted(lambda s: (s.sequence, s.id))]:
                     reordered += 1
-                for pos, s in enumerate(ordered, start=1):
+                has_ignored = len(lines) != len(tmpl.seller_ids.filtered(lambda s: s.partner_id))
+                slots = sorted(s.sequence for s in lines) if has_ignored else list(range(1, len(ordered) + 1))
+                if len(set(slots)) != len(slots):
+                    slots = list(range(1, len(ordered) + 1))
+                for pos, s in zip(slots, ordered):
                     if s.sequence != pos:
                         s.sequence = pos
             first = lines.sorted(lambda s: (s.sequence, s.id))[0]

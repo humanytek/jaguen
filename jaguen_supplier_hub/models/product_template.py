@@ -50,6 +50,11 @@ class ProductTemplate(models.Model):
                     "name": "ApiHub: %s despublicado" % (tmpl.default_code or tmpl.id), "url_from": url, "url_to": "/",
                     "redirect_type": "302", "website_id": tmpl.website_id.id or False})
 
+    def _apihub_lines(self):
+        """Líneas de proveedor que ApiHub toma en cuenta: las de Compras sin los proveedores marcados 'ApiHub no lo toma en cuenta'."""
+        self.ensure_one()
+        return self.seller_ids.filtered(lambda s: s.partner_id and not s.partner_id.apihub_ignore)
+
     def _apihub_availability_info(self):
         """(etiqueta, texto) para mostrar en la tienda, o False si el producto no se maneja o es de entrega rápida."""
         self.ensure_one()
@@ -59,6 +64,15 @@ class ProductTemplate(models.Model):
         if self.apihub_state == "on_order":
             return (_("Sobre pedido"), cfg.on_order_text or "")
         return (_("Agotado"), cfg.out_text or "")
+
+
+class ResPartner(models.Model):
+    _inherit = "res.partner"
+
+    apihub_ignore = fields.Boolean(
+        string="ApiHub no lo toma en cuenta", copy=False,
+        help="Proveedor que se captura a mano (ej. Compuproveedores): ApiHub lo ignora al ordenar proveedores, calcular AVCO, publicar, "
+             "verificar el carrito y comprar. La línea queda en Compras para tus órdenes manuales.")
 
 
 class ProductProduct(models.Model):
