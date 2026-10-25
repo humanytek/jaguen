@@ -50,6 +50,21 @@ class ProductTemplate(models.Model):
                     "name": "ApiHub: %s despublicado" % (tmpl.default_code or tmpl.id), "url_from": url, "url_to": "/",
                     "redirect_type": "302", "website_id": tmpl.website_id.id or False})
 
+    def _apihub_cost(self):
+        """Costo (standard_price) del producto. Con variantes Odoo deja el del producto en 0: se lee de la primera variante."""
+        self.ensure_one()
+        if len(self.product_variant_ids) <= 1:
+            return self.standard_price
+        return self.product_variant_ids[0].standard_price
+
+    def _apihub_set_cost(self, value):
+        """Escribe el costo; con variantes lo pone igual en todas (en un producto ApiHub todas cuestan lo mismo)."""
+        self.ensure_one()
+        if len(self.product_variant_ids) <= 1:
+            self.standard_price = value
+        else:
+            self.product_variant_ids.write({"standard_price": value})
+
     def _apihub_lines(self):
         """Líneas de proveedor que ApiHub toma en cuenta: las de Compras sin los proveedores marcados 'ApiHub no lo toma en cuenta'."""
         self.ensure_one()

@@ -251,7 +251,7 @@ class ApihubEngine(models.AbstractModel):
             ("pricelist_id", "=", pricelist.id), ("product_tmpl_id", "=", tmpl.id), ("applied_on", "=", "1_product"),
             ("compute_price", "=", "formula"), ("base", "=", "standard_price")], limit=1)
         params = self._rule_params(pricelist)
-        cost = tmpl.standard_price
+        cost = tmpl._apihub_cost()
         if not item or not params or cost <= 0:
             return 0
         rnd = item.price_round or params[1] or 0.0
@@ -489,8 +489,8 @@ class ApihubEngine(models.AbstractModel):
                 continue
             if tmpl.qty_available == 0:
                 new = round(first.price * (provider.avco_factor or 1.0), 2)
-                if new > 0 and abs(tmpl.standard_price - new) > 0.005:
-                    tmpl.sudo().standard_price = new
+                if new > 0 and abs(tmpl._apihub_cost() - new) > 0.005:
+                    tmpl.sudo()._apihub_set_cost(new)
                     avco += 1
             rules += self._ensure_rules(tmpl, provider)
         return reordered, avco, rules
@@ -501,14 +501,14 @@ class ApihubEngine(models.AbstractModel):
         (Javier: 30 % de margen siempre, en Página solamente; las demás listas van encadenadas a Página). Solo cuando el AVCO
         sigue al proveedor (sin existencia). Devuelve 1 si cambió o creó la regla."""
         pricelist = self.env["apihub.config"].get_config().public_pricelist_id
-        if not pricelist or tmpl.standard_price <= 0:
+        if not pricelist or tmpl._apihub_cost() <= 0:
             return 0
         item = self.env["product.pricelist.item"].search([
             ("pricelist_id", "=", pricelist.id), ("product_tmpl_id", "=", tmpl.id), ("applied_on", "=", "1_product")], limit=1)
         if item and (item.compute_price != "fixed" or tmpl.qty_available != 0):
             return 0
         margin = (provider.price_margin_pct or 0.0) / 100.0
-        price = tmpl.standard_price * (1 + (provider.price_freight_pct or 0.0) / 100.0) / (1 - margin)
+        price = tmpl._apihub_cost() * (1 + (provider.price_freight_pct or 0.0) / 100.0) / (1 - margin)
         price = round(price / 0.25) * 0.25
         if item:
             if abs(item.fixed_price - price) <= 0.005:
@@ -594,7 +594,7 @@ class ApihubEngine(models.AbstractModel):
         rows, bycat = [], {}
         if True:
             for t in tech:
-                if not (t.is_published or t.apihub_no_publish) or t.standard_price <= 0:
+                if not (t.is_published or t.apihub_no_publish) or t._apihub_cost() <= 0:
                     continue
                 pairs = dict(self._tech_margins(t, cfg, force=True))
                 if not pairs:
@@ -606,7 +606,7 @@ class ApihubEngine(models.AbstractModel):
                     if old and old.compute_price == "formula" and old.base == "standard_price":
                         old_factor = 1.0 + (old.price_markup or 0.0) / 100.0
                     elif old and old.compute_price == "fixed":
-                        old_factor = old.fixed_price / t.standard_price
+                        old_factor = old.fixed_price / t._apihub_cost()
                     else:
                         old_factor = None
                     out[pl.id] = (new_factor, old_factor)
