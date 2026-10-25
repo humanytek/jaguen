@@ -11,6 +11,14 @@
         </xpath>
     </template>
 
+    <!-- Ficha: clave de la variante elegida (se actualiza con el JS static/src/js/variant_code.js) -->
+    <template id="product_variant_code" inherit_id="website_sale.product" name="ApiHub: clave de la variante en la ficha">
+        <xpath expr="//div[@t-field='product.description_ecommerce']" position="after">
+            <div t-if="product.apihub_show_variant_code" class="apihub-variant-code text-muted mb-2"
+                 t-out="combination_info.get('apihub_clave') or ''"/>
+        </xpath>
+    </template>
+
     <!-- Agotado: se ve la ficha, el precio y la etiqueta, pero sin controles de compra -->
     <template id="product_hide_buy_when_out" inherit_id="website_sale.product" name="ApiHub: sin botón de compra si está agotado">
         <xpath expr="//*[@id='o_wsale_cta_wrapper']" position="attributes">

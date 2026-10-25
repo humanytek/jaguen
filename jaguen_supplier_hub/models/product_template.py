@@ -25,6 +25,17 @@ class ProductTemplate(models.Model):
         string="Redondeo del precio (ApiHub)", copy=False, default=0.0, digits=(12, 2),
         help="Solo con margen exacto: redondeo de las reglas (ej. 5 para cajas de papel). 0 = 0.25.")
 
+    apihub_show_variant_code = fields.Boolean(
+        string="Mostrar la clave de la variante en la tienda", copy=False,
+        help="En la ficha de la tienda se muestra, debajo del título, solo la clave (referencia interna) de la variante elegida. "
+             "Para productos con variantes cuya clave es la del proveedor (ej. Sablon).")
+
+    def _get_additionnal_combination_info(self, product_or_template, quantity, date, website):
+        info = super()._get_additionnal_combination_info(product_or_template, quantity, date, website)
+        if self.apihub_show_variant_code:
+            info["apihub_clave"] = product_or_template.default_code if product_or_template._name == "product.product" else ""
+        return info
+
     def write(self, vals):
         before = {tmpl.id: tmpl.is_published for tmpl in self} if "is_published" in vals else {}
         res = super().write(vals)
