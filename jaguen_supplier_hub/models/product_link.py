@@ -84,9 +84,10 @@ class ApihubProductLink(models.Model):
         tmpl = self.product_tmpl_id
         lines = tmpl.seller_ids.sorted(lambda l: (l.sequence, l.id))
         own = lines.filtered(lambda l: self.provider_id.partner_id and l.partner_id == self.provider_id.partner_id)
-        return own[:1].price or tmpl.standard_price or lines[:1].price or 0.0
+        return own[:1].price or tmpl._apihub_cost() or lines[:1].price or 0.0
 
-    @api.depends("product_tmpl_id.standard_price", "product_tmpl_id.seller_ids.price",
+    @api.depends("product_tmpl_id.standard_price", "product_tmpl_id.product_variant_ids.standard_price",
+                 "product_tmpl_id.seller_ids.price",
                  "product_tmpl_id.seller_ids.partner_id", "provider_id.partner_id")
     def _compute_cost_reference(self):
         for link in self:
@@ -237,7 +238,7 @@ class ApihubProductLink(models.Model):
                 [tmpl.with_context(lang=lang).description_sale, tmpl.with_context(lang=lang).description_ecommerce],
                 [tmpl.with_context(lang=lang).description_purchase, tmpl.with_context(lang=lang).description_sale],
                 row.get("provider_sku"), row.get("provider_sku"), row.get("provider_description"), row.get("brand"),
-                row.get("cost_reference") or tmpl.standard_price, row.get("cost_provider_raw"), row.get("multiplier") or 1.0,
+                row.get("cost_reference") or tmpl._apihub_cost(), row.get("cost_provider_raw"), row.get("multiplier") or 1.0,
                 tmpl.is_published)
             if res["failed"]:
                 # si una regla de marca, descripción, código o precio no cuadra no es el mismo producto: no se sugiere

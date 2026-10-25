@@ -11,6 +11,10 @@
                     <label for="apihub_no_publish"/>
                 </span>
                 <span class="d-inline-block">
+                    <field name="apihub_show_variant_code"/>
+                    <label for="apihub_show_variant_code"/>
+                </span>
+                <span class="d-inline-block">
                     <field name="apihub_exact_margin"/>
                     <label for="apihub_exact_margin"/>
                 </span>

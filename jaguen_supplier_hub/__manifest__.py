@@ -8,7 +8,7 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
 """,
     "author": "JAGUEN",
     "category": "Inventory/Purchase",
-    "version": "18.0.1.6.9",
+    "version": "18.0.1.6.11",
     "license": "LGPL-3",
     "depends": ["product", "stock", "purchase", "website_sale", "delivery"],
     "data": [
@@ -26,6 +26,11 @@ Ver docs/DECISIONES.md en el repositorio ApiHub para las reglas y su razón.
         "views/menus.xml",
         "data/apihub_data.xml",
     ],
+    "assets": {
+        "web.assets_frontend": [
+            ("before", "website_sale/static/src/js/website_sale.js", "jaguen_supplier_hub/static/src/js/variant_code.js"),
+        ],
+    },
     "post_init_hook": "post_init_hook",
     "application": True,
     "installable": True,
