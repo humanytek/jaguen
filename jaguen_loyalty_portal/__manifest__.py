@@ -69,7 +69,7 @@ puede volver a esa pantalla cuando quiera para cambiar su respuesta. La
 página de términos completos (/my/loyalty/terminos/completos) está
 redactada en formato de cláusulas numeradas, en el mismo estilo que los
 Términos y Condiciones generales de www.jaguen.com, con el domicilio
-fiscal real de JAGUEN (Calle Riada #6, Hermosillo, Sonora, C.P. 83147),
+fiscal real de JAGUEN (Calle Riada #6, Hermosillo, Sonora, C.P. 83143),
 la mecánica de cada programa (cláusula 2) y la elegibilidad detallada -
 excluye gobierno, dependencias, licitaciones y portales de compras
 gubernamentales, además de cuentas privadas cuyas propias políticas de
