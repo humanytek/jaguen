@@ -214,7 +214,7 @@ patch(ListRenderer.prototype, {
     setup() {
         super.setup(...arguments);
         const widthKey = () => "w|" + this.keyOptionalFields;
-        const apply = () => {
+        const applyReal = () => {
             const table = this.tableRef && this.tableRef.el;
             const svc = this.env.services.jaguen_cols;
             if (!table || !svc || table.classList.contains("o_resizing")) {
@@ -299,17 +299,63 @@ patch(ListRenderer.prototype, {
         let timer = null;
         let resizeTimer = null;
         let observer = null;
-        // Odoo recalcula los anchos cuando cambia el tamano del area de la lista (ventana, barra lateral...);
-        // se vuelve a aplicar despues de que termine.
-        const onResize = () => {
-            apply();                                  // de inmediato, para que no se vea el ancho de Odoo
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(apply, 150);
-        };
         let mutationObserver = null;
+        let applying = false;
+        let pausadoHasta = 0;
+        let rafafaInicio = 0;
+        let rafafaCuenta = 0;
+        // Seguro de vida: este codigo nunca debe poder trabar la pagina. Si se llegara a disparar sin parar (mas de 400
+        // veces en un segundo), se detiene 2 segundos y despues retoma, asi nunca se queda en un ciclo.
+        const apply = () => {
+            const ahora = performance.now();
+            if (applying || ahora < pausadoHasta) {
+                return;
+            }
+            if (ahora - rafafaInicio > 1000) {
+                rafafaInicio = ahora;
+                rafafaCuenta = 0;
+            }
+            if (++rafafaCuenta > 400) {
+                pausadoHasta = ahora + 2000;
+                rafafaCuenta = 0;
+                console.warn("jaguen_website: ajuste de columnas en pausa (se disparaba sin parar)");
+                return;
+            }
+            applying = true;
+            try {
+                applyReal();
+            } catch (e) {
+                console.warn("jaguen_website: ajuste de columnas", e);
+            } finally {
+                applying = false;
+                if (mutationObserver) {
+                    mutationObserver.takeRecords();   // lo que escribimos nosotros no nos vuelve a llamar
+                }
+            }
+        };
+        // Odoo recalcula los anchos cuando cambia el ancho del area de la lista (ventana, barra lateral...);
+        // se vuelve a aplicar de inmediato y otra vez cuando termina su recalculo.
+        let anchoVisto = 0;
+        const onResize = () => {
+            const el = this.tableRef && this.tableRef.el && this.tableRef.el.parentNode;
+            const ancho = el ? el.clientWidth : 0;
+            if (ancho === anchoVisto) {
+                return;   // cambio de alto, no de ancho: no hay nada que reacomodar
+            }
+            anchoVisto = ancho;
+            apply();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(apply, 250);
+        };
+        // Odoo vuelve a poner sus propios anchos de columna: se corrige en el mismo instante, antes de que se pinte.
+        // Solo se atienden los cambios en los encabezados o en la tabla (no en celdas ni campos).
         let queued = false;
-        const onMutated = () => {
-            if (queued) {
+        const onMutated = (records) => {
+            const table = this.tableRef && this.tableRef.el;
+            if (!table || applying || queued) {
+                return;
+            }
+            if (!records.some((r) => r.target === table || r.target.tagName === "TH")) {
                 return;
             }
             queued = true;
@@ -343,6 +389,7 @@ patch(ListRenderer.prototype, {
             window.addEventListener("pointerup", onUp, true);
         };
         onMounted(() => {
+            anchoVisto = this.tableRef.el.parentNode ? this.tableRef.el.parentNode.clientWidth : 0;
             apply();
             clearTimeout(timer);
             timer = setTimeout(apply, 400);
