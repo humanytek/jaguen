@@ -1,0 +1,28 @@
+/* Lineas de ventas, compras y facturas: el bote de basura siempre queda a la vista, aunque la ventana sea angosta
+   y la tabla tenga que desplazarse hacia los lados. */
+.o_section_and_note_list_view th.o_list_actions_header,
+.o_section_and_note_list_view td.o_list_record_remove {
+    position: sticky !important;
+    right: 0;
+    z-index: 3;
+    background-color: var(--o-view-background-color, #fff);
+}
+
+/* Solo para medir (se pone y se quita en el mismo instante, sin pintarse): cada columna toma lo que necesita su contenido. */
+.o_section_and_note_list_view.jg-medir {
+    table-layout: auto !important;
+    width: max-content !important;
+}
+.o_section_and_note_list_view.jg-medir th,
+.o_section_and_note_list_view.jg-medir td {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+}
+
+/* En las lineas solo se puede mover la raya entre Producto y Descripcion: las demas columnas (cantidad, UdM, precio,
+   impuestos, importe...) tienen su ancho fijo, justo al contenido. */
+.o_section_and_note_list_view thead th:not([data-name="product_id"]):not([data-name="product_template_id"]):not([data-name="product_variant_id"]) .o_resize {
+    display: none !important;
+}

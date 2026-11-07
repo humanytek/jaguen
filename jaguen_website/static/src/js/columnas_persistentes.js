@@ -9,6 +9,103 @@ import { user } from "@web/core/user";
 import { onMounted, onPatched, onWillUnmount } from "@odoo/owl";
 import { ProductLabelSectionAndNoteListRender } from "@account/components/product_label_section_and_note_field/product_label_section_and_note_field";
 
+const COLUMNAS_PRODUCTO = ["product_id", "product_template_id", "product_variant_id"];
+
+// Ancho natural de cada columna (lo que necesita su contenido sin cortarse): se lo pedimos al propio navegador, dejando
+// por un instante que la tabla se acomode sola con todo en una linea. No se alcanza a pintar nada entre medir y volver.
+function medirNaturales(table, heads) {
+    table.classList.add("jg-medir");
+    const natural = heads.map((th) => Math.ceil(th.getBoundingClientRect().width));
+    table.classList.remove("jg-medir");
+    return natural;
+}
+
+function applyLineas(table, heads, avail, saved) {
+    // Mientras se edita una linea no se vuelve a medir (los campos de captura miden distinto y la tabla "brincaria")
+    let natural = table._jgNatural;
+    if (!natural || natural.length !== heads.length || !table.querySelector("tr.o_selected_row")) {
+        natural = medirNaturales(table, heads);
+        table._jgNatural = natural;
+    }
+    const ancho = new Map();
+    let fijos = 0;
+    let ajustadas = 0;
+    const columnasProducto = [];
+    const columnasNombre = [];
+    heads.forEach((th, i) => {
+        const nombre = th.dataset.name;
+        if (nombre && COLUMNAS_PRODUCTO.includes(nombre)) {
+            columnasProducto.push(th);
+            return;
+        }
+        if (nombre === "name") {
+            columnasNombre.push(th);
+            return;
+        }
+        let px;
+        if (!nombre || nombre === "sequence") {
+            // asa para mover la linea, iconos y bote de basura: su ancho ya lo fijo Odoo o el codigo de arriba
+            px = Math.ceil(parseFloat(th.style.width) || th.getBoundingClientRect().width);
+            if (th.classList.contains("o_list_actions_header") || th.classList.contains("o_list_controller")) {
+                px = Math.max(px, 40);
+            }
+            fijos += px;
+        } else {
+            const need = (natural[i] || 0) + 14;   // + lugar de la flechita de ordenar
+            px = Math.ceil(Math.min(Math.max(need, 44), 230));
+            ajustadas += px;
+        }
+        ancho.set(th, px);
+    });
+    const resto = avail - fijos - ajustadas;
+    // Lo unico que el usuario puede mover es la raya entre Producto y Descripcion: se guarda como proporcion.
+    let proporcion = 0.45;
+    if (saved && saved.w) {
+        const p = COLUMNAS_PRODUCTO.map((n) => saved.w[n]).find((w) => w);
+        const n = saved.w.name;
+        if (p && n) {
+            proporcion = Math.min(0.8, Math.max(0.2, p / (p + n)));
+        }
+    }
+    const MIN_PRODUCTO = 110;
+    const MIN_NOMBRE = 140;
+    let producto = 0;
+    let nombre = 0;
+    if (columnasProducto.length && columnasNombre.length) {
+        if (resto >= MIN_PRODUCTO + MIN_NOMBRE) {
+            producto = Math.max(MIN_PRODUCTO, Math.floor(resto * proporcion));
+            nombre = Math.floor(resto - producto);
+        } else {
+            producto = MIN_PRODUCTO;
+            nombre = MIN_NOMBRE;
+        }
+    } else if (columnasProducto.length) {
+        producto = Math.max(MIN_PRODUCTO, Math.floor(resto));
+    } else if (columnasNombre.length) {
+        nombre = Math.max(MIN_NOMBRE, Math.floor(resto));
+    }
+    columnasProducto.forEach((th) => ancho.set(th, Math.floor(producto / columnasProducto.length)));
+    columnasNombre.forEach((th) => ancho.set(th, Math.floor(nombre / columnasNombre.length)));
+    let total = 0;
+    for (const th of heads) {
+        const px = ancho.get(th);
+        if (px === undefined) {
+            continue;
+        }
+        total += px;
+        if (Math.abs(parseFloat(th.style.width || 0) - px) >= 1) {
+            th.style.width = `${px}px`;
+        }
+    }
+    if (table.style.tableLayout !== "fixed") {
+        table.style.tableLayout = "fixed";
+    }
+    const tablaPx = `${Math.floor(Math.max(avail, total))}px`;
+    if (table.style.width !== tablaPx) {
+        table.style.width = tablaPx;
+    }
+}
+
 const jaguenColsService = {
     dependencies: ["orm"],
     async start(env, { orm }) {
@@ -152,22 +249,51 @@ patch(ListRenderer.prototype, {
                 th.style.width = `${Math.ceil(Math.max(32, need + 20))}px`;
                 changed = true;
             }
-            if (saved && saved.w && saved.pw && table.parentNode.clientWidth) {
-                const scale = table.parentNode.clientWidth / saved.pw;
+            const avail = table.parentNode.clientWidth;
+            // Lineas de ventas, compras y facturas: el ancho no depende de lo que el usuario haya guardado.
+            // Las columnas cortas (cantidad, UdM, precio, impuestos, importe...) se ajustan a lo que dicen, y el espacio
+            // que sobra se reparte entre Producto y Descripcion. El bote de basura siempre queda a la vista.
+            if (table.classList.contains("o_section_and_note_list_view") && avail) {
+                applyLineas(table, heads, avail, saved);
+                return;
+            }
+            if (saved && saved.w && saved.pw && avail) {
+                // Las columnas con ancho guardado se reparten lo que sobra despues de las demas (botones, columnas sin
+                // guardar), asi la suma es justo el ancho disponible: sin hueco a la derecha y sin barra horizontal.
+                let fixed = 0;
+                let savedSum = 0;
+                const withSaved = [];
                 for (const th of heads) {
                     const w = th.dataset.name && saved.w[th.dataset.name];
                     if (w) {
-                        th.style.width = `${Math.max(30, Math.floor(w * scale))}px`;
-                        changed = true;
+                        withSaved.push([th, w]);
+                        savedSum += w;
+                    } else {
+                        fixed += th.getBoundingClientRect().width;
                     }
                 }
-                table.style.tableLayout = "fixed";
-                // Nunca mas angosta que el area disponible: si no, queda un hueco a la derecha y la lista se ve corrida.
-                const total = heads.reduce(
-                    (sum, th) => sum + parseFloat(th.style.width || th.getBoundingClientRect().width),
-                    0
-                );
-                table.style.width = `${Math.floor(Math.max(total, table.parentNode.clientWidth))}px`;
+                if (withSaved.length) {
+                    const room = Math.max(avail - fixed, 30 * withSaved.length);
+                    const scale = room / savedSum;
+                    const px = withSaved.map(([, w]) => Math.max(30, Math.floor(w * scale)));
+                    const leftover = Math.floor(room) - px.reduce((a, b) => a + b, 0);
+                    if (leftover > 0) {
+                        px[px.indexOf(Math.max(...px))] += leftover;   // lo que sobra de redondear va a la columna mas ancha
+                    }
+                    withSaved.forEach(([th], i) => {
+                        if (Math.abs(parseFloat(th.style.width || 0) - px[i]) >= 1) {
+                            th.style.width = `${px[i]}px`;
+                            changed = true;
+                        }
+                    });
+                    const total = Math.floor(Math.max(avail, fixed + px.reduce((a, b) => a + b, 0)));
+                    if (table.style.tableLayout !== "fixed") {
+                        table.style.tableLayout = "fixed";
+                    }
+                    if (table.style.width !== `${total}px`) {
+                        table.style.width = `${total}px`;
+                    }
+                }
             }
         };
         let timer = null;
@@ -176,8 +302,21 @@ patch(ListRenderer.prototype, {
         // Odoo recalcula los anchos cuando cambia el tamano del area de la lista (ventana, barra lateral...);
         // se vuelve a aplicar despues de que termine.
         const onResize = () => {
+            apply();                                  // de inmediato, para que no se vea el ancho de Odoo
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(apply, 150);
+        };
+        let mutationObserver = null;
+        let queued = false;
+        const onMutated = () => {
+            if (queued) {
+                return;
+            }
+            queued = true;
+            Promise.resolve().then(() => {
+                queued = false;
+                apply();
+            });
         };
         const onPointerDown = (ev) => {
             const table = this.tableRef && this.tableRef.el;
@@ -198,6 +337,7 @@ patch(ListRenderer.prototype, {
                         }
                     }
                     svc.set(widthKey(), JSON.stringify({ w, pw: this.tableRef.el.parentNode.clientWidth }));
+                    apply();   // se reacomoda de inmediato con el ancho nuevo (en las lineas, con la nueva proporcion)
                 }, 80);
             };
             window.addEventListener("pointerup", onUp, true);
@@ -211,6 +351,11 @@ patch(ListRenderer.prototype, {
                 observer = new ResizeObserver(onResize);
                 observer.observe(this.tableRef.el.parentNode);
             }
+            // Odoo vuelve a poner sus propios anchos al cambiar la ventana: se corrige en el mismo instante.
+            if (window.MutationObserver) {
+                mutationObserver = new MutationObserver(onMutated);
+                mutationObserver.observe(this.tableRef.el, { attributes: true, attributeFilter: ["style"], subtree: true });
+            }
         });
         onPatched(apply);
         onWillUnmount(() => {
@@ -218,6 +363,9 @@ patch(ListRenderer.prototype, {
             clearTimeout(resizeTimer);
             if (observer) {
                 observer.disconnect();
+            }
+            if (mutationObserver) {
+                mutationObserver.disconnect();
             }
         });
     },
