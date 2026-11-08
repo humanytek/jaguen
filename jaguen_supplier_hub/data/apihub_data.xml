@@ -128,6 +128,33 @@
             <field name="notes">Portal de distribuidores (requiere login). El precio de la página trae IVA; el AVCO lleva flete (x 1.12). Grupo Fábrica: no mueve las reglas de precio de venta.</field>
         </record>
 
+        <record id="provider_dcm" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">DC Mayorista</field>
+            <field name="code">dcm</field>
+            <field name="sequence">60</field>
+            <field name="partner_pattern">dc mayorista</field>
+            <field name="source_type">file</field>
+            <field name="native_currency">mixed</field>
+            <field name="avco_factor">1.08</field>
+            <field name="max_data_age_hours">720</field>
+            <field name="notes">Grupo Distribuidor (Javier, 2026-11-08). Flete 8 % (avco_factor 1.08): bodegas en CDMX (Cedis Anahuac, Laguna de Mayran 300, Col. Anahuac) y Tlalnepantla (Cedis Ceylan, Av. Jesus Reyes Heroles 69); ninguna en Hermosillo. Algunas veces ayudan con el flete en pedidos de 20 a 30 mil pesos (a lo mejor la mitad); no apoyaron en tarima de papel e higienico. Es el mayorista de pedidos.com: comprar aqui sale mejor. Sin API: el portal usa reCAPTCHA; el catalogo se baja a mano en 11 Excel por categoria y se convierte con tools/dcm_to_feed.py. Costos de lista de distribuidor (sin descuento).</field>
+        </record>
+
+        <record id="provider_cva" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">CVA (Comercializadora de Valor Agregado)</field>
+            <field name="code">cva</field>
+            <field name="sequence">70</field>
+            <field name="partner_pattern">valor agregado</field>
+            <field name="source_type">robot</field>
+            <field name="native_currency">mixed</field>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Grupo Distribuidor (Javier, 2026-11-08). Pendiente: como se baja el catalogo (portal Tienda en linea, o servicio XML con el numero de cliente) y su flete.</field>
+        </record>
+
         <!-- Almacenes que cuentan para publicar en la Fase 1 -->
         <record id="rule_ct_hmo" model="apihub.warehouse.rule">
             <field name="provider_id" ref="provider_ct"/>
