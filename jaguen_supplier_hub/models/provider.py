@@ -11,7 +11,8 @@ class ApihubProvider(models.Model):
     code = fields.Selection(
         [("ct", "CT"), ("ingram", "Ingram"), ("loma", "Loma"), ("syscom", "Syscom"), ("exel", "Exel"),
          ("costco", "Costco"), ("electronisonora", "Electronisonora (Steren)"), ("homedepot", "Home Depot"), ("sablon", "Acrílicos Sablon"),
-         ("dcm", "DC Mayorista"), ("cva", "CVA (Comercializadora de Valor Agregado)")],
+         ("dcm", "DC Mayorista"), ("cva", "CVA (Comercializadora de Valor Agregado)"),
+         ("ebenezer", "Ebenezer Papelera (JPR)"), ("tuksonora", "Tuksonora")],
         string="Clave", required=True,
     )
     sequence = fields.Integer(default=10)
@@ -130,6 +131,15 @@ class ApihubProvider(models.Model):
         string="Existencia ilimitada (tienda)", default=False,
         help="Tiendas donde se compra al momento (Costco, Home Depot, Steren, Amazon, Walmart...): siempre se considera que hay "
              "existencia local. Un producto con un proveedor así queda como entrega rápida y se publica solo (si tiene foto).")
+    manual_order = fields.Boolean(
+        string="Su orden es manual (no se reordena)", default=False,
+        help="Los productos que tienen a este proveedor NO se reordenan solos: el orden de Compras lo pone una persona (fabrica 1, "
+             "Tuksonora 2). Ebenezer (cuenta como fabrica en papel Xerox, Newell y Bic). Javier, 2026-11-16.")
+    local_source = fields.Boolean(
+        string="Entrega local siempre (Hermosillo)", default=False,
+        help="Proveedor que siempre puede entregar hoy o mañana en Hermosillo (Tuksonora). SOLO en los productos que lo tienen (y que "
+             "no son de Computo y Tecnologia) el Proveedor 1 sale primero de entre los que entregan local (este, o uno con existencia en "
+             "Hermosillo), luego de los que tienen existencia nacional y luego el mas barato. Los demas productos no cambian. Javier, 2026-11-16.")
     card_fee_pct = fields.Float(
         string="Cargo de tarjeta (%)", default=0.0, digits=(12, 2),
         help="Solo proveedores de tienda: se suma al precio de la página (Costco 2 %).")
