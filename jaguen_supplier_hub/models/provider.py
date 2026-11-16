@@ -131,6 +131,11 @@ class ApihubProvider(models.Model):
         string="Existencia ilimitada (tienda)", default=False,
         help="Tiendas donde se compra al momento (Costco, Home Depot, Steren, Amazon, Walmart...): siempre se considera que hay "
              "existencia local. Un producto con un proveedor así queda como entrega rápida y se publica solo (si tiene foto).")
+    local_source = fields.Boolean(
+        string="Entrega local siempre (Hermosillo)", default=False,
+        help="Proveedor que siempre puede entregar hoy o mañana en Hermosillo (Tuksonora). En la papelería sin fuente de fábrica, "
+             "el Proveedor 1 sale de entre los proveedores que pueden entregar local (este, o uno con existencia en Hermosillo); "
+             "los demás van después, aunque cuesten menos. Javier, 2026-11-16.")
     card_fee_pct = fields.Float(
         string="Cargo de tarjeta (%)", default=0.0, digits=(12, 2),
         help="Solo proveedores de tienda: se suma al precio de la página (Costco 2 %).")
