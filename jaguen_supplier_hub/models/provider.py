@@ -11,7 +11,8 @@ class ApihubProvider(models.Model):
     code = fields.Selection(
         [("ct", "CT"), ("ingram", "Ingram"), ("loma", "Loma"), ("syscom", "Syscom"), ("exel", "Exel"),
          ("costco", "Costco"), ("electronisonora", "Electronisonora (Steren)"), ("homedepot", "Home Depot"), ("sablon", "Acrílicos Sablon"),
-         ("dcm", "DC Mayorista"), ("cva", "CVA (Comercializadora de Valor Agregado)")],
+         ("dcm", "DC Mayorista"), ("cva", "CVA (Comercializadora de Valor Agregado)"),
+         ("ebenezer", "Ebenezer Papelera (JPR)"), ("tuksonora", "Tuksonora")],
         string="Clave", required=True,
     )
     sequence = fields.Integer(default=10)

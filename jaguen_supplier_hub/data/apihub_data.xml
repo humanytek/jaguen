@@ -155,6 +155,35 @@
             <field name="notes">Grupo Distribuidor (Javier, 2026-11-08). Pendiente: como se baja el catalogo (portal Tienda en linea, o servicio XML con el numero de cliente) y su flete.</field>
         </record>
 
+        <record id="provider_ebenezer" model="apihub.provider">
+            <field name="order_code_source">provider_sku</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Ebenezer Papelera (JPR)</field>
+            <field name="code">ebenezer</field>
+            <field name="sequence">80</field>
+            <field name="partner_pattern">ebenezer</field>
+            <field name="source_type">api</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="max_data_age_hours">72</field>
+            <field name="notes">Grupo Distribuidor (Javier, 2026-11-15). Sub-proveedor de JPR (JP Representaciones, portal jprepresentaciones.com.mx): BIC, Newell/Berol/Sharpie/Expo/Paper Mate, Pritt y papel Xerox. Sin flete en pedidos de 20,000 + IVA o mas (avco_factor 1.0); credito a 30 dias sin descuento financiero; sale de Monterrey. La lista trae el precio SIN IVA. La lista no trae existencia: el proveedor no publica ni despublica productos solo. Las promociones de fabrica (12+2) no cuentan: se compra la caja de 12 y las 2 piezas de regalo no se toman en cuenta. Papel bond Xerox: los precios que ya estaban en Odoo son precios ESPECIALES por tarima de 48 cajas (Oficio 36): estan en Precios especiales y no se mueven. Lista: portal de JPR, POST /api/listas-precios/proveedor (tools/ebenezer_sync.py); la contrasena vive en ~/jp.env del servidor, nunca en el repo.</field>
+        </record>
+
+        <record id="provider_tuksonora" model="apihub.provider">
+            <field name="order_code_source">provider_sku</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Tuksonora</field>
+            <field name="code">tuksonora</field>
+            <field name="sequence">90</field>
+            <field name="partner_pattern">tuksonora</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="cost_factor">0.95</field>
+            <field name="max_data_age_hours">72</field>
+            <field name="notes">Grupo Distribuidor (Javier, 2026-11-15). Mayorista de papeleria de Hermosillo, Cd. Obregon y Culiacan. Sin API: el catalogo completo sale de la pagina publica (tienda Shopify): https://www.tuksonora.com/products.json (tools/tuksonora_sync.py, sin login). El precio de la pagina INCLUYE IVA: las equivalencias van con 'El precio trae IVA' y el motor lo quita. Descuento: 5 % por default (cost_factor 0.95), 7.85 % desde 30,000 y 10 % desde 50,000; hoy se cuenta el 5 %. Sin flete. La pagina no trae existencia (solo disponible si/no): no publica ni despublica solo.</field>
+        </record>
+
         <!-- Almacenes que cuentan para publicar en la Fase 1 -->
         <record id="rule_ct_hmo" model="apihub.warehouse.rule">
             <field name="provider_id" ref="provider_ct"/>
