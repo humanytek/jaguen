@@ -70,6 +70,7 @@
                             <field name="avco_factor"/>
                             <field name="pricing_group"/>
                             <field name="local_source"/>
+                            <field name="manual_order"/>
                             <field name="price_margin_pct"/>
                             <field name="order_code_source"/>
                             <field name="price_freight_pct"/>

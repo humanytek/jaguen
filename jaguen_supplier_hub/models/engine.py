@@ -470,19 +470,24 @@ class ApihubEngine(models.AbstractModel):
                 continue
             # Proveedor 1 = el de menor costo efectivo (con existencia primero), solo cuando TODOS los proveedores del
             # producto son del ApiHub (los demas, como Amazon o compras directas, no tienen archivo y no se reordenan solos)
-            # y NINGUNO es fuente de fabrica (Grupo Fabrica, ej. Ebenezer en BIC/Newell/papel Xerox): con fabrica el orden es
+            # y NINGUNO tiene el orden manual (Ebenezer, que cuenta como fabrica en BIC/Newell/papel Xerox): con fabrica el orden es
             # manual (fabrica 1, Tuksonora 2) y el precio de venta sale de la fabrica. Javier, 2026-11-16.
             # Computo y Tecnologia: existencia nacional primero, luego el mas barato (como hasta hoy). Resto (papeleria sin
             # fabrica): primero los que entregan local (Tuksonora, o Exel con existencia en Hermosillo), luego el mas barato.
-            if all(s.partner_id.id in group_of for s in lines) and not any(group_of[s.partner_id.id].pricing_group == "fabrica" for s in lines):
+            if all(s.partner_id.id in group_of for s in lines) and not any(group_of[s.partner_id.id].manual_order for s in lines):
                 tech = (tmpl.categ_id.complete_name or "").startswith("Computo y Tecnologia") if tmpl.categ_id else False
+                has_local_source = any(group_of[s.partner_id.id].local_source for s in lines)
                 keyed = {}
                 for s in lines:
                     prov = group_of[s.partner_id.id]
                     link = links.get((tmpl.id, prov.id))
                     has, eff = self._effective_cost(tmpl, s, prov, link, last, rules_of)
-                    first_rank = has if tech else self._is_local(prov, link, last)
-                    keyed[s.id] = (0 if first_rank else 1, eff, s.id)
+                    # Lo de siempre: (existencia nacional, costo). SOLO si el producto tiene un proveedor que siempre entrega local
+                    # (Tuksonora) y no es de Computo y Tecnologia: (entrega local, existencia nacional, costo). Javier, 2026-11-16: no se
+                    # mueve nada de lo que ya funcionaba; los demas productos se ordenan exactamente como antes.
+                    rank = (0 if has else 1,) if (tech or not has_local_source) else \
+                        (0 if self._is_local(prov, link, last) else 1, 0 if has else 1)
+                    keyed[s.id] = (rank, eff, s.id)
                 ordered = lines.sorted(lambda s: keyed[s.id])
                 current = lines.sorted(lambda s: (s.sequence, s.id))[0]
                 best = ordered[0]

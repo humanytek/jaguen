@@ -158,6 +158,7 @@
         <record id="provider_ebenezer" model="apihub.provider">
             <field name="order_code_source">provider_sku</field>
             <field name="pricing_group">fabrica</field>
+            <field name="manual_order" eval="True"/>
             <field name="name">Ebenezer Papelera (JPR)</field>
             <field name="code">ebenezer</field>
             <field name="sequence">80</field>
