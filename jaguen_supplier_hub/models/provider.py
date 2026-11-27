@@ -12,7 +12,8 @@ class ApihubProvider(models.Model):
         [("ct", "CT"), ("ingram", "Ingram"), ("loma", "Loma"), ("syscom", "Syscom"), ("exel", "Exel"),
          ("costco", "Costco"), ("electronisonora", "Electronisonora (Steren)"), ("homedepot", "Home Depot"), ("sablon", "Acrílicos Sablon"),
          ("dcm", "DC Mayorista"), ("cva", "CVA (Comercializadora de Valor Agregado)"),
-         ("ebenezer", "Ebenezer Papelera (JPR)"), ("tuksonora", "Tuksonora")],
+         ("ebenezer", "Ebenezer Papelera (JPR)"), ("tuksonora", "Tuksonora"),
+         ("casamyers", "Casa Myers")],
         string="Clave", required=True,
     )
     sequence = fields.Integer(default=10)
