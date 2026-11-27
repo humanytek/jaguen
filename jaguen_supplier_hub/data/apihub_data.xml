@@ -186,6 +186,20 @@
             <field name="notes">Grupo Distribuidor (Javier, 2026-11-15). Mayorista de papeleria de Hermosillo, Cd. Obregon y Culiacan. Sin API: el catalogo completo sale de la pagina publica (tienda Shopify): https://www.tuksonora.com/products.json (tools/tuksonora_sync.py, sin login). El precio de la pagina INCLUYE IVA: las equivalencias van con 'El precio trae IVA' y el motor lo quita. Descuento: 5 % por default (cost_factor 0.95), 7.85 % desde 30,000 y 10 % desde 50,000; hoy se cuenta el 5 %. Sin flete. La pagina no trae existencia (solo disponible si/no): no publica ni despublica solo.</field>
         </record>
 
+        <record id="provider_casamyers" model="apihub.provider">
+            <field name="order_code_source">none</field>
+            <field name="pricing_group">distribuidor</field>
+            <field name="name">Casa Myers</field>
+            <field name="code">casamyers</field>
+            <field name="sequence">100</field>
+            <field name="partner_pattern">casa myers</field>
+            <field name="source_type">web</field>
+            <field name="native_currency">MXN</field>
+            <field name="has_stock_data" eval="False"/>
+            <field name="max_data_age_hours">48</field>
+            <field name="notes">Grupo Distribuidor (Javier, 2026-11-27). Precio de casamyers.com.mx: el precio de la pagina YA incluye IVA (las equivalencias van con 'El precio trae IVA' y el motor lo quita). Sin flete ni descuentos. Sin API: tools/web_sync.py casamyers lee el JSON-LD (offers.price) de la pagina de cada producto ligado. La pagina no trae existencia: no publica ni despublica solo.</field>
+        </record>
+
         <!-- Almacenes que cuentan para publicar en la Fase 1 -->
         <record id="rule_ct_hmo" model="apihub.warehouse.rule">
             <field name="provider_id" ref="provider_ct"/>
